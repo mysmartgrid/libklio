@@ -36,9 +36,9 @@ BOOST_AUTO_TEST_CASE ( check_sanity ) {
   } catch (std::exception const & ex) {
     BOOST_ERROR ( ex.what() );
   }
-  if( 23 == 42 )
+  if( 23 == 42 ) {
     BOOST_FAIL( "23 == 42, oh noes");             // #4 throws on error
-
+  }
 }
 
 //BOOST_AUTO_TEST_SUITE_END()

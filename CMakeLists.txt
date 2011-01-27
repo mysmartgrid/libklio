@@ -54,7 +54,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wno-non-virtual-dtor -Werror")
 # always set these flags
 set(CMAKE_CXX_FLAGS "-Wall ")
 
-FIND_PACKAGE(Boost 1.34.1 COMPONENTS unit_test_framework iostreams )
+FIND_PACKAGE(Boost 1.34.1 COMPONENTS unit_test_framework iostreams test_exec_monitor )
 
 include_directories(${CMAKE_BINARY_DIR})
 
@@ -67,7 +67,7 @@ add_subdirectory(libklio)
 add_subdirectory(tests)
 
 # add some files to the installation target
-INSTALL(FILES README LICENSE DESTINATION share/doc/libplugwise)
+INSTALL(FILES README LICENSE DESTINATION share/doc/libklio)
 
 # CPACK packaging
 INCLUDE(InstallRequiredSystemLibraries)

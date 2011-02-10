@@ -6,7 +6,7 @@ set(storetest_src ${all_storetest_src})
 add_executable(storetest ${storetest_src})
 
 # Link the executable 
-target_link_libraries(storetest klio ${Boost_LIBRARIES} )
+target_link_libraries(storetest klio klio_sqlite3 ${Boost_LIBRARIES} )
 
 # add programs to the install target - do not install the hashbench benchmark program.
 #INSTALL(PROGRAMS 

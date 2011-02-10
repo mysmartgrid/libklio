@@ -21,6 +21,8 @@
 #define BOOST_TEST_MODULE store_test
 #include <boost/test/unit_test.hpp>
 #include <iostream>
+#include <libklio/store.hpp>
+#include <libklio/store-factory.hpp>
 
 /**
  * see http://www.boost.org/doc/libs/1_43_0/libs/test/doc/html/tutorials/hello-the-testing-world.html
@@ -41,4 +43,22 @@ BOOST_AUTO_TEST_CASE ( check_sanity ) {
   }
 }
 
+BOOST_AUTO_TEST_CASE ( check_create_storage_sqlite3 ) {
+  std::cout << "Testing create storage utility for SQLite3" << std::endl;
+  klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
+  klio::Store::Ptr store(factory->createStore(klio::SQLITE3));
+  std::cout << "Created: " << store->str() << std::endl;
+  try {
+    store->open();
+  } catch (klio::StoreException const& ex) {
+    std::cout << "Caught invalid exception: " << ex.what() << std::endl;
+  }
+  try {
+    klio::Store::Ptr invalid_store(factory->createStore(klio::UNDEFINED));
+    BOOST_FAIL( "No exception occured for invalid createStore request" );
+  } catch (klio::GenericException const & ex) {
+    std::cout << "Caught valid exception: " << ex.what() << std::endl;
+  }
+   
+}
 //BOOST_AUTO_TEST_SUITE_END()

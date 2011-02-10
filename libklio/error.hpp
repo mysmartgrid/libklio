@@ -25,7 +25,7 @@
 #include <string>
 #include <exception>
 
-namespace plugwise {
+namespace klio {
   class GenericException : public std::exception {
 	public:
 	  typedef std::tr1::shared_ptr<GenericException> Ptr;
@@ -42,7 +42,7 @@ namespace plugwise {
 	public:
 	  typedef std::tr1::shared_ptr<CommunicationException> Ptr;
 	  CommunicationException (const std::string reason) :
-		plugwise::GenericException(reason) {};
+		klio::GenericException(reason) {};
 	  virtual ~CommunicationException() throw() {};
 
   };
@@ -51,10 +51,20 @@ namespace plugwise {
 	public:
 	  typedef std::tr1::shared_ptr<DataFormatException> Ptr;
 	  DataFormatException (const std::string reason) :
-		plugwise::GenericException(reason) {};
+		klio::GenericException(reason) {};
 	  virtual ~DataFormatException() throw() {};
 
   };
+
+  class StoreException : public GenericException{
+	public:
+	  typedef std::tr1::shared_ptr<StoreException> Ptr;
+	  StoreException (const std::string reason) :
+		klio::GenericException(reason) {};
+	  virtual ~StoreException() throw() {};
+
+  };
+
 }
 
 #endif /* LIBKLIO_ERROR_HPP */

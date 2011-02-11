@@ -11,8 +11,9 @@ namespace klio {
       typedef std::tr1::shared_ptr<SQLite3Store> Ptr;
       SQLite3Store (const std::string& filename) :
         _filename(filename) {};
-      virtual void createSensor();
+      virtual void addSensor();
       void open();
+      void initialize();
       void close();
       const std::string str(); 
       virtual ~SQLite3Store() {
@@ -22,6 +23,7 @@ namespace klio {
     private:
       SQLite3Store (const SQLite3Store& original);
       SQLite3Store& operator= (const SQLite3Store& rhs);
+      bool has_table(std::string name);
       sqlite3 *db;
       std::string _filename;
   };

@@ -11,9 +11,10 @@ namespace klio {
       typedef std::tr1::shared_ptr<Store> Ptr;
       Store () {};
       virtual void open() = 0;
+      virtual void initialize() = 0;
       virtual void close() = 0;
       // getSensor: get singleton for sensor, data insertion + retrieval works over this one
-      virtual void createSensor() = 0;
+      virtual void addSensor() = 0;
       // deleteSensor
       virtual const std::string str() = 0;
       virtual ~Store() {};

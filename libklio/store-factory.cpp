@@ -7,7 +7,9 @@ using namespace klio;
 
 Store::Ptr StoreFactory::createStore(const STORETYPE& type) {
   if (type == klio::SQLITE3) {
-    return Store::Ptr(new SQLite3Store("foostore.db"));
+    Store::Ptr retval(new SQLite3Store("foostore.db"));
+    retval->open();
+    return retval;
   } else {
     throw DataFormatException("Unknown storage type requested.");
   }

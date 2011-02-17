@@ -3,6 +3,7 @@
 
 #include <libklio/common.hpp>
 #include <libklio/store.hpp>
+#include <vector>
 #include <sqlite3.h>
 
 namespace klio {
@@ -11,7 +12,9 @@ namespace klio {
       typedef std::tr1::shared_ptr<SQLite3Store> Ptr;
       SQLite3Store (const std::string& filename) :
         _filename(filename) {};
-      virtual void addSensor();
+      virtual void addSensor(klio::Sensor::Ptr sensor);
+      virtual klio::Sensor::Ptr getSensor(const klio::Sensor::uuid_t& uuid);
+      virtual std::vector<klio::Sensor::uuid_t> getSensorUUIDs();
       void open();
       void initialize();
       void close();

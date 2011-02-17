@@ -66,16 +66,32 @@ BOOST_AUTO_TEST_CASE ( check_sensor_interface ) {
 }
 
 BOOST_AUTO_TEST_CASE ( check_create_sensor_sqlite3 ) {
-  std::cout << "Testing create storage utility for SQLite3" << std::endl;
-  klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
   try {
+    std::cout << "Testing sensor creation for the SQLite3 store" << std::endl;
+    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+    klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", 1)); 
+    klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
     klio::Store::Ptr store(factory->createStore(klio::SQLITE3));
     std::cout << "Created: " << store->str() << std::endl;
-    store->open(); // Second call to open - should not break
-    store->initialize();
-  } catch (klio::StoreException const& ex) {
-    std::cout << "Caught invalid exception: " << ex.what() << std::endl;
-    BOOST_FAIL( "Unexpected store exception occured during sensor test" );
+    try {
+      store->initialize();
+      store->addSensor(sensor1);
+      std::cout << "added: " << sensor1->str() << std::endl;
+      klio::Sensor::Ptr loadedSensor1(store->getSensor(sensor1->uuid()));
+      std::cout << "loaded: " << loadedSensor1->str() << std::endl;
+
+    } catch (klio::StoreException const& ex) {
+      std::cout << "Caught invalid exception: " << ex.what() << std::endl;
+      BOOST_FAIL( "Unexpected store exception occured during sensor test" );
+    } 
+    try {
+      store->addSensor(sensor1);
+      BOOST_FAIL( "No exception occured during duplicate sensor add request" );
+    } catch (klio::StoreException const& ex) {
+      std::cout << "Caught expected exception: " << ex.what() << std::endl;
+      //ok.
+    } 
+
   } catch (std::exception const& ex) {
     BOOST_FAIL( "Unexpected exception occured during sensor test" );
   }

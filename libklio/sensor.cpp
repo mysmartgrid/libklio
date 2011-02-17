@@ -4,6 +4,9 @@
 
 using namespace klio;
 
+const std::string Sensor::uuid_string() const { 
+  return to_string(_uuid); 
+};
 
 const std::string Sensor::str() {
   std::ostringstream oss;

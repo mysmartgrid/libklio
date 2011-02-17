@@ -197,16 +197,18 @@ klio::Sensor::Ptr SQLite3Store::getSensor(const klio::Sensor::uuid_t& uuid) {
     sqlite3_finalize(stmt);
     throw StoreException(oss.str());
   }
-  const unsigned char* select_uuid = sqlite3_column_text(stmt, 1);
-  const unsigned char* select_name = sqlite3_column_text(stmt, 2);
-  const unsigned char* select_unit = sqlite3_column_text(stmt, 3);
-  int select_timezone = sqlite3_column_int(stmt, 4);
-  sqlite3_clear_bindings(stmt);
-  sqlite3_reset(stmt);
-  sqlite3_finalize(stmt);
+  const unsigned char* select_uuid = sqlite3_column_text(stmt, 0);
+  const unsigned char* select_name = sqlite3_column_text(stmt, 1);
+  const unsigned char* select_unit = sqlite3_column_text(stmt, 2);
+  int select_timezone = sqlite3_column_int(stmt, 3);
+  std::cout << " -> " << select_uuid << " . " << select_name << " . " << select_timezone << std::endl;
 
-  return (sensor_factory->createSensor(
+  klio::Sensor::Ptr retval(sensor_factory->createSensor(
         std::string((char*)select_name), 
         std::string((char*)select_unit), 
         select_timezone)); 
+  sqlite3_clear_bindings(stmt);
+  sqlite3_reset(stmt);
+  sqlite3_finalize(stmt);
+  return retval;
 }

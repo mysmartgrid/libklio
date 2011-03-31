@@ -20,7 +20,8 @@ namespace klio {
       const std::string unit() const { return _unit; };
       const uint8_t timezone() const { return _timezone; };
 
-      int operator == (const Sensor& rhs);
+      bool operator == (const Sensor& rhs);
+      bool operator != (const Sensor& rhs);
 
     private:
       Sensor (const Sensor& original);

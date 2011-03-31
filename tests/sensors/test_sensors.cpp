@@ -79,7 +79,11 @@ BOOST_AUTO_TEST_CASE ( check_create_sensor_sqlite3 ) {
       std::cout << "added: " << sensor1->str() << std::endl;
       klio::Sensor::Ptr loadedSensor1(store->getSensor(sensor1->uuid()));
       std::cout << "loaded: " << loadedSensor1->str() << std::endl;
-
+      if ((*sensor1) != (*loadedSensor1)) {
+        BOOST_FAIL("loaded sensor differs from its original.");
+      } else {
+        std::cout << "WIN! sensor restored successfully." << std::endl;
+      }
     } catch (klio::StoreException const& ex) {
       std::cout << "Caught invalid exception: " << ex.what() << std::endl;
       BOOST_FAIL( "Unexpected store exception occured during sensor test" );

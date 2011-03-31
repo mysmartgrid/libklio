@@ -16,10 +16,19 @@ const std::string Sensor::str() {
 }
 
 
-int Sensor::operator == (const Sensor& rhs) {
+bool Sensor::operator == (const Sensor& rhs) {
+  std::cout << "DOOOO" << std::endl;
+  LOG("name: " << _name << " == " << rhs.name());
+  LOG("uuid: " << _uuid << " == " << rhs.uuid());
+  LOG("unit: " << _unit << " == " << rhs.unit());
+  LOG("timezone: " << (int)_timezone << " == " << (int)rhs.timezone());
   if (_name==rhs.name() && _uuid==rhs.uuid() &&
       _unit==rhs.unit() && _timezone==rhs.timezone())
-    return 1;
+    return true;
   else
-    return 0;
+    return false;
+}
+
+bool Sensor::operator != (const Sensor& rhs) {
+  return not operator==(rhs);
 }

@@ -104,8 +104,11 @@ bool SQLite3Store::has_table(std::string name) {
 }
 
 const std::string SQLite3Store::str() { 
-  return std::string("sqlite3 store"); 
+  std::ostringstream oss;
+  oss << "SQLite3 database, stored in file " << _filename; 
+  return oss.str();
 };
+
 
 void SQLite3Store::addSensor(klio::Sensor::Ptr sensor) {
   int rc;
@@ -167,7 +170,7 @@ klio::Sensor::Ptr SQLite3Store::getSensor(const klio::Sensor::uuid_t& uuid) {
   const char* pzTail ;
   klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
 
-  LOG("Adding to store: " << sensor);
+  LOG("Attempting to load sensor " << uuid);
   if (!has_table("sensors")) {
     std::ostringstream oss;
     oss << "table sensors is missing in " << str();
@@ -204,6 +207,7 @@ klio::Sensor::Ptr SQLite3Store::getSensor(const klio::Sensor::uuid_t& uuid) {
   std::cout << " -> " << select_uuid << " . " << select_name << " . " << select_timezone << std::endl;
 
   klio::Sensor::Ptr retval(sensor_factory->createSensor(
+        std::string((char*)select_uuid), 
         std::string((char*)select_name), 
         std::string((char*)select_unit), 
         select_timezone)); 

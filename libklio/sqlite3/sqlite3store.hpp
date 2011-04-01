@@ -27,6 +27,7 @@ namespace klio {
       SQLite3Store (const SQLite3Store& original);
       SQLite3Store& operator= (const SQLite3Store& rhs);
       bool has_table(std::string name);
+      bool checkSensorTable();
       sqlite3 *db;
       std::string _filename;
   };

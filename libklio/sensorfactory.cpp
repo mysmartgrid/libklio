@@ -20,7 +20,7 @@ klio::Sensor::Ptr SensorFactory::createSensor(
     const uint8_t timezone
     ) 
 {
-  // convert uuid_string to real uuid type
+  // type conversion: uuid_string to real uuid type
   boost::uuids::uuid u;
   std::stringstream ss;
   ss << uuid_string;

@@ -63,4 +63,7 @@ BOOST_AUTO_TEST_CASE ( check_create_storage_sqlite3 ) {
   }
 
 }
+
+  
+
 //BOOST_AUTO_TEST_SUITE_END()

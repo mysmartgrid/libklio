@@ -19,6 +19,9 @@ const std::string insertSensorStmt(
 const std::string selectSensorStmt(
     "SELECT uuid,name,unit,timezone FROM sensors where (uuid=?1)"
     );
+const std::string selectAllSensorUUIDsStmt(
+    "SELECT uuid FROM sensors"
+    );
 
 // Opens a Database file.
 void SQLite3Store::open () {
@@ -116,11 +119,8 @@ void SQLite3Store::addSensor(klio::Sensor::Ptr sensor) {
   const char* pzTail ;
 
   LOG("Adding to store: " << sensor);
-  if (!has_table("sensors")) {
-    std::ostringstream oss;
-    oss << "table sensors is missing in " << str();
-    throw StoreException(oss.str());
-  }
+
+  checkSensorTable();
 
   rc=sqlite3_prepare_v2(
       db,            /* Database handle */
@@ -154,12 +154,47 @@ void SQLite3Store::addSensor(klio::Sensor::Ptr sensor) {
 
 }
 
+bool SQLite3Store::checkSensorTable() {
+  if (!has_table("sensors")) {
+    std::ostringstream oss;
+    oss << "table sensors is missing in " << str();
+    throw StoreException(oss.str());
+  }
+}
+
 std::vector<klio::Sensor::uuid_t> SQLite3Store::getSensorUUIDs() {
-  LOG("Retrieving UUIDs from store." );
+  int rc;
+  sqlite3_stmt* stmt;
+  const char* pzTail ;
   std::vector<klio::Sensor::uuid_t> uuids;
-  boost::uuids::random_generator _gen;
-  for (uint8_t i=0; i<10; ++i) {
-    uuids.push_back(_gen());
+
+  LOG("Retrieving UUIDs from store." );
+  checkSensorTable();
+  rc=sqlite3_prepare_v2(
+      db,            /* Database handle */
+      selectAllSensorUUIDsStmt.c_str(),       /* SQL statement, UTF-8 encoded */
+      -1,              /* Maximum length of zSql in bytes - read complete string. */
+      &stmt,  /* OUT: Statement handle */
+      &pzTail     /* OUT: Pointer to unused portion of zSql */
+    );
+  if( rc!=SQLITE_OK ){
+    std::ostringstream oss;
+    oss << "Can't prepare sensor select statement: " << sqlite3_errmsg(db) << ", error code " << rc;
+    sqlite3_finalize(stmt);
+    throw StoreException(oss.str());
+  }
+
+  //sqlite3_bind_text(stmt, 1, to_string(uuid).c_str(), -1, SQLITE_TRANSIENT);
+
+  while (SQLITE_ROW == sqlite3_step(stmt)) {
+    const unsigned char* select_uuid = sqlite3_column_text(stmt, 0);
+    std::cout << " -> " << select_uuid  << std::endl;
+     // type conversion: uuid_string to real uuid type
+    boost::uuids::uuid u;
+    std::stringstream ss;
+    ss << select_uuid;
+    ss >> u;
+    uuids.push_back(u);
   }
   return uuids;
 }
@@ -171,11 +206,8 @@ klio::Sensor::Ptr SQLite3Store::getSensor(const klio::Sensor::uuid_t& uuid) {
   klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
 
   LOG("Attempting to load sensor " << uuid);
-  if (!has_table("sensors")) {
-    std::ostringstream oss;
-    oss << "table sensors is missing in " << str();
-    throw StoreException(oss.str());
-  }
+  checkSensorTable();
+
 
   rc=sqlite3_prepare_v2(
       db,            /* Database handle */
@@ -183,7 +215,7 @@ klio::Sensor::Ptr SQLite3Store::getSensor(const klio::Sensor::uuid_t& uuid) {
       -1,              /* Maximum length of zSql in bytes - read complete string. */
       &stmt,  /* OUT: Statement handle */
       &pzTail     /* OUT: Pointer to unused portion of zSql */
-    );
+      );
   if( rc!=SQLITE_OK ){
     std::ostringstream oss;
     oss << "Can't prepare sensor select statement: " << sqlite3_errmsg(db) << ", error code " << rc;

@@ -25,6 +25,7 @@
 #include <libklio/store-factory.hpp>
 #include <libklio/sensor.hpp>
 #include <libklio/sensorfactory.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 /**
  * see http://www.boost.org/doc/libs/1_43_0/libs/test/doc/html/tutorials/hello-the-testing-world.html
@@ -100,4 +101,56 @@ BOOST_AUTO_TEST_CASE ( check_create_sensor_sqlite3 ) {
     BOOST_FAIL( "Unexpected exception occured during sensor test" );
   }
 }
+
+
+BOOST_AUTO_TEST_CASE ( check_retrieve_sensor_uuids_sqlite3 ) {
+  try {
+    std::cout << "Testing sensor uuid query for the SQLite3 store" << std::endl;
+    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+    klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", 1)); 
+    klio::Sensor::Ptr sensor2(sensor_factory->createSensor("sensor2", "Watt", 1)); 
+    klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
+    klio::Store::Ptr store(factory->createStore(klio::SQLITE3));
+    std::cout << "Created: " << store->str() << std::endl;
+    try {
+      store->initialize();
+      store->addSensor(sensor1);
+      store->addSensor(sensor2);
+      std::cout << "added: " << sensor1->str() << std::endl;
+      std::cout << "added: " << sensor2->str() << std::endl;
+      std::vector<klio::Sensor::uuid_t> uuids = store->getSensorUUIDs();
+      std::vector<klio::Sensor::uuid_t>::iterator it;
+      for(  it = uuids.begin(); it < uuids.end(); it++) {
+        std::cout << "Found Sensor: " << to_string(*it) << std::endl;
+      }
+     
+      it = find (uuids.begin(), uuids.end(), sensor1->uuid());
+      if (*it != sensor1->uuid())
+        BOOST_FAIL("sensor1 not retrieved from store.");
+
+      it = find (uuids.begin(), uuids.end(), sensor2->uuid());
+      if (*it != sensor2->uuid())
+        BOOST_FAIL("sensor2 not retrieved from store.");
+
+    } catch (klio::StoreException const& ex) {
+      std::cout << "Caught invalid exception: " << ex.what() << std::endl;
+      BOOST_FAIL( "Unexpected store exception occured during sensor test" );
+    } 
+  } catch (std::exception const& ex) {
+    BOOST_FAIL( "Unexpected exception occured during sensor test" );
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 //BOOST_AUTO_TEST_SUITE_END()

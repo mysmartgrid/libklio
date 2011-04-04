@@ -19,7 +19,7 @@ namespace klio {
       virtual void addSensor(klio::Sensor::Ptr sensor) = 0;
       virtual klio::Sensor::Ptr getSensor(const klio::Sensor::uuid_t& uuid) = 0;
       virtual std::vector<klio::Sensor::uuid_t> getSensorUUIDs() = 0;
-      // deleteSensor
+      virtual void removeSensor(const klio::Sensor::Ptr sensor) = 0;
       virtual const std::string str() = 0;
       virtual ~Store() {};
     private:

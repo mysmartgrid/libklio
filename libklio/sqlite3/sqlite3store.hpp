@@ -13,6 +13,7 @@ namespace klio {
       SQLite3Store (const std::string& filename) :
         _filename(filename) {};
       virtual void addSensor(klio::Sensor::Ptr sensor);
+      virtual void removeSensor(const klio::Sensor::Ptr sensor);
       virtual klio::Sensor::Ptr getSensor(const klio::Sensor::uuid_t& uuid);
       virtual std::vector<klio::Sensor::uuid_t> getSensorUUIDs();
       void open();
@@ -26,8 +27,11 @@ namespace klio {
     private:
       SQLite3Store (const SQLite3Store& original);
       SQLite3Store& operator= (const SQLite3Store& rhs);
+      void transaction_begin ();
+      void transaction_commit ();
+      void transaction_rollback ();
       bool has_table(std::string name);
-      bool checkSensorTable();
+      void checkSensorTable();
       sqlite3 *db;
       std::string _filename;
   };

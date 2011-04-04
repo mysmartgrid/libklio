@@ -22,6 +22,10 @@ const std::string selectSensorStmt(
 const std::string selectAllSensorUUIDsStmt(
     "SELECT uuid FROM sensors"
     );
+//TODO: Change this to real prepared statement
+const std::string removeSensorStmt(
+    "DELETE FROM sensors WHERE (uuid=?1)"
+    );
 
 // Opens a Database file.
 void SQLite3Store::open () {
@@ -34,6 +38,33 @@ void SQLite3Store::open () {
   }
 }
 
+void SQLite3Store::transaction_begin () {
+  if ( sqlite3_exec(db, "BEGIN", 0, 0, 0) ){
+    std::ostringstream oss;
+    oss << "Can't begin transaction: " << sqlite3_errmsg(db);
+    sqlite3_close(db);
+    throw StoreException(oss.str());
+  }
+}
+
+void SQLite3Store::transaction_commit () {
+  if ( sqlite3_exec(db, "COMMIT", 0, 0, 0) ){
+    sqlite3_exec(db, "ROLLBACK", 0, 0, 0);
+    std::ostringstream oss;
+    oss << "Can't commit changes to database: " << sqlite3_errmsg(db);
+    sqlite3_close(db);
+    throw StoreException(oss.str());
+  }
+}
+
+void SQLite3Store::transaction_rollback () {
+  if ( sqlite3_exec(db, "ROLLBACK", 0, 0, 0) ){
+    std::ostringstream oss;
+    oss << "Can't roll back database transaction: " << sqlite3_errmsg(db);
+    sqlite3_close(db);
+    throw StoreException(oss.str());
+  }
+}
 
 void SQLite3Store::initialize() {
   int rc;
@@ -79,8 +110,9 @@ bool SQLite3Store::has_table(std::string name) {
   int rc;
   sqlite3_stmt* stmt;
   const char* pzTail ;
-  const std::string hasSensorTableStmt("select * from sqlite_master where name='sensors';");
-
+  std::ostringstream oss;
+  oss << "select * from sqlite_master where name='" << name << "';";
+  std::string hasSensorTableStmt(oss.str());
 
   rc=sqlite3_prepare(
       db,                               /* Database handle */
@@ -118,9 +150,11 @@ void SQLite3Store::addSensor(klio::Sensor::Ptr sensor) {
   sqlite3_stmt* stmt;
   const char* pzTail ;
 
-  LOG("Adding to store: " << sensor);
+  LOG("Adding to store: " << sensor->str());
 
   checkSensorTable();
+
+  transaction_begin();
 
   rc=sqlite3_prepare_v2(
       db,            /* Database handle */
@@ -133,6 +167,7 @@ void SQLite3Store::addSensor(klio::Sensor::Ptr sensor) {
     std::ostringstream oss;
     oss << "Can't prepare sensor insertion statement: " << sqlite3_errmsg(db) << ", error code " << rc;
     sqlite3_finalize(stmt);
+    transaction_rollback();
     throw StoreException(oss.str());
   }
 
@@ -146,20 +181,122 @@ void SQLite3Store::addSensor(klio::Sensor::Ptr sensor) {
     std::ostringstream oss;
     oss << "Can't execute sensor insertion statement: " << sqlite3_errmsg(db) << ", error code " << rc;
     sqlite3_finalize(stmt);
+    transaction_rollback();
+    throw StoreException(oss.str());
+  }
+  sqlite3_clear_bindings(stmt);
+  sqlite3_reset(stmt);
+
+  std::ostringstream oss;
+  oss << "CREATE TABLE '" << sensor->uuid_string() <<"'(timestamp INTEGER PRIMARY KEY, value DOUBLE);";
+  std::string createValueTableStmt(oss.str());
+
+  rc=sqlite3_prepare_v2(
+      db,            /* Database handle */
+      createValueTableStmt.c_str(),       /* SQL statement, UTF-8 encoded */
+      -1,              /* Maximum length of zSql in bytes - read complete string. */
+      &stmt,  /* OUT: Statement handle */
+      &pzTail     /* OUT: Pointer to unused portion of zSql */
+    );
+  if( rc!=SQLITE_OK ){
+    std::ostringstream oss;
+    oss << "Can't prepare value table insertion statement: " << sqlite3_errmsg(db) << ", error code " << rc;
+    sqlite3_finalize(stmt);
+    transaction_rollback();
+    throw StoreException(oss.str());
+  }
+
+  rc=sqlite3_step(stmt);
+  if( rc!=SQLITE_DONE ) {  // sqlite3_step has finished, no further result lines available
+    std::ostringstream oss;
+    oss << "Can't execute value table insertion statement: " << sqlite3_errmsg(db) << ", error code " << rc;
+    sqlite3_finalize(stmt);
+    transaction_rollback();
+    throw StoreException(oss.str());
+  }
+
+  sqlite3_clear_bindings(stmt);
+  sqlite3_reset(stmt);
+  sqlite3_finalize(stmt);
+  transaction_commit();
+}
+
+void SQLite3Store::checkSensorTable() {
+  if (!has_table("sensors")) {
+    std::ostringstream oss;
+    oss << "table sensors is missing in " << str();
+    throw StoreException(oss.str());
+  }
+}
+
+void SQLite3Store::removeSensor(const klio::Sensor::Ptr sensor) {
+  int rc;
+  sqlite3_stmt* stmt;
+  const char* pzTail ;
+
+  checkSensorTable();
+  transaction_begin();
+
+  rc=sqlite3_prepare_v2(
+      db,            /* Database handle */
+      removeSensorStmt.c_str(),       /* SQL statement, UTF-8 encoded */
+      -1,              /* Maximum length of zSql in bytes - read complete string. */
+      &stmt,  /* OUT: Statement handle */
+      &pzTail     /* OUT: Pointer to unused portion of zSql */
+    );
+  if( rc!=SQLITE_OK ){
+    std::ostringstream oss;
+    oss << "Can't prepare sensor remove statement: " << sqlite3_errmsg(db) << ", error code " << rc;
+    sqlite3_finalize(stmt);
+    transaction_rollback();
+    throw StoreException(oss.str());
+  }
+
+  sqlite3_bind_text(stmt, 1, sensor->uuid_string().c_str(), -1, SQLITE_TRANSIENT);
+
+  rc=sqlite3_step(stmt);
+  if( rc!=SQLITE_DONE ) {  // sqlite3_step has finished, no further result lines available
+    std::ostringstream oss;
+    oss << "Can't execute sensor remove statement: " << sqlite3_errmsg(db) << ", error code " << rc;
+    sqlite3_finalize(stmt);
+    transaction_rollback();
+    throw StoreException(oss.str());
+  }
+  sqlite3_clear_bindings(stmt);
+  sqlite3_reset(stmt);
+
+  std::ostringstream oss;
+  oss << "DROP TABLE '" << sensor->uuid_string() <<"';";
+  std::string dropValueTableStmt(oss.str());
+
+  rc=sqlite3_prepare_v2(
+      db,            /* Database handle */
+      dropValueTableStmt.c_str(),       /* SQL statement, UTF-8 encoded */
+      -1,              /* Maximum length of zSql in bytes - read complete string. */
+      &stmt,  /* OUT: Statement handle */
+      &pzTail     /* OUT: Pointer to unused portion of zSql */
+    );
+  if( rc!=SQLITE_OK ){
+    std::ostringstream oss;
+    oss << "Can't prepare drop value table statement: " << sqlite3_errmsg(db) << ", error code " << rc;
+    sqlite3_finalize(stmt);
+    transaction_rollback();
+    throw StoreException(oss.str());
+  }
+
+  rc=sqlite3_step(stmt);
+  if( rc!=SQLITE_DONE ) {  // sqlite3_step has finished, no further result lines available
+    std::ostringstream oss;
+    oss << "Can't execute drop value table statement: " << sqlite3_errmsg(db) << ", error code " << rc;
+    sqlite3_finalize(stmt);
+    transaction_rollback();
     throw StoreException(oss.str());
   }
   sqlite3_clear_bindings(stmt);
   sqlite3_reset(stmt);
   sqlite3_finalize(stmt);
 
-}
-
-bool SQLite3Store::checkSensorTable() {
-  if (!has_table("sensors")) {
-    std::ostringstream oss;
-    oss << "table sensors is missing in " << str();
-    throw StoreException(oss.str());
-  }
+  transaction_commit();
 }
 
 std::vector<klio::Sensor::uuid_t> SQLite3Store::getSensorUUIDs() {
@@ -188,7 +325,7 @@ std::vector<klio::Sensor::uuid_t> SQLite3Store::getSensorUUIDs() {
 
   while (SQLITE_ROW == sqlite3_step(stmt)) {
     const unsigned char* select_uuid = sqlite3_column_text(stmt, 0);
-    std::cout << " -> " << select_uuid  << std::endl;
+    //std::cout << " -> " << select_uuid  << std::endl;
      // type conversion: uuid_string to real uuid type
     boost::uuids::uuid u;
     std::stringstream ss;
@@ -196,6 +333,9 @@ std::vector<klio::Sensor::uuid_t> SQLite3Store::getSensorUUIDs() {
     ss >> u;
     uuids.push_back(u);
   }
+  sqlite3_clear_bindings(stmt);
+  sqlite3_reset(stmt);
+  sqlite3_finalize(stmt);
   return uuids;
 }
 

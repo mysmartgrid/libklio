@@ -27,9 +27,6 @@ namespace klio {
     private:
       SQLite3Store (const SQLite3Store& original);
       SQLite3Store& operator= (const SQLite3Store& rhs);
-      void transaction_begin ();
-      void transaction_commit ();
-      void transaction_rollback ();
       bool has_table(std::string name);
       void checkSensorTable();
       sqlite3 *db;

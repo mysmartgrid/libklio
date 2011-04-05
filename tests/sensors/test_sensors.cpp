@@ -18,7 +18,6 @@
  *
  */
 
-#define BOOST_TEST_MODULE sensors_test
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <libklio/store.hpp>
@@ -27,26 +26,9 @@
 #include <libklio/sensorfactory.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
-/**
- * see http://www.boost.org/doc/libs/1_43_0/libs/test/doc/html/tutorials/hello-the-testing-world.html
- */
-
-BOOST_AUTO_TEST_CASE ( check_sanity ) {
-  try {
-    std::cout << "Demo test case: Checking world sanity." << std::endl;
-    BOOST_CHECK_EQUAL (42, 42);
-    BOOST_CHECK( 23 != 42 );        // #1 continues on error
-    BOOST_REQUIRE( 23 != 42 );      // #2 throws on error
-
-  } catch (std::exception const & ex) {
-    BOOST_ERROR ( ex.what() );
-  }
-  if( 23 == 42 ) {
-    BOOST_FAIL( "23 == 42, oh noes");             // #4 throws on error
-  }
-}
 
 BOOST_AUTO_TEST_CASE ( check_sensor_interface ) {
+  std::cout << std::endl << "*** Checking sensor semantics." << std::endl;
   klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
   klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", 1)); 
   std::cout << "Created " << sensor1->str() << std::endl;

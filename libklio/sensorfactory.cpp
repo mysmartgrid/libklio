@@ -7,7 +7,7 @@ using namespace klio;
 klio::Sensor::Ptr SensorFactory::createSensor(
     const std::string& name, 
     const std::string& unit, 
-    const uint8_t timezone) 
+    const std::string& timezone) 
 {
   boost::uuids::uuid u = _gen();
   return createSensor(u, name, unit, timezone);
@@ -17,7 +17,7 @@ klio::Sensor::Ptr SensorFactory::createSensor(
     const std::string& uuid_string, 
     const std::string& name, 
     const std::string& unit, 
-    const uint8_t timezone
+    const std::string& timezone
     ) 
 {
   // type conversion: uuid_string to real uuid type
@@ -32,7 +32,7 @@ klio::Sensor::Ptr SensorFactory::createSensor(
     const Sensor::uuid_t& uuid,
     const std::string& name, 
     const std::string& unit, 
-    const uint8_t timezone) 
+    const std::string& timezone) 
 {
   return Sensor::Ptr(new Sensor(uuid, name, unit, timezone));
 }

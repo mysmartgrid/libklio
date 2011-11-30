@@ -147,7 +147,7 @@ void SQLite3Store::addSensor(klio::Sensor::Ptr sensor) {
   sqlite3_bind_text(stmt, 1, sensor->uuid_string().c_str(), -1, SQLITE_TRANSIENT);
   sqlite3_bind_text(stmt, 2, sensor->name().c_str(), -1, SQLITE_TRANSIENT);
   sqlite3_bind_text(stmt, 3, sensor->unit().c_str(), -1, SQLITE_TRANSIENT);
-  sqlite3_bind_int(stmt, 4, sensor->timezone());
+  sqlite3_bind_text(stmt, 4, sensor->timezone().c_str(), -1, SQLITE_TRANSIENT);
 
   rc=sqlite3_step(stmt);
   if( rc!=SQLITE_DONE ) {  // sqlite3_step has finished, no further result lines available
@@ -315,7 +315,6 @@ klio::Sensor::Ptr SQLite3Store::getSensor(const klio::Sensor::uuid_t& uuid) {
   LOG("Attempting to load sensor " << uuid);
   checkSensorTable();
 
-
   rc=sqlite3_prepare_v2(
       db,            /* Database handle */
       selectSensorStmt.c_str(),       /* SQL statement, UTF-8 encoded */
@@ -342,16 +341,62 @@ klio::Sensor::Ptr SQLite3Store::getSensor(const klio::Sensor::uuid_t& uuid) {
   const unsigned char* select_uuid = sqlite3_column_text(stmt, 0);
   const unsigned char* select_name = sqlite3_column_text(stmt, 1);
   const unsigned char* select_unit = sqlite3_column_text(stmt, 2);
-  int select_timezone = sqlite3_column_int(stmt, 3);
+  const unsigned char* select_timezone = sqlite3_column_text(stmt, 3);
   std::cout << " -> " << select_uuid << " . " << select_name << " . " << select_timezone << std::endl;
 
   klio::Sensor::Ptr retval(sensor_factory->createSensor(
         std::string((char*)select_uuid), 
         std::string((char*)select_name), 
         std::string((char*)select_unit), 
-        select_timezone)); 
+        std::string((char*)select_timezone))); 
   sqlite3_clear_bindings(stmt);
   sqlite3_reset(stmt);
   sqlite3_finalize(stmt);
+  return retval;
+}
+
+
+static int empty_callback(void *NotUsed, int argc, char **argv, char **azColName){
+  for (int i=0; i< argc; i++)
+    printf("%s,\t", argv[i]);
+  printf("\n");
+  return 0;
+}
+
+void SQLite3Store::add_reading(klio::Sensor::Ptr sensor, 
+    timestamp_t timestamp, double value) {
+  int rc;
+  sqlite3_stmt* stmt;
+  const char* pzTail;
+
+  LOG("Adding to sensor: " << sensor->str() 
+      << " time=" << timestamp
+      << " value="<< value);
+
+  checkSensorTable();
+
+  std::ostringstream oss;
+  oss << "INSERT INTO '" << sensor->uuid_string() << "' "; 
+  oss << "(timestamp, value) VALUES";
+  oss << "(" << klio::convert_to_epoch(timestamp) << ", " << value << ");";
+  std::string insertStmt=oss.str();
+
+  std::cout << "Using SQL: " << insertStmt << std::endl;
+
+  char* zErrMsg=0;
+  rc=sqlite3_exec(db, insertStmt.c_str(), empty_callback, NULL, &zErrMsg);
+  if( rc!=SQLITE_OK ) {  // sqlite3_step has finished, no further result lines available
+    std::ostringstream oss;
+    oss << "Can't execute value insertion statement: " << zErrMsg << ", error code " << rc;
+    throw StoreException(oss.str());
+  }
+}
+
+
+std::map<timestamp_t, double> SQLite3Store::get_all_readings(
+    klio::Sensor::Ptr sensor) const {
+  std::cout << "Returning all readings." << std::endl;
+  std::map<timestamp_t, double> retval;
+  //TODO: Retrieve all readings from the storage backend.
   return retval;
 }

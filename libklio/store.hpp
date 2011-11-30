@@ -12,6 +12,7 @@ namespace klio {
     public:
       typedef std::tr1::shared_ptr<Store> Ptr;
       Store () {};
+      virtual ~Store() {};
       virtual void open() = 0;
       virtual void initialize() = 0;
       virtual void close() = 0;
@@ -21,7 +22,10 @@ namespace klio {
       virtual std::vector<klio::Sensor::uuid_t> getSensorUUIDs() = 0;
       virtual void removeSensor(const klio::Sensor::Ptr sensor) = 0;
       virtual const std::string str() = 0;
-      virtual ~Store() {};
+      // methods for managing readings
+      virtual void add_reading(klio::Sensor::Ptr sensor, timestamp_t timestamp, double value) = 0;
+      virtual std::map<timestamp_t, double> get_all_readings(klio::Sensor::Ptr sensor) const = 0;
+
     private:
       Store (const Store& original);
       Store& operator= (const Store& rhs);

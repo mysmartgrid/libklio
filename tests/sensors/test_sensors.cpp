@@ -30,11 +30,11 @@
 BOOST_AUTO_TEST_CASE ( check_sensor_interface ) {
   std::cout << std::endl << "*** Checking sensor semantics." << std::endl;
   klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-  klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", 1)); 
+  klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", "MEZ")); 
   std::cout << "Created " << sensor1->str() << std::endl;
-  klio::Sensor::Ptr sensor1a(sensor_factory->createSensor("sensor1", "Watt", 1)); 
+  klio::Sensor::Ptr sensor1a(sensor_factory->createSensor("sensor1", "Watt", "MEZ")); 
   std::cout << "Created " << sensor1a->str() << std::endl;
-  klio::Sensor::Ptr sensor2(sensor_factory->createSensor("sensor2", "Watt-Hours", 1)); 
+  klio::Sensor::Ptr sensor2(sensor_factory->createSensor("sensor2", "Watt-Hours", "MEZ")); 
   std::cout << "Created " << sensor2->str() << std::endl;
   if (sensor1 != sensor1) {
     BOOST_FAIL("Sensor is not identical to itself.");
@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE ( check_create_sensor_sqlite3 ) {
   try {
     std::cout << std::endl << "*** Testing sensor creation for the SQLite3 store" << std::endl;
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-    klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", 1)); 
+    klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", "MEZ")); 
     klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
     klio::Store::Ptr store(factory->createStore(klio::SQLITE3));
     std::cout << "Created: " << store->str() << std::endl;
@@ -90,8 +90,8 @@ BOOST_AUTO_TEST_CASE ( check_retrieve_sensor_uuids_sqlite3 ) {
   try {
     std::cout << std::endl << "*** Testing sensor uuid query for the SQLite3 store" << std::endl;
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-    klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", 1)); 
-    klio::Sensor::Ptr sensor2(sensor_factory->createSensor("sensor2", "Watt", 1)); 
+    klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", "MEZ")); 
+    klio::Sensor::Ptr sensor2(sensor_factory->createSensor("sensor2", "Watt", "MEZ")); 
     klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
     klio::Store::Ptr store(factory->createStore(klio::SQLITE3));
     std::cout << "Created: " << store->str() << std::endl;
@@ -131,7 +131,7 @@ BOOST_AUTO_TEST_CASE ( check_remove_sensor_sqlite3 ) {
   try {
     std::cout << std::endl << "*** Testing sensor removal SQLite3 store" << std::endl;
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-    klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", 1)); 
+    klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", "MEZ")); 
     klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
     klio::Store::Ptr store(factory->createStore(klio::SQLITE3));
     std::cout << "Created: " << store->str() << std::endl;
@@ -168,14 +168,6 @@ BOOST_AUTO_TEST_CASE ( check_remove_sensor_sqlite3 ) {
     BOOST_FAIL( "Unexpected exception occured during sensor test" );
   }
 }
-
-
-
-
-
-
-
-
 
 
 

@@ -44,6 +44,7 @@
 #endif
 
 #include <libklio/error.hpp>
+#include <libklio/time.hpp>
 #include <stdint.h>
 #include <string>
 
@@ -60,6 +61,7 @@ namespace klio {
       VersionInfo& operator= (const VersionInfo& rhs);
       
   };
+
 };
 
 #endif /* LIBKLIO_COMMON_HPP */

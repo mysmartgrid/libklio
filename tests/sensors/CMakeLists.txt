@@ -5,6 +5,7 @@ include_directories(${CMAKE_SOURCE_DIR}
 set(sensorstest_src 
   test_data.cpp
   test_sensors.cpp
+  test_readings.cpp
   main.cpp
 )
           

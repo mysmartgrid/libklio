@@ -35,7 +35,7 @@ BOOST_AUTO_TEST_CASE ( check_sensor_data_points ) {
   try {
     std::cout << std::endl << "*** Testing data points for a sensor." << std::endl;
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-    klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", 1)); 
+    klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", "MEZ")); 
     std::cout << "Created: " << sensor1->str() << std::endl;
 //    try {
 //      klio::Sensor::Ptr loadedSensor1(store->getSensor(sensor1->uuid()));

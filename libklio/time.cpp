@@ -35,3 +35,10 @@ long klio::convert_to_epoch(klio::timestamp_t time) {
   return (local_time.utc_time() - time_t_epoch).total_seconds();
 }
 
+klio::timestamp_t klio::convert_from_epoch(long epoch) {
+  ptime pt(not_a_date_time);
+  std::time_t t=epoch;
+  pt = from_time_t(t);
+  return pt; 
+}
+

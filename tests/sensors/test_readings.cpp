@@ -49,6 +49,12 @@ BOOST_AUTO_TEST_CASE ( check_add_retrieve_reading ) {
       // now, retrieve it and check.
       std::map<klio::timestamp_t, double> readings = 
         store->get_all_readings(sensor1);
+      std::map<klio::timestamp_t, double>::iterator it;
+      for(  it = readings.begin(); it != readings.end(); it++) {
+        std::cout << (*it).first << " - " << (*it).second << std::endl;
+      }
+      
+      // TODO: Implement check for correct values.
 
       // cleanup 
       store->removeSensor(sensor1);

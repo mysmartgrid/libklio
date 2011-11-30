@@ -24,7 +24,7 @@ namespace klio {
       virtual const std::string str() = 0;
       // methods for managing readings
       virtual void add_reading(klio::Sensor::Ptr sensor, timestamp_t timestamp, double value) = 0;
-      virtual std::map<timestamp_t, double> get_all_readings(klio::Sensor::Ptr sensor) const = 0;
+      virtual std::map<timestamp_t, double> get_all_readings(klio::Sensor::Ptr sensor) = 0;
 
     private:
       Store (const Store& original);

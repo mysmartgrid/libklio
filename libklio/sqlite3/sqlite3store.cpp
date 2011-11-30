@@ -356,6 +356,9 @@ klio::Sensor::Ptr SQLite3Store::getSensor(const klio::Sensor::uuid_t& uuid) {
 }
 
 
+/**
+ * Dummy helper for sqlite3_exec - dumps the return values.
+ */
 static int empty_callback(void *NotUsed, int argc, char **argv, char **azColName){
   for (int i=0; i< argc; i++)
     printf("%s,\t", argv[i]);
@@ -366,8 +369,6 @@ static int empty_callback(void *NotUsed, int argc, char **argv, char **azColName
 void SQLite3Store::add_reading(klio::Sensor::Ptr sensor, 
     timestamp_t timestamp, double value) {
   int rc;
-  sqlite3_stmt* stmt;
-  const char* pzTail;
 
   LOG("Adding to sensor: " << sensor->str() 
       << " time=" << timestamp
@@ -392,11 +393,43 @@ void SQLite3Store::add_reading(klio::Sensor::Ptr sensor,
   }
 }
 
+/**
+ * Dummy helper for sqlite3_exec - dumps the return values.
+ */
+static int log_readings_callback(void *map, int argc, char **argv, char **azColName){
+  std::map<timestamp_t, double>* datastore=(std::map<timestamp_t, double>*) map;
+  datastore->insert(std::pair<timestamp_t,double>(
+          klio::convert_from_epoch((long)argv[0]),
+          ((double) *argv[1])
+        ));
+  for (int i=0; i< argc; i++)
+    printf("%s,\t", argv[i]);
+  printf("\n");
+  return 0;
+}
 
 std::map<timestamp_t, double> SQLite3Store::get_all_readings(
-    klio::Sensor::Ptr sensor) const {
-  std::cout << "Returning all readings." << std::endl;
+    klio::Sensor::Ptr sensor) {
   std::map<timestamp_t, double> retval;
-  //TODO: Retrieve all readings from the storage backend.
+  int rc;
+
+  LOG("Retrieving all readings of sensor " << sensor->str());
+
+  checkSensorTable();
+
+  std::ostringstream oss;
+  oss << "SELECT timestamp, value FROM '" << sensor->uuid_string() << "' "; 
+  std::string selectStmt=oss.str();
+
+  std::cout << "Using SQL: " << selectStmt << std::endl;
+
+  char* zErrMsg=0;
+  rc=sqlite3_exec(db, selectStmt.c_str(), log_readings_callback, &retval, &zErrMsg);
+  if( rc!=SQLITE_OK ) {  // sqlite3_step has finished, no further result lines available
+    std::ostringstream oss;
+    oss << "Can't execute reading select statement: " << zErrMsg << ", error code " << rc;
+    throw StoreException(oss.str());
+  }
+
   return retval;
 }

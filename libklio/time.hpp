@@ -28,6 +28,7 @@ namespace klio {
   typedef boost::posix_time::ptime timestamp_t;
   timestamp_t get_timestamp();
   long convert_to_epoch(klio::timestamp_t time);
+  klio::timestamp_t convert_from_epoch(long epoch);
 };
 
 

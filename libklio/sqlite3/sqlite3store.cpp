@@ -1,6 +1,7 @@
 #include "sqlite3store.hpp"
 #include <iostream>
 #include <sstream>
+#include <cstdio>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <libklio/sensorfactory.hpp>
@@ -383,7 +384,7 @@ void SQLite3Store::add_reading(klio::Sensor::Ptr sensor,
   oss << "(" << tc->convert_to_epoch(timestamp) << ", " << value << ");";
   std::string insertStmt=oss.str();
 
-  std::cout << "Using SQL: " << insertStmt << std::endl;
+  //std::cout << "Using SQL: " << insertStmt << std::endl;
 
   char* zErrMsg=0;
   rc=sqlite3_exec(db, insertStmt.c_str(), empty_callback, NULL, &zErrMsg);
@@ -400,13 +401,13 @@ void SQLite3Store::add_reading(klio::Sensor::Ptr sensor,
 static int log_readings_callback(void *map, int argc, char **argv, char **azColName){
   std::map<timestamp_t, double>* datastore=(std::map<timestamp_t, double>*) map;
   klio::TimeConverter::Ptr tc(new klio::TimeConverter());
+  long epoch = atol(argv[0]);
+  double value = atof(argv[1]);
   datastore->insert(std::pair<timestamp_t,double>(
-          tc->convert_from_epoch((long)argv[0]),
-          ((double) *argv[1])
+          tc->convert_from_epoch(epoch),
+          value
         ));
-  for (int i=0; i< argc; i++)
-    printf("%s,\t", argv[i]);
-  printf("\n");
+  //std::cout << epoch << " - " << value << std::endl;
   return 0;
 }
 
@@ -423,7 +424,7 @@ std::map<timestamp_t, double> SQLite3Store::get_all_readings(
   oss << "SELECT timestamp, value FROM '" << sensor->uuid_string() << "' "; 
   std::string selectStmt=oss.str();
 
-  std::cout << "Using SQL: " << selectStmt << std::endl;
+  //std::cout << "Using SQL: " << selectStmt << std::endl;
 
   char* zErrMsg=0;
   rc=sqlite3_exec(db, selectStmt.c_str(), log_readings_callback, &retval, &zErrMsg);

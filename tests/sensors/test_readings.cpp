@@ -52,16 +52,19 @@ BOOST_AUTO_TEST_CASE ( check_add_retrieve_reading ) {
         store->get_all_readings(sensor1);
       std::map<klio::timestamp_t, double>::iterator it;
       for(  it = readings.begin(); it != readings.end(); it++) {
-        std::cout << (*it).first << " - " << (*it).second << std::endl;
+        klio::timestamp_t ts1=(*it).first;
+        double val1=(*it).second;
+        std::cout << "Got timestamp " << ts1 << " -> value " << val1 << std::endl;
+        BOOST_CHECK_EQUAL (timestamp, ts1);
+        BOOST_CHECK_EQUAL (reading, val1);
       }
-      
-      // TODO: Implement check for correct values.
-
+            
       // cleanup 
       store->removeSensor(sensor1);
     } catch (klio::StoreException const& ex) {
       std::cout << "Caught invalid exception: " << ex.what() << std::endl;
       BOOST_FAIL( "Unexpected store exception occured during sensor test" );
+      //store->removeSensor(sensor1);
     } 
   } catch (std::exception const& ex) {
     BOOST_FAIL( "Unexpected exception occured during sensor test" );

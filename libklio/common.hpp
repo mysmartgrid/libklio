@@ -44,7 +44,6 @@
 #endif
 
 #include <libklio/error.hpp>
-#include <libklio/time.hpp>
 #include <stdint.h>
 #include <string>
 

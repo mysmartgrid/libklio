@@ -20,15 +20,30 @@
 #ifndef LIBKLIO_TIME_HPP
 #define LIBKLIO_TIME_HPP 1
 
-
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <libklio/common.hpp>
+#include <ctime>
 
 namespace klio {
   // We use unix timestamps to represent time in this library.
-  typedef boost::posix_time::ptime timestamp_t;
-  timestamp_t get_timestamp();
-  long convert_to_epoch(klio::timestamp_t time);
-  klio::timestamp_t convert_from_epoch(long epoch);
+  typedef time_t timestamp_t;
+  class TimeConverter {
+    public:
+      typedef std::tr1::shared_ptr<TimeConverter> Ptr;
+      TimeConverter () {};
+      virtual ~TimeConverter() {};
+
+      timestamp_t get_timestamp();
+      long convert_to_epoch(klio::timestamp_t time);
+      timestamp_t convert_from_epoch(long epoch);
+      std::string str_local(timestamp_t time);
+      std::string str_utc(timestamp_t time);
+
+    private:
+      TimeConverter (const TimeConverter& original);
+      TimeConverter& operator= (const TimeConverter& rhs);
+
+  };
+
 };
 
 

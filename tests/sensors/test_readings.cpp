@@ -42,7 +42,8 @@ BOOST_AUTO_TEST_CASE ( check_add_retrieve_reading ) {
       store->addSensor(sensor1);
       std::cout << "added to store: " << sensor1->str() << std::endl;
       // insert a reading.
-      klio::timestamp_t timestamp=klio::get_timestamp();
+      klio::TimeConverter::Ptr tc(new klio::TimeConverter());
+      klio::timestamp_t timestamp=tc->get_timestamp();
       double reading=23;
       store->add_reading(sensor1, timestamp, reading);
 

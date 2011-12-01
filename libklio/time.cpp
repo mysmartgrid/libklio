@@ -18,27 +18,39 @@
  *
  */
 #include "time.hpp"
-#include "boost/date_time/local_time/local_time.hpp"
+#include <sstream>
 
-using namespace boost::posix_time;
-using namespace boost::local_time;
-using namespace boost::gregorian;
 
-klio::timestamp_t klio::get_timestamp() {
-  return second_clock::local_time();
+using namespace klio;
+
+timestamp_t TimeConverter::get_timestamp() {
+  std::time_t rawtime;
+  std::time ( &rawtime );
+  return rawtime;
 }
 
-long klio::convert_to_epoch(klio::timestamp_t time) {
-  timestamp_t time_t_epoch(date(1970,1,1));
-  time_zone_ptr zone(new posix_time_zone("MST-07"));
-  local_date_time local_time(time, zone);
-  return (local_time.utc_time() - time_t_epoch).total_seconds();
+long TimeConverter::convert_to_epoch(timestamp_t time) {
+  return time;
 }
 
-klio::timestamp_t klio::convert_from_epoch(long epoch) {
-  ptime pt(not_a_date_time);
-  std::time_t t=epoch;
-  pt = from_time_t(t);
-  return pt; 
+timestamp_t TimeConverter::convert_from_epoch(long epoch) {
+  return std::time(&epoch); 
 }
 
+std::string TimeConverter::str_local(timestamp_t time) {
+  struct tm * timeinfo;
+  //std::time ( &time );
+  timeinfo = localtime ( &time );
+  std::ostringstream oss;
+  oss << asctime(timeinfo);
+  return oss.str();
+}
+
+std::string TimeConverter::str_utc(timestamp_t time) {
+  struct tm * timeinfo;
+  //std::time ( &time );
+  timeinfo = gmtime ( &time );
+  std::ostringstream oss;
+  oss << asctime(timeinfo);
+  return oss.str();
+}

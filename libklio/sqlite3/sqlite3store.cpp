@@ -376,10 +376,11 @@ void SQLite3Store::add_reading(klio::Sensor::Ptr sensor,
 
   checkSensorTable();
 
+  klio::TimeConverter::Ptr tc(new klio::TimeConverter());
   std::ostringstream oss;
   oss << "INSERT INTO '" << sensor->uuid_string() << "' "; 
   oss << "(timestamp, value) VALUES";
-  oss << "(" << klio::convert_to_epoch(timestamp) << ", " << value << ");";
+  oss << "(" << tc->convert_to_epoch(timestamp) << ", " << value << ");";
   std::string insertStmt=oss.str();
 
   std::cout << "Using SQL: " << insertStmt << std::endl;
@@ -398,8 +399,9 @@ void SQLite3Store::add_reading(klio::Sensor::Ptr sensor,
  */
 static int log_readings_callback(void *map, int argc, char **argv, char **azColName){
   std::map<timestamp_t, double>* datastore=(std::map<timestamp_t, double>*) map;
+  klio::TimeConverter::Ptr tc(new klio::TimeConverter());
   datastore->insert(std::pair<timestamp_t,double>(
-          klio::convert_from_epoch((long)argv[0]),
+          tc->convert_from_epoch((long)argv[0]),
           ((double) *argv[1])
         ));
   for (int i=0; i< argc; i++)

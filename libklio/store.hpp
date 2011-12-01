@@ -3,6 +3,7 @@
 
 #include <libklio/common.hpp>
 #include <libklio/sensor.hpp>
+#include <libklio/time.hpp>
 #include <vector>
 
 namespace klio {

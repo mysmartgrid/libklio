@@ -1,17 +1,17 @@
 # -*- mode: cmake; -*-
-set(klio-add_src klio-add.cpp)
+set(klio-sensor_src klio-sensor.cpp)
 
 include_directories(${CMAKE_SOURCE_DIR}
                     ${CMAKE_CURRENT_SOURCE_DIR} 
                     ${Boost_INCLUDE_DIRS})
-add_executable(klio-add ${klio-add_src})
-#add_executable(foobar sourcetest.cpp)
+add_executable(klio-sensor ${klio-sensor_src})
+#sensor_executable(foobar sourcetest.cpp)
 
 # Link the executable 
-target_link_libraries(klio-add klio ${Boost_IOSTREAMS_LIBRARY})
+target_link_libraries(klio-sensor klio ${Boost_IOSTREAMS_LIBRARY} ${Boost_PROGRAM_OPTIONS_LIBRARY})
 
-# add programs to the install target - do not install the hashbench benchmark program.
+# sensor programs to the install target - do not install the hashbench benchmark program.
 INSTALL(PROGRAMS 
-  ${CMAKE_CURRENT_BINARY_DIR}/klio-add
+  ${CMAKE_CURRENT_BINARY_DIR}/klio-sensor
   DESTINATION bin)
 

@@ -9,11 +9,7 @@ set(timetest_src
           
 add_executable(timetest ${timetest_src})
 
+ADD_TEST(TimeTest ${CMAKE_CURRENT_BINARY_DIR}/timetest TestTime)
+
 # Link the executable 
 target_link_libraries(timetest klio klio_sqlite3 ${Boost_LIBRARIES} )
-
-# add programs to the install target - do not install the hashbench benchmark program.
-#INSTALL(PROGRAMS 
-#  ${CMAKE_CURRENT_BINARY_DIR}/klio-add
-#  DESTINATION bin)
-#

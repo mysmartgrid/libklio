@@ -11,11 +11,9 @@ set(sensorstest_src
           
 add_executable(sensorstest ${sensorstest_src})
 
+ADD_TEST(SensorTest ${CMAKE_CURRENT_BINARY_DIR}/sensorstest TestSenors)
+
 # Link the executable 
 target_link_libraries(sensorstest klio klio_sqlite3 ${Boost_LIBRARIES} )
 
-# add programs to the install target - do not install the hashbench benchmark program.
-#INSTALL(PROGRAMS 
-#  ${CMAKE_CURRENT_BINARY_DIR}/klio-add
-#  DESTINATION bin)
-#
+

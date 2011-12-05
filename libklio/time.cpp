@@ -34,7 +34,9 @@ long TimeConverter::convert_to_epoch(timestamp_t time) {
 }
 
 timestamp_t TimeConverter::convert_from_epoch(long epoch) {
-  return std::time(&epoch); 
+  return epoch;
+  //return reinterpret_cast<timestamp_t> (epoch);
+  //return std::time(&epoch); 
 }
 
 std::string TimeConverter::str_local(timestamp_t time) {

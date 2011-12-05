@@ -8,6 +8,8 @@ add_executable(storetest ${storetest_src})
 # Link the executable 
 target_link_libraries(storetest klio klio_sqlite3 ${Boost_LIBRARIES} )
 
+ADD_TEST(StoreTest ${CMAKE_CURRENT_BINARY_DIR}/storetest TestStore)
+
 # add programs to the install target - do not install the hashbench benchmark program.
 #INSTALL(PROGRAMS 
 #  ${CMAKE_CURRENT_BINARY_DIR}/klio-add

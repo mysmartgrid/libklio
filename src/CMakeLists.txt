@@ -10,8 +10,8 @@ add_executable(klio-store ${klio-store_src})
 #sensor_executable(foobar sourcetest.cpp)
 
 # Link the executable 
-target_link_libraries(klio-sensor klio ${Boost_IOSTREAMS_LIBRARY} ${Boost_PROGRAM_OPTIONS_LIBRARY})
-target_link_libraries(klio-store klio ${Boost_IOSTREAMS_LIBRARY} ${Boost_PROGRAM_OPTIONS_LIBRARY})
+target_link_libraries(klio-sensor klio ${Boost_LIBRARIES})
+target_link_libraries(klio-store klio klio_sqlite3 ${Boost_LIBRARIES})
 
 # sensor programs to the install target - do not install the hashbench benchmark program.
 INSTALL(PROGRAMS 

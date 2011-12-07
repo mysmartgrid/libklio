@@ -20,6 +20,8 @@
 
 #include <libklio/common.hpp>
 #include <sstream>
+#include <libklio/store.hpp>
+#include <libklio/store-factory.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/program_options.hpp>
 #include <boost/program_options/positional_options.hpp>
@@ -70,7 +72,6 @@ int main(int argc,char** argv) {
       return 1;
     } else {
       storefile=vm["storefile"].as<std::string>();
-      std::cout << "Using store file " << storefile << std::endl;
     }
 
     if (! vm.count("action")) {
@@ -79,10 +80,23 @@ int main(int argc,char** argv) {
     } else {
       //action=boost::algorithm::to_lower(vm["action"].as<std::string>());
       action=(vm["action"].as<std::string>());
-      std::cout << "Performing " << action << std::endl;
     }
 
     if (action == "create") {
+      bfs::path db(storefile);
+      if (bfs::exists(db)) {
+        std::cerr << "File " << db << " already exists, exiting." << std::endl;
+        return 2;
+      }
+      klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
+      try {
+        std::cout << "Attempting to create " << db << std::endl;
+        klio::Store::Ptr store(factory->createStore(klio::SQLITE3, db));
+        store->initialize();
+        std::cout << "Initialized store: " << store->str() << std::endl;
+      } catch (klio::StoreException const& ex) {
+        std::cout << "Failed to create: " << ex.what() << std::endl;
+      }
     }
   }
   catch(std::exception& e) {

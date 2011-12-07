@@ -43,7 +43,9 @@ int main(int argc,char** argv) {
       ("storefile,s", po::value<std::string>(), "the data store to use")
       ("id,i", po::value<std::string>(), "the id of the sensor")
       ("unit,u", po::value<std::string>(), "the unit of the sensor")
-      ("timezone,t", po::value<std::string>(), "the timezone of the sensor")
+      ("timezone,tz", po::value<std::string>(), "the timezone of the sensor")
+      ("reading,r", po::value<double>(), "the reading to add")
+      ("timestamp,t", po::value<long>(), "a timestamp to use for the reading")
       ;
     po::positional_options_description p;
     p.add("action", 1);
@@ -84,6 +86,13 @@ int main(int argc,char** argv) {
       //action=boost::algorithm::to_lower(vm["action"].as<std::string>());
       action=(vm["action"].as<std::string>());
     }
+    bfs::path db(storefile);
+    if (! bfs::exists(db)) {
+      std::cerr << "File " << db << " does not exist, exiting." << std::endl;
+      return 2;
+    }
+    klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
+    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
 
     /**
      * CREATE sensor command
@@ -94,19 +103,11 @@ int main(int argc,char** argv) {
           "to create a new sensor."<< std::endl;
         return 1;
       }
-      klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
       std::string sensor_id(vm["id"].as<std::string>());
       std::string sensor_unit(vm["unit"].as<std::string>());
       std::string sensor_timezone(vm["timezone"].as<std::string>());
       klio::Sensor::Ptr new_sensor(sensor_factory->createSensor(
             sensor_id, sensor_unit, sensor_timezone)); 
-
-      bfs::path db(storefile);
-      if (! bfs::exists(db)) {
-        std::cerr << "File " << db << " does not exist, exiting." << std::endl;
-        return 2;
-      }
-      klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
       try {
         klio::Store::Ptr store(factory->openStore(klio::SQLITE3, db));
         std::cout << "opened store: " << store->str() << std::endl;
@@ -121,12 +122,6 @@ int main(int argc,char** argv) {
      * LIST sensors command
      */
     else if (boost::iequals(action, std::string("LIST"))) {
-      bfs::path db(storefile);
-      if (! bfs::exists(db)) {
-        std::cerr << "File " << db << " does not exist, exiting." << std::endl;
-        return 2;
-      }
-      klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
       try {
         klio::Store::Ptr store(factory->openStore(klio::SQLITE3, db));
         std::cout << "opened store: " << store->str() << std::endl;
@@ -141,12 +136,76 @@ int main(int argc,char** argv) {
       } catch (klio::StoreException const& ex) {
         std::cout << "Failed to create: " << ex.what() << std::endl;
       }
+    }
 
+    /**
+     * INFO sensor command
+     */
+    else if (boost::iequals(action, std::string("INFO"))) {
+      try {
+        if ( !vm.count("id") ) {
+          std::cout << "You must specify the id of the sensor." << std::endl;
+          return 2;
+        }
+        std::string sensor_id(vm["id"].as<std::string>());
+        klio::Store::Ptr store(factory->openStore(klio::SQLITE3, db));
+        std::cout << "opened store: " << store->str() << std::endl;
+        std::vector<klio::Sensor::uuid_t> uuids = store->getSensorUUIDs();
+        std::vector<klio::Sensor::uuid_t>::iterator it;
+        for(  it = uuids.begin(); it < uuids.end(); it++) {
+          klio::Sensor::Ptr loadedSensor(store->getSensor(*it));
+          if (boost::iequals(loadedSensor->name(), sensor_id)) {
+            std::cout << "Info for sensor " << loadedSensor->name() << std::endl;
+            std::cout << " * uuid:" << loadedSensor->uuid() << std::endl;
+            std::cout << " * unit:" << loadedSensor->unit() << std::endl;
+            std::cout << " * timezone:" << loadedSensor->timezone() << std::endl;
+            std::cout << " * saved " <<  store->get_num_readings(loadedSensor)  
+              << " readings." << std::endl;
+          }
+        }
+      } catch (klio::StoreException const& ex) {
+        std::cout << "Failed to create: " << ex.what() << std::endl;
+      }
+    }
+    
+    /**
+     * ADDREADING to sensor command
+     */
+    else if (boost::iequals(action, std::string("ADDREADING"))) {
+      try {
+        if ( !vm.count("id") || !vm.count("reading") ) {
+          std::cout << "You must specify the id of the sensor and the value to add." 
+            << std::endl;
+          return 2;
+        }
+        std::string sensor_id(vm["id"].as<std::string>());
+        double reading=vm["reading"].as<double>();
+        klio::Store::Ptr store(factory->openStore(klio::SQLITE3, db));
+        std::cout << "opened store: " << store->str() << std::endl;
+        std::vector<klio::Sensor::uuid_t> uuids = store->getSensorUUIDs();
+        std::vector<klio::Sensor::uuid_t>::iterator it;
+        for(  it = uuids.begin(); it < uuids.end(); it++) {
+          klio::Sensor::Ptr loadedSensor(store->getSensor(*it));
+          if (boost::iequals(loadedSensor->name(), sensor_id)) {
+            klio::TimeConverter::Ptr tc(new klio::TimeConverter());
+            klio::timestamp_t timestamp=tc->get_timestamp();
+            if (vm.count("timestamp")) {
+              timestamp= tc->convert_to_epoch(timestamp);
+            }
+            store->add_reading(loadedSensor, timestamp, reading);
+            std::cout << "Added reading to sensor " 
+              << loadedSensor->name() << std::endl;
+          }
+        }
+      } catch (klio::StoreException const& ex) {
+        std::cout << "Failed to create: " << ex.what() << std::endl;
+      }
+    }
 
-      /**
-       * UNKNOWN command
-       */
-    } else {
+    /**
+     * UNKNOWN command
+     */
+    else {
       std::cerr << "Unknown command " << action << std::endl;
       return 1;
     }

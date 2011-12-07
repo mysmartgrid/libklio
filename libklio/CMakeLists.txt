@@ -1,11 +1,11 @@
 # -*- mode: cmake; -*-
 
-#set(hdrs 
-#  common.hpp
-#)
-#install(FILES ${hdrs} DESTINATION include/klio)
+
+file(GLOB hdrs *.h *.hpp)
+install(FILES ${hdrs} DESTINATION include/klio)
 
 configure_file(config.h.in ${CMAKE_BINARY_DIR}/config.h)
+install(FILES ${CMAKE_BINARY_DIR}/config.h DESTINATION include/klio)
 
 add_subdirectory(sqlite3)
 

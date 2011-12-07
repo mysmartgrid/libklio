@@ -1,9 +1,7 @@
 # -*- mode: cmake; -*-
 
-#set(hdrs 
-#  common.hpp
-#)
-#install(FILES ${hdrs} DESTINATION include/klio)
+file(GLOB hdrs *.h *.hpp)
+install(FILES ${hdrs} DESTINATION include/klio/sqlite3)
 
 include_directories(${CMAKE_SOURCE_DIR}
                     ${Boost_INCLUDE_DIRS}

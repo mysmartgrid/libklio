@@ -82,7 +82,7 @@ int main(int argc,char** argv) {
       action=(vm["action"].as<std::string>());
     }
 
-    if (boost::iequals(action, std::string("CREATE"))) {
+    if (boost::iequals(action, std::string("create"))) {
       bfs::path db(storefile);
       if (bfs::exists(db)) {
         std::cerr << "File " << db << " already exists, exiting." << std::endl;

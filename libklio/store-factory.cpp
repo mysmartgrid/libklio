@@ -14,3 +14,13 @@ Store::Ptr StoreFactory::createStore(const STORETYPE& type, const bfs::path& pat
     throw DataFormatException("Unknown storage type requested.");
   }
 }
+
+Store::Ptr StoreFactory::openStore(const STORETYPE& type, const bfs::path& path) {
+  if (type == klio::SQLITE3) {
+    Store::Ptr retval(new SQLite3Store(path));
+    retval->open();
+    return retval;
+  } else {
+    throw DataFormatException("Unknown storage type requested.");
+  }
+}

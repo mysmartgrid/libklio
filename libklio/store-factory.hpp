@@ -12,6 +12,7 @@ namespace klio {
       typedef std::tr1::shared_ptr<StoreFactory> Ptr;
       StoreFactory () {};
       Store::Ptr createStore(const STORETYPE& type, const bfs::path& path);
+      Store::Ptr openStore(const STORETYPE& type, const bfs::path& path);
       virtual ~StoreFactory() {};
 
     private:

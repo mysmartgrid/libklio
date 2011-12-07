@@ -1,7 +1,7 @@
 /**
  * This file is part of libklio.
  *
- * (c) Fraunhofer ITWM - Mathias Dalheimer <dalheimer@itwm.fhg.de>, 2010
+ * (c) Fraunhofer ITWM - Mathias Dalheimer <dalheimer@itwm.fhg.de>, 2011
  *
  * libklio is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,9 @@
 
 #include <libklio/common.hpp>
 #include <sstream>
+#include <libklio/store.hpp>
+#include <libklio/store-factory.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/program_options.hpp>
 #include <boost/program_options/positional_options.hpp>
 namespace po = boost::program_options;
@@ -27,69 +30,83 @@ namespace po = boost::program_options;
 int main(int argc,char** argv) {
 
   try {
-	std::ostringstream oss;
-	oss << "Usage: " << argv[0] << " ACTION [additional options]";
-	po::options_description desc(oss.str());
-	desc.add_options()
-	  ("help,h", "produce help message")
-	  ("version,v", "print libklio version and exit")
-	  ("compression", po::value<int>(), "set compression level")
-	  ("action,a", po::value<std::string>(), "the action to perform")
-	  ("storefile,s", po::value<std::string>(), "the data store to use")
-	  ;
-	po::positional_options_description p;
-	//p.add("storefile", -1);
-	p.add("action", -1);
+    std::ostringstream oss;
+    oss << "Usage: " << argv[0] << " ACTION [additional options]";
+    po::options_description desc(oss.str());
+    desc.add_options()
+      ("help,h", "produce help message")
+      ("version,v", "print libklio version and exit")
+      ("action,a", po::value<std::string>(), "the action to perform")
+      ("storefile,s", po::value<std::string>(), "the data store to use")
+      ;
+    po::positional_options_description p;
+    p.add("action", 1);
+    p.add("storefile", 1);
 
-	po::variables_map vm;
-	po::store(po::command_line_parser(argc, argv).
-		options(desc).positional(p).run(), vm);
-	po::notify(vm);
-	//po::variables_map vm;        
-	//po::store(po::parse_command_line(argc, argv, desc), vm);
-	//po::notify(vm);    
+    po::variables_map vm;
+    po::store(po::command_line_parser(argc, argv).
+        options(desc).positional(p).run(), vm);
+    po::notify(vm);
 
-	// Begin processing of commandline parameters.
-	std::string action;
-	std::string storefile;
+    // Begin processing of commandline parameters.
+    std::string action;
+    std::string storefile;
 
-	if (vm.count("help")) {
-	  std::cout << desc << std::endl;
-	  return 1;
-	}
+    if (vm.count("help")) {
+      std::cout << desc << std::endl;
+      return 1;
+    }
 
-	if (vm.count("version")) {
-	  klio::VersionInfo::Ptr vi(new klio::VersionInfo());
-	  std::cout << "klio library version " << vi->getVersion() << std::endl;
-	  return 0;
-	}
+    if (vm.count("version")) {
+      klio::VersionInfo::Ptr vi(new klio::VersionInfo());
+      std::cout << "klio library version " << vi->getVersion() << std::endl;
+      return 0;
+    }
 
-	if (! vm.count("storefile")) {
-	  std::cerr << "You must specify a store to work on." << std::endl;
-	  return 1;
-	} else {
-	  storefile=vm["storefile"].as<std::string>();
-	  std::cout << "Using store file " << storefile << std::endl;
-	}
+    if (! vm.count("storefile")) {
+      std::cerr << "You must specify a store to work on." << std::endl;
+      return 1;
+    } else {
+      storefile=vm["storefile"].as<std::string>();
+    }
 
-	if (! vm.count("action")) {
-	  std::cerr << "You must specify an action." << std::endl;
-	  return 1;
-	} else {
-	  action=vm["action"].as<std::string>();
-	  std::cout << "Performing " << action << std::endl;
-	}
+    if (! vm.count("action")) {
+      std::cerr << "You must specify an action." << std::endl;
+      return 1;
+    } else {
+      //action=boost::algorithm::to_lower(vm["action"].as<std::string>());
+      action=(vm["action"].as<std::string>());
+    }
 
+    if (boost::iequals(action, std::string("CREATE"))) {
+      klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+      klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", "MEZ")); 
 
-
+      bfs::path db(storefile);
+      if (bfs::exists(db)) {
+        std::cerr << "File " << db << " already exists, exiting." << std::endl;
+        return 2;
+      }
+      klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
+      try {
+        klio::Store::Ptr store(factory->openStore(klio::SQLITE3, db));
+        std::cout << "opened store: " << store->str() << std::endl;
+        store->
+      } catch (klio::StoreException const& ex) {
+        std::cout << "Failed to create: " << ex.what() << std::endl;
+      }
+    } else {
+      std::cerr << "Unknown command " << action << std::endl;
+      return 1;
+    }
 
   }
   catch(std::exception& e) {
-	std::cerr << "error: " << e.what() << std::endl;
-	return 1;
+    std::cerr << "error: " << e.what() << std::endl;
+    return 1;
   }
   catch(...) {
-	std::cerr << "Exception of unknown type!" << std::endl;
+    std::cerr << "Exception of unknown type!" << std::endl;
   }
 
   return 0;

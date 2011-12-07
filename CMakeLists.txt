@@ -51,8 +51,8 @@ set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_PROFILE} -Woverloaded-virtual -Wn
 set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_PROFILE} -Wno-non-virtual-dtor -pg -fprofile-arcs")
 set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_PROFILE} -ftest-coverage")
 
-# Releases are made with the release build. Optimize code.
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wno-non-virtual-dtor -Werror")
+# Releases are made with the release build. Optimize code and strip binaries.
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -s -Wno-non-virtual-dtor -Werror")
 
 # always set these flags
 set(CMAKE_CXX_FLAGS "-Wall ")
@@ -75,17 +75,20 @@ INSTALL(FILES README LICENSE DESTINATION share/doc/libklio)
 
 # CPACK packaging
 INCLUDE(InstallRequiredSystemLibraries)
+SET(CPACK_GENERATOR "STGZ;TGZ;DEB;RPM")
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "klio library")
-SET(CPACK_PACKAGE_VENDOR "Mathias Dalheimer")
+SET(CPACK_PACKAGE_VENDOR "Fraunhofer ITWM")
+SET(CPACK_PACKAGE_CONTACT "dalheimer@itwm.fhg.de")
 SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README")
 SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
 SET(CPACK_PACKAGE_VERSION_MAJOR ${V_MAJOR})
 SET(CPACK_PACKAGE_VERSION_MINOR ${V_MINOR})
 SET(CPACK_PACKAGE_VERSION_PATCH ${V_PATCH})
+SET(CPACK_STRIP_FILES "bin/klio-sensor;bin/klio-store")
+SET(CPACK_SOURCE_STRIP_FILES TRUE)
 SET(CPACK_PACKAGE_INSTALL_DIRECTORY "CMake ${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
-SET(CPACK_PACKAGE_EXECUTABLES "klio-add" "add data to an existing sensor")
-SET(CPACK_SOURCE_STRIP_FILES "")
-SET(CPACK_STRIP_FILES "bin/klio-add")
+SET(CPACK_PACKAGE_EXECUTABLES "klio-sensor" "Functions for handling sensors")
+SET(CPACK_PACKAGE_EXECUTABLES "klio-store" "Tool for dealing with sensor data stores")
 INCLUDE(CPack)
 
 

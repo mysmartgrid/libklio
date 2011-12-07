@@ -23,6 +23,8 @@
 #include <iostream>
 #include <libklio/store.hpp>
 #include <libklio/store-factory.hpp>
+#include <testconfig.h>
+
 
 /**
  * see http://www.boost.org/doc/libs/1_43_0/libs/test/doc/html/tutorials/hello-the-testing-world.html
@@ -46,8 +48,10 @@ BOOST_AUTO_TEST_CASE ( check_sanity ) {
 BOOST_AUTO_TEST_CASE ( check_create_storage_sqlite3 ) {
   std::cout << "Testing create storage utility for SQLite3" << std::endl;
   klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
+  bfs::path db(TEST_DB_FILE);
   try {
-    klio::Store::Ptr store(factory->createStore(klio::SQLITE3));
+    std::cout << "Attempting to create " << db << std::endl;
+    klio::Store::Ptr store(factory->createStore(klio::SQLITE3, db));
     std::cout << "Created: " << store->str() << std::endl;
     store->open(); // Second call to open - should not break
     store->initialize();
@@ -56,7 +60,7 @@ BOOST_AUTO_TEST_CASE ( check_create_storage_sqlite3 ) {
     BOOST_FAIL( "Unexpected exception occured for initialize request" );
   }
   try {
-    klio::Store::Ptr invalid_store(factory->createStore(klio::UNDEFINED));
+    klio::Store::Ptr invalid_store(factory->createStore(klio::UNDEFINED, db));
     BOOST_FAIL( "No exception occured for invalid createStore request" );
   } catch (klio::GenericException const & ex) {
     std::cout << "Caught valid exception: " << ex.what() << std::endl;

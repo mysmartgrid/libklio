@@ -31,7 +31,7 @@ const std::string removeSensorStmt(
 
 // Opens a Database file.
 void SQLite3Store::open () {
-  int rc = sqlite3_open(_filename.c_str(), &db);
+  int rc = sqlite3_open(_path.c_str(), &db);
   if( rc ){
     std::ostringstream oss;
     oss << "Can't open database: " << sqlite3_errmsg(db);
@@ -115,7 +115,7 @@ bool SQLite3Store::has_table(std::string name) {
 
 const std::string SQLite3Store::str() { 
   std::ostringstream oss;
-  oss << "SQLite3 database, stored in file " << _filename; 
+  oss << "SQLite3 database, stored in file " << _path; 
   return oss.str();
 };
 

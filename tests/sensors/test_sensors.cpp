@@ -25,6 +25,7 @@
 #include <libklio/sensor.hpp>
 #include <libklio/sensorfactory.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <testconfig.h>
 
 
 BOOST_AUTO_TEST_CASE ( check_sensor_interface ) {
@@ -54,7 +55,9 @@ BOOST_AUTO_TEST_CASE ( check_create_sensor_sqlite3 ) {
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
     klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", "MEZ")); 
     klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
-    klio::Store::Ptr store(factory->createStore(klio::SQLITE3));
+    bfs::path db(TEST_DB_FILE);
+    bfs::remove(db);
+    klio::Store::Ptr store(factory->createStore(klio::SQLITE3, db));
     std::cout << "Created: " << store->str() << std::endl;
     try {
       store->initialize();
@@ -93,7 +96,9 @@ BOOST_AUTO_TEST_CASE ( check_retrieve_sensor_uuids_sqlite3 ) {
     klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", "MEZ")); 
     klio::Sensor::Ptr sensor2(sensor_factory->createSensor("sensor2", "Watt", "MEZ")); 
     klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
-    klio::Store::Ptr store(factory->createStore(klio::SQLITE3));
+    bfs::path db(TEST_DB_FILE);
+    bfs::remove(db);
+    klio::Store::Ptr store(factory->createStore(klio::SQLITE3, db));
     std::cout << "Created: " << store->str() << std::endl;
     try {
       store->initialize();
@@ -133,7 +138,9 @@ BOOST_AUTO_TEST_CASE ( check_remove_sensor_sqlite3 ) {
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
     klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", "MEZ")); 
     klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
-    klio::Store::Ptr store(factory->createStore(klio::SQLITE3));
+    bfs::path db(TEST_DB_FILE);
+    bfs::remove(db);
+    klio::Store::Ptr store(factory->createStore(klio::SQLITE3, db));
     std::cout << "Created: " << store->str() << std::endl;
     try {
       store->initialize();

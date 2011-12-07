@@ -5,9 +5,9 @@
 using namespace klio;
 
 
-Store::Ptr StoreFactory::createStore(const STORETYPE& type) {
+Store::Ptr StoreFactory::createStore(const STORETYPE& type, const bfs::path& path) {
   if (type == klio::SQLITE3) {
-    Store::Ptr retval(new SQLite3Store("foostore.db"));
+    Store::Ptr retval(new SQLite3Store(path));
     retval->open();
     return retval;
   } else {

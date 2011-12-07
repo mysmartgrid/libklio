@@ -25,13 +25,15 @@
 #include <libklio/store.hpp>
 #include <vector>
 #include <sqlite3.h>
+#include <boost/filesystem.hpp>
+namespace bfs = boost::filesystem;
 
 namespace klio {
   class SQLite3Store : public Store {
     public:
       typedef std::tr1::shared_ptr<SQLite3Store> Ptr;
-      SQLite3Store (const std::string& filename) :
-        _filename(filename) {};
+      SQLite3Store (const bfs::path& path) :
+        _path(path) {};
       virtual void addSensor(klio::Sensor::Ptr sensor);
       virtual void removeSensor(const klio::Sensor::Ptr sensor);
       virtual klio::Sensor::Ptr getSensor(const klio::Sensor::uuid_t& uuid);
@@ -54,7 +56,7 @@ namespace klio {
       bool has_table(std::string name);
       void checkSensorTable();
       sqlite3 *db;
-      std::string _filename;
+      bfs::path _path;
   };
   
 };

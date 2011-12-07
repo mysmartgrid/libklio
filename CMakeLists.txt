@@ -58,7 +58,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wno-non-virtual-dtor -Werror")
 set(CMAKE_CXX_FLAGS "-Wall ")
 
 FIND_PACKAGE(Sqlite)
-FIND_PACKAGE(Boost 1.34.1 COMPONENTS iostreams test_exec_monitor program_options)
+FIND_PACKAGE(Boost 1.34.1 COMPONENTS iostreams test_exec_monitor program_options filesystem system)
 
 include_directories(${CMAKE_BINARY_DIR})
 
@@ -95,6 +95,8 @@ message("***** Configuration *****")
 message("  prefix: ${CMAKE_INSTALL_PREFIX}")
 message("  boost include: ${Boost_INCLUDE_DIRS}")
 message("  boost program options lib: ${Boost_PROGRAM_OPTIONS_LIBRARY}")
-message("  sqlite include: ${SQLITE3_INCLUDE_DIR}, lib: ${SQLITE3_LIBRARIES}")
+message("  boost system lib: ${Boost_SYSTEM_LIBRARY}")
+message("  boost filesystem lib: ${Boost_FILESYSTEM_LIBRARY}")
+message("  sqlite3 include: ${SQLITE3_INCLUDE_DIR}, lib: ${SQLITE3_LIBRARIES}")
 message("  extended logging: ${ENABLE_LOGGING}")
 

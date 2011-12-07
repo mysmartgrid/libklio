@@ -3,14 +3,15 @@
 
 #include <libklio/common.hpp>
 #include <libklio/store.hpp>
-
+#include <boost/filesystem.hpp>
+namespace bfs = boost::filesystem;
 
 namespace klio {
   class StoreFactory {
     public:
       typedef std::tr1::shared_ptr<StoreFactory> Ptr;
       StoreFactory () {};
-      Store::Ptr createStore(const STORETYPE& type);
+      Store::Ptr createStore(const STORETYPE& type, const bfs::path& path);
       virtual ~StoreFactory() {};
 
     private:

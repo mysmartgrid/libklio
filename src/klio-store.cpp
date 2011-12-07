@@ -82,7 +82,7 @@ int main(int argc,char** argv) {
       action=(vm["action"].as<std::string>());
     }
 
-    if (action == "create") {
+    if (boost::iequals(action, std::string("CREATE"))) {
       bfs::path db(storefile);
       if (bfs::exists(db)) {
         std::cerr << "File " << db << " already exists, exiting." << std::endl;
@@ -97,7 +97,11 @@ int main(int argc,char** argv) {
       } catch (klio::StoreException const& ex) {
         std::cout << "Failed to create: " << ex.what() << std::endl;
       }
+    } else {
+      std::cerr << "Unknown command " << action << std::endl;
+      return 1;
     }
+
   }
   catch(std::exception& e) {
     std::cerr << "error: " << e.what() << std::endl;

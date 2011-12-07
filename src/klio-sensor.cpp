@@ -43,7 +43,7 @@ int main(int argc,char** argv) {
       ("storefile,s", po::value<std::string>(), "the data store to use")
       ("id,i", po::value<std::string>(), "the id of the sensor")
       ("unit,u", po::value<std::string>(), "the unit of the sensor")
-      ("timezone,tz", po::value<std::string>(), "the timezone of the sensor")
+      ("timezone,z", po::value<std::string>(), "the timezone of the sensor")
       ("reading,r", po::value<double>(), "the reading to add")
       ("timestamp,t", po::value<long>(), "a timestamp to use for the reading")
       ;
@@ -190,11 +190,45 @@ int main(int argc,char** argv) {
             klio::TimeConverter::Ptr tc(new klio::TimeConverter());
             klio::timestamp_t timestamp=tc->get_timestamp();
             if (vm.count("timestamp")) {
-              timestamp= tc->convert_to_epoch(timestamp);
+              klio::timestamp_t ts=vm["timestamp"].as<long>();
+              timestamp= tc->convert_to_epoch(ts);
             }
             store->add_reading(loadedSensor, timestamp, reading);
             std::cout << "Added reading to sensor " 
               << loadedSensor->name() << std::endl;
+          }
+        }
+      } catch (klio::StoreException const& ex) {
+        std::cout << "Failed to create: " << ex.what() << std::endl;
+      }
+    }
+    
+    /**
+     * Dump sensor reading command
+     */
+    else if (boost::iequals(action, std::string("DUMP"))) {
+      try {
+        if ( !vm.count("id")  ) {
+          std::cout << "You must specify the id of the sensor." 
+            << std::endl;
+          return 2;
+        }
+        std::string sensor_id(vm["id"].as<std::string>());
+        klio::Store::Ptr store(factory->openStore(klio::SQLITE3, db));
+        std::cout << "opened store: " << store->str() << std::endl;
+        std::vector<klio::Sensor::uuid_t> uuids = store->getSensorUUIDs();
+        std::vector<klio::Sensor::uuid_t>::iterator it;
+        for(  it = uuids.begin(); it < uuids.end(); it++) {
+          klio::Sensor::Ptr loadedSensor(store->getSensor(*it));
+          if (boost::iequals(loadedSensor->name(), sensor_id)) {
+            klio::readings_t_Ptr readings = store->get_all_readings(loadedSensor);
+            klio::readings_it_t it;
+            std::cout << "timestamp\treading" << std::endl;
+            for(  it = readings->begin(); it != readings->end(); it++) {
+              klio::timestamp_t ts1=(*it).first;
+              double val1=(*it).second;
+              std::cout << ts1 << "\t" << val1 << std::endl;
+            }
           }
         }
       } catch (klio::StoreException const& ex) {

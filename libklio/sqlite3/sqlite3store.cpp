@@ -464,7 +464,7 @@ readings_t_Ptr SQLite3Store::get_all_readings(
     oss << "Can't execute reading select statement: " << zErrMsg << ", error code " << rc;
     throw StoreException(oss.str());
   }
-  std::cout << "Got " << retval->size() << " readings." << std::endl;
+  //std::cout << "Got " << retval->size() << " readings." << std::endl;
 
   return retval;
 }

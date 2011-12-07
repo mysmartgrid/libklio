@@ -343,7 +343,7 @@ klio::Sensor::Ptr SQLite3Store::getSensor(const klio::Sensor::uuid_t& uuid) {
   const unsigned char* select_name = sqlite3_column_text(stmt, 1);
   const unsigned char* select_unit = sqlite3_column_text(stmt, 2);
   const unsigned char* select_timezone = sqlite3_column_text(stmt, 3);
-  std::cout << " -> " << select_uuid << " . " << select_name << " . " << select_timezone << std::endl;
+  //std::cout << " -> " << select_uuid << " . " << select_name << " . " << select_timezone << std::endl;
 
   klio::Sensor::Ptr retval(sensor_factory->createSensor(
         std::string((char*)select_uuid), 

@@ -22,6 +22,9 @@
 #include <sstream>
 #include <libklio/store.hpp>
 #include <libklio/store-factory.hpp>
+#include <libklio/sensor.hpp>
+#include <libklio/sensorfactory.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/program_options.hpp>
 #include <boost/program_options/positional_options.hpp>
@@ -38,10 +41,14 @@ int main(int argc,char** argv) {
       ("version,v", "print libklio version and exit")
       ("action,a", po::value<std::string>(), "the action to perform")
       ("storefile,s", po::value<std::string>(), "the data store to use")
+      ("id,i", po::value<std::string>(), "the id of the sensor")
+      ("unit,u", po::value<std::string>(), "the unit of the sensor")
+      ("timezone,t", po::value<std::string>(), "the timezone of the sensor")
       ;
     po::positional_options_description p;
     p.add("action", 1);
     p.add("storefile", 1);
+    p.add("id", 1);
 
     po::variables_map vm;
     po::store(po::command_line_parser(argc, argv).
@@ -78,37 +85,78 @@ int main(int argc,char** argv) {
       action=(vm["action"].as<std::string>());
     }
 
+    /**
+     * CREATE sensor command
+     */
     if (boost::iequals(action, std::string("CREATE"))) {
+      if ( !vm.count("id") || !vm.count("unit") || !vm.count("timezone")) {
+        std::cerr << "You must specify id, unit and timezone in order " <<
+          "to create a new sensor."<< std::endl;
+        return 1;
+      }
       klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-      klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", "MEZ")); 
+      std::string sensor_id(vm["id"].as<std::string>());
+      std::string sensor_unit(vm["unit"].as<std::string>());
+      std::string sensor_timezone(vm["timezone"].as<std::string>());
+      klio::Sensor::Ptr new_sensor(sensor_factory->createSensor(
+            sensor_id, sensor_unit, sensor_timezone)); 
 
       bfs::path db(storefile);
-      if (bfs::exists(db)) {
-        std::cerr << "File " << db << " already exists, exiting." << std::endl;
+      if (! bfs::exists(db)) {
+        std::cerr << "File " << db << " does not exist, exiting." << std::endl;
         return 2;
       }
       klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
       try {
         klio::Store::Ptr store(factory->openStore(klio::SQLITE3, db));
         std::cout << "opened store: " << store->str() << std::endl;
-        store->
+        store->addSensor(new_sensor);
+        std::cout << "added: " << new_sensor->str() << std::endl;
       } catch (klio::StoreException const& ex) {
         std::cout << "Failed to create: " << ex.what() << std::endl;
       }
+    }
+
+    /**
+     * LIST sensors command
+     */
+    else if (boost::iequals(action, std::string("LIST"))) {
+      bfs::path db(storefile);
+      if (! bfs::exists(db)) {
+        std::cerr << "File " << db << " does not exist, exiting." << std::endl;
+        return 2;
+      }
+      klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
+      try {
+        klio::Store::Ptr store(factory->openStore(klio::SQLITE3, db));
+        std::cout << "opened store: " << store->str() << std::endl;
+        std::vector<klio::Sensor::uuid_t> uuids = store->getSensorUUIDs();
+        std::cout << "Found " << uuids.size() 
+          << " sensor(s) in the database." << std::endl;
+        std::vector<klio::Sensor::uuid_t>::iterator it;
+        for(  it = uuids.begin(); it < uuids.end(); it++) {
+          klio::Sensor::Ptr loadedSensor(store->getSensor(*it));
+          std::cout << " * " << loadedSensor->str() << std::endl;
+        }
+      } catch (klio::StoreException const& ex) {
+        std::cout << "Failed to create: " << ex.what() << std::endl;
+      }
+
+
+      /**
+       * UNKNOWN command
+       */
     } else {
       std::cerr << "Unknown command " << action << std::endl;
       return 1;
     }
 
-  }
-  catch(std::exception& e) {
+  } catch(std::exception& e) {
     std::cerr << "error: " << e.what() << std::endl;
     return 1;
-  }
-  catch(...) {
+  } catch(...) {
     std::cerr << "Exception of unknown type!" << std::endl;
   }
-
   return 0;
 
 }

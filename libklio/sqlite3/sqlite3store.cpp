@@ -509,7 +509,6 @@ std::pair<timestamp_t, double> SQLite3Store::get_last_reading(
 
 static int get_num_readings_callback(void *num, int argc, char **argv, char **azColName){
   long int* numreadings=(long int*) num;
-  std::cout << "Found " << atol(argv[0]) << " readings." << std::endl;
   *numreadings = atol(argv[0]);
   return 0;
 }
@@ -527,7 +526,7 @@ long int SQLite3Store::get_num_readings(klio::Sensor::Ptr sensor) {
   //std::cout << "Using SQL: " << selectStmt << std::endl;
 
   char* zErrMsg=0;
-  rc=sqlite3_exec(db, selectStmt.c_str(), get_last_readings_callback, &retval, &zErrMsg);
+  rc=sqlite3_exec(db, selectStmt.c_str(), get_num_readings_callback, &retval, &zErrMsg);
   if( rc!=SQLITE_OK ) {  // sqlite3_step has finished, no further result lines available
     std::ostringstream oss;
     oss << "Can't execute reading select statement: " << zErrMsg << ", error code " << rc;

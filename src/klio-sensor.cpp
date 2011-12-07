@@ -159,8 +159,8 @@ int main(int argc,char** argv) {
             std::cout << " * uuid:" << loadedSensor->uuid() << std::endl;
             std::cout << " * unit:" << loadedSensor->unit() << std::endl;
             std::cout << " * timezone:" << loadedSensor->timezone() << std::endl;
-            std::cout << " * saved " <<  store->get_num_readings(loadedSensor)  
-              << " readings." << std::endl;
+            std::cout << " * " <<  store->get_num_readings(loadedSensor)  
+              << " readings stored" << std::endl;
           }
         }
       } catch (klio::StoreException const& ex) {

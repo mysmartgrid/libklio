@@ -58,7 +58,9 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -s -Wno-non-virtual-dtor -Werror")
 set(CMAKE_CXX_FLAGS "-Wall ")
 
 FIND_PACKAGE(Sqlite)
-FIND_PACKAGE(Boost 1.34.1 COMPONENTS iostreams test_exec_monitor program_options filesystem system)
+# We depend on boost >= 1.46.1 because of the updated filesystem
+# library.
+FIND_PACKAGE(Boost 1.46.1 COMPONENTS iostreams test_exec_monitor program_options filesystem system)
 
 include_directories(${CMAKE_BINARY_DIR})
 

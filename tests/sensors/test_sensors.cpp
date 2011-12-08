@@ -88,6 +88,58 @@ BOOST_AUTO_TEST_CASE ( check_create_sensor_sqlite3 ) {
   }
 }
 
+BOOST_AUTO_TEST_CASE ( check_retrieve_sensor_by_name ) {
+  try {
+    std::cout << std::endl << "*** Testing sensor query by name" << std::endl;
+    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+    std::string sensor1_id("sensor1");
+    klio::Sensor::Ptr sensor1(sensor_factory->createSensor(sensor1_id, "Watt", "MEZ")); 
+    std::string sensor2_id("sensor2");
+    klio::Sensor::Ptr sensor2a(sensor_factory->createSensor(sensor2_id, "Watt", "MEZ")); 
+    klio::Sensor::Ptr sensor2b(sensor_factory->createSensor(sensor2_id, "Watt", "MEZ")); 
+    klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
+    bfs::path db(TEST_DB_FILE);
+    bfs::remove(db);
+    klio::Store::Ptr store(factory->createStore(klio::SQLITE3, db));
+    std::cout << "Created: " << store->str() << std::endl;
+    try {
+      store->initialize();
+      store->addSensor(sensor1);
+      store->addSensor(sensor2a);
+      store->addSensor(sensor2b);
+      // Test unique sensor id retrieval
+      std::vector<klio::Sensor::Ptr> sensors = store->getSensorById(sensor1_id);
+      BOOST_CHECK_EQUAL (sensors.size(), 1);
+      std::vector<klio::Sensor::Ptr>::iterator it;
+      for(  it = sensors.begin(); it < sensors.end(); it++) {
+        klio::Sensor::Ptr sensor=(*it);
+        std::cout << "Found Sensor: " << sensor->name() << std::endl;
+        BOOST_CHECK_EQUAL (sensor->name(), sensor1_id);
+        BOOST_CHECK_EQUAL (sensor->uuid(), sensor1->uuid());
+      }
+      // Test duplicate sensor id retrieval
+      sensors = store->getSensorById(sensor2_id);
+      BOOST_CHECK_EQUAL (sensors.size(), 2);
+      for(  it = sensors.begin(); it < sensors.end(); it++) {
+        klio::Sensor::Ptr sensor=(*it);
+        std::cout << "Found Sensor: " << sensor->name() << std::endl;
+        BOOST_CHECK_EQUAL (sensor->name(), sensor2_id);
+        //BOOST_CHECK_EQUAL (sensor->uuid(), sensor1->uuid());
+      }
+      // cleanup.
+      store->removeSensor(sensor1);
+      store->removeSensor(sensor2a);
+      store->removeSensor(sensor2b);
+    } catch (klio::StoreException const& ex) {
+      std::cout << "Caught invalid exception: " << ex.what() << std::endl;
+      BOOST_FAIL( "Unexpected store exception occured during sensor test" );
+    } 
+  } catch (std::exception const& ex) {
+    BOOST_FAIL( "Unexpected exception occured during sensor test" );
+  }
+}
+
+
 
 BOOST_AUTO_TEST_CASE ( check_retrieve_sensor_uuids_sqlite3 ) {
   try {

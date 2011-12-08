@@ -39,7 +39,7 @@ int main(int argc,char** argv) {
     desc.add_options()
       ("help,h", "produce help message")
       ("version,v", "print libklio version and exit")
-      ("action,a", po::value<std::string>(), "the action to perform")
+      ("action,a", po::value<std::string>(), "Valid actions: create, list, info, addreading, dump")
       ("storefile,s", po::value<std::string>(), "the data store to use")
       ("id,i", po::value<std::string>(), "the id of the sensor")
       ("unit,u", po::value<std::string>(), "the unit of the sensor")

@@ -36,7 +36,7 @@ int main(int argc,char** argv) {
     desc.add_options()
       ("help,h", "produce help message")
       ("version,v", "print libklio version and exit")
-      ("action,a", po::value<std::string>(), "the action to perform")
+      ("action,a", po::value<std::string>(), "Valid actions are: create")
       ("storefile,s", po::value<std::string>(), "the data store to use")
       ;
     po::positional_options_description p;

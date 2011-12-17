@@ -2,10 +2,10 @@
 
 
 file(GLOB hdrs *.h *.hpp)
-install(FILES ${hdrs} DESTINATION include/klio)
+install(FILES ${hdrs} DESTINATION include/libklio)
 
 configure_file(config.h.in ${CMAKE_BINARY_DIR}/config.h)
-install(FILES ${CMAKE_BINARY_DIR}/config.h DESTINATION include/klio)
+install(FILES ${CMAKE_BINARY_DIR}/config.h DESTINATION include/libklio)
 
 add_subdirectory(sqlite3)
 

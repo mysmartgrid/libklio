@@ -21,6 +21,14 @@ namespace klio {
           const std::string& unit, 
           const std::string& timezone
           );
+      klio::Sensor::Ptr createSensor(
+          const std::string& uuid_string, 
+          const std::string& name, 
+          const std::string& description, 
+          const std::string& unit, 
+          const std::string& timezone
+          );
+ 
       virtual ~SensorFactory() {};
 
   
@@ -32,6 +40,7 @@ namespace klio {
       klio::Sensor::Ptr createSensor(
         const Sensor::uuid_t& uuid,
         const std::string& name, 
+        const std::string& description, 
         const std::string& unit, 
         const std::string& timezone
       );

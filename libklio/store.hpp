@@ -48,6 +48,7 @@ namespace klio {
       virtual klio::Sensor::Ptr getSensor(const klio::Sensor::uuid_t& uuid) = 0;
       virtual std::vector<klio::Sensor::uuid_t> getSensorUUIDs() = 0;
       virtual std::vector<klio::Sensor::Ptr> getSensorById(const std::string& sensor1_id) = 0;
+      virtual void add_description(klio::Sensor::Ptr sensor, const std::string& desc) = 0;
       virtual void removeSensor(const klio::Sensor::Ptr sensor) = 0;
       virtual const std::string str() = 0;
       // methods for managing readings

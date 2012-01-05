@@ -12,18 +12,18 @@ using namespace klio;
 
 // database statements
 const std::string createSensorTableStmt(
-    "CREATE TABLE sensors(uuid VARCHAR(16) PRIMARY KEY, name VARCHAR(100), unit vARCHAR(20), timezone INTEGER);");
+    "CREATE TABLE sensors(uuid VARCHAR(16) PRIMARY KEY, name VARCHAR(100), description VARCHAR(255), unit VARCHAR(20), timezone INTEGER);");
 //TODO: Change this to real prepared statement
 const std::string insertSensorStmt(
-    "INSERT INTO sensors (uuid, name, unit, timezone) VALUES (?1,?2,?3,?4)"
+    "INSERT INTO sensors (uuid, name, description, unit, timezone) VALUES (?1,?2,?3,?4,?5)"
     );
 //TODO: Change this to real prepared statement
 const std::string selectSensorStmt(
-    "SELECT uuid,name,unit,timezone FROM sensors where (uuid=?1)"
+    "SELECT uuid,name,description,unit,timezone FROM sensors where (uuid=?1)"
     );
 //TODO: Change this to real prepared statement
 const std::string selectSensorByNameStmt(
-    "SELECT uuid,name,unit,timezone FROM sensors where (name=?1)"
+    "SELECT uuid,name,description,unit,timezone FROM sensors where (name=?1)"
     );
 const std::string selectAllSensorUUIDsStmt(
     "SELECT uuid FROM sensors"
@@ -151,8 +151,9 @@ void SQLite3Store::addSensor(klio::Sensor::Ptr sensor) {
 
   sqlite3_bind_text(stmt, 1, sensor->uuid_string().c_str(), -1, SQLITE_TRANSIENT);
   sqlite3_bind_text(stmt, 2, sensor->name().c_str(), -1, SQLITE_TRANSIENT);
-  sqlite3_bind_text(stmt, 3, sensor->unit().c_str(), -1, SQLITE_TRANSIENT);
-  sqlite3_bind_text(stmt, 4, sensor->timezone().c_str(), -1, SQLITE_TRANSIENT);
+  sqlite3_bind_text(stmt, 3, sensor->description().c_str(), -1, SQLITE_TRANSIENT);
+  sqlite3_bind_text(stmt, 4, sensor->unit().c_str(), -1, SQLITE_TRANSIENT);
+  sqlite3_bind_text(stmt, 5, sensor->timezone().c_str(), -1, SQLITE_TRANSIENT);
 
   rc=sqlite3_step(stmt);
   if( rc!=SQLITE_DONE ) {  // sqlite3_step has finished, no further result lines available
@@ -340,12 +341,14 @@ std::vector<klio::Sensor::Ptr> SQLite3Store::getSensorById(const std::string& se
   while (SQLITE_ROW == sqlite3_step(stmt)) {
     const unsigned char* select_uuid = sqlite3_column_text(stmt, 0);
     const unsigned char* select_name = sqlite3_column_text(stmt, 1);
-    const unsigned char* select_unit = sqlite3_column_text(stmt, 2);
-    const unsigned char* select_timezone = sqlite3_column_text(stmt, 3);
-    //std::cout << " -> " << select_uuid << " . " << select_name << " . " << select_timezone << std::endl;
+    const unsigned char* select_desc = sqlite3_column_text(stmt, 2);
+    const unsigned char* select_unit = sqlite3_column_text(stmt, 3);
+    const unsigned char* select_timezone = sqlite3_column_text(stmt, 4);
+    std::cout << " -> " << select_uuid << " . " << select_name << " . " << select_desc << " . "<< select_timezone << std::endl;
     klio::Sensor::Ptr current(sensor_factory->createSensor(
         std::string((char*)select_uuid), 
         std::string((char*)select_name), 
+        std::string((char*)select_desc), 
         std::string((char*)select_unit), 
         std::string((char*)select_timezone))); 
     retval.push_back(current);
@@ -390,13 +393,15 @@ klio::Sensor::Ptr SQLite3Store::getSensor(const klio::Sensor::uuid_t& uuid) {
   }
   const unsigned char* select_uuid = sqlite3_column_text(stmt, 0);
   const unsigned char* select_name = sqlite3_column_text(stmt, 1);
-  const unsigned char* select_unit = sqlite3_column_text(stmt, 2);
-  const unsigned char* select_timezone = sqlite3_column_text(stmt, 3);
+  const unsigned char* select_desc = sqlite3_column_text(stmt, 2);
+  const unsigned char* select_unit = sqlite3_column_text(stmt, 3);
+  const unsigned char* select_timezone = sqlite3_column_text(stmt, 4);
   //std::cout << " -> " << select_uuid << " . " << select_name << " . " << select_timezone << std::endl;
 
   klio::Sensor::Ptr retval(sensor_factory->createSensor(
         std::string((char*)select_uuid), 
         std::string((char*)select_name), 
+        std::string((char*)select_desc), 
         std::string((char*)select_unit), 
         std::string((char*)select_timezone))); 
   sqlite3_clear_bindings(stmt);
@@ -442,6 +447,32 @@ void SQLite3Store::add_reading(klio::Sensor::Ptr sensor,
     oss << "Can't execute value insertion statement: " << zErrMsg << ", error code " << rc;
     throw StoreException(oss.str());
   }
+}
+
+void SQLite3Store::add_description(klio::Sensor::Ptr sensor, const std::string& desc) {
+  int rc;
+
+  LOG("Adding description " << desc << " to sensor: " << sensor->str());
+
+  checkSensorTable();
+
+  // TODO: Insert statement
+  std::ostringstream oss;
+  oss << "UPDATE sensors "; 
+  oss << "SET description='" << desc << "' ";
+  oss << "WHERE uuid='" << sensor->uuid_string() << "'";
+  std::string updateStmt(oss.str());
+
+  std::cout << "Using SQL: " << updateStmt << std::endl;
+
+  char* zErrMsg=0;
+  rc=sqlite3_exec(db, updateStmt.c_str(), empty_callback, NULL, &zErrMsg);
+  if( rc!=SQLITE_OK ) {  // sqlite3_step has finished, no further result lines available
+    std::ostringstream oss;
+    oss << "Can't execute description update statement: " << zErrMsg << ", error code " << rc;
+    throw StoreException(oss.str());
+  }
+
 }
 
 void SQLite3Store::add_readings(klio::Sensor::Ptr sensor, const readings_t& readings) {

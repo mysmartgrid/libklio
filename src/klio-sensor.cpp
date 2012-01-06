@@ -24,6 +24,8 @@
 #include <libklio/store-factory.hpp>
 #include <libklio/sensor.hpp>
 #include <libklio/sensorfactory.hpp>
+#include <libklio/exporter.hpp>
+#include <libklio/octave_exporter.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/program_options.hpp>
@@ -232,7 +234,6 @@ int main(int argc,char** argv) {
       }
     }
 
-
     /**
      * Dump sensor reading command
      */
@@ -259,6 +260,37 @@ int main(int argc,char** argv) {
               double val1=(*it).second;
               std::cout << ts1 << "\t" << val1 << std::endl;
             }
+          }
+        }
+      } catch (klio::StoreException const& ex) {
+        std::cout << "Failed to create: " << ex.what() << std::endl;
+      }
+    }
+
+    /**
+     * Export to octave script file command
+     */
+    else if (boost::iequals(action, std::string("octscript"))) {
+      try {
+        if ( !vm.count("id")  ) {
+          std::cout << "You must specify the id of the sensor." 
+            << std::endl;
+          return 2;
+        }
+        std::string sensor_id(vm["id"].as<std::string>());
+        klio::Store::Ptr store(factory->openStore(klio::SQLITE3, db));
+        std::cout << "opened store: " << store->str() << std::endl;
+        std::vector<klio::Sensor::uuid_t> uuids = store->getSensorUUIDs();
+        std::vector<klio::Sensor::uuid_t>::iterator it;
+        for(  it = uuids.begin(); it < uuids.end(); it++) {
+          klio::Sensor::Ptr loadedSensor(store->getSensor(*it));
+          if (boost::iequals(loadedSensor->name(), sensor_id)) {
+            klio::readings_t_Ptr readings = store->get_all_readings(loadedSensor);
+            // create output stream
+            klio::Exporter::Ptr octexporter(new klio::OctaveExporter(
+                  std::cout));
+            octexporter->process(readings, 
+                loadedSensor->name(), loadedSensor->description());
           }
         }
       } catch (klio::StoreException const& ex) {

@@ -20,6 +20,7 @@ void OctaveExporter::write_values_function(const std::string& name,
   _out << "  values = [ ..." << std::endl;
 
   // See http://www.cplusplus.com/reference/algorithm/min_element/
+  // $nextday = $current_timestamp + 86400 - ($current_timestamp % 86400);
 
   // 1. determine position of first element in the day
 

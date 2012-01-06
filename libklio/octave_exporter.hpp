@@ -38,6 +38,8 @@ namespace klio {
       void write_lead_in(const std::string& name, const std::string& description);
       void write_description_function(const std::string& name,
           const std::string& description);
+      void write_values_function(const std::string& name,
+          klio::readings_t_Ptr readings);
   };
   
 };

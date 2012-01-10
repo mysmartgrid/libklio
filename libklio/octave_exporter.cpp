@@ -30,7 +30,7 @@ void OctaveExporter::write_values_function(const std::string& name,
 
   std::vector<double> current_day(MINUTES_PER_DAY);
   std::vector<double>::iterator day_it;
-  uint32_t next_day_timestamp=0;
+  int32_t next_day_timestamp=0;
 
   // Look for the first reading and determine the first timestamp in the dataset. 
   it = readings->begin(); 

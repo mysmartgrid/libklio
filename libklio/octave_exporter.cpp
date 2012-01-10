@@ -26,7 +26,7 @@ void OctaveExporter::write_values_function(const std::string& name,
   klio::readings_it_t it;
 
   _out << "function values = get_" << name << "_values()" << std::endl;
-  _out << "  values = [ ..." << std::endl;
+  _out << "  values = [ ..." << std::endl << "\t";
 
   std::vector<double> current_day(MINUTES_PER_DAY);
   std::vector<double>::iterator day_it;
@@ -49,7 +49,7 @@ void OctaveExporter::write_values_function(const std::string& name,
         if (i < MINUTES_PER_DAY-1)
           _out << ", ";
         else
-          _out << "; ..." << std::endl;
+          _out << "; ..." << std::endl << "\t";
       }
       // clear the datastructures, setup for the next day
       next_day_timestamp=calc_next_day_timestamp(ts+1);
@@ -59,8 +59,14 @@ void OctaveExporter::write_values_function(const std::string& name,
     // Calculate position of this value within the day
     std::vector<double>::size_type position = 
       (ts - (next_day_timestamp - SECONDS_PER_DAY)) / 60;
-  //  std::cout << position << " / " << val << std::endl;
-    current_day[position]=val;
+    // Check for duplicate values - avoid collisions.
+    if (current_day[position] != 0) {
+      if (position < MINUTES_PER_DAY)
+        current_day[position+1] = val;
+    } else {
+      current_day[position]=val;
+    }
+    //  std::cout << position << " / " << val << std::endl;
   }
   // Finish the last line - there is a difference: this one is not
   // terminated by a ";" symbol.

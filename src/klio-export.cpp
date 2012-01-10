@@ -27,6 +27,7 @@
 #include <libklio/sensorfactory.hpp>
 #include <libklio/exporter.hpp>
 #include <libklio/octave_exporter.hpp>
+#include <libklio/json_exporter.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/program_options.hpp>
@@ -144,12 +145,19 @@ int main(int argc,char** argv) {
            * Export to octave script file command
            */
           else if (boost::iequals(action, std::string("OCTAVE"))) {
-            // create output stream
             klio::Exporter::Ptr octexporter(new klio::OctaveExporter(
                   *outputstream));
             octexporter->process(readings, 
                 loadedSensor->name(), loadedSensor->description());
+          }
 
+          /**
+           * Export to JSON
+           */
+          else if (boost::iequals(action, std::string("JSON"))) {
+            klio::Exporter::Ptr jsonexporter(new klio::JSONExporter(*outputstream));
+            jsonexporter->process(readings, 
+                loadedSensor->name(), loadedSensor->description());
           }
 
           /**

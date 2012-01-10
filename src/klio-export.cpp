@@ -110,25 +110,27 @@ int main(int argc,char** argv) {
     klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
 
-    /**
-     * Dump sensor reading command
-     */
-    if (boost::iequals(action, std::string("TABLE"))) {
-      try {
-        if ( !vm.count("id")  ) {
-          std::cout << "You must specify the id of the sensor." 
-            << std::endl;
-          return 2;
-        }
-        std::string sensor_id(vm["id"].as<std::string>());
-        klio::Store::Ptr store(factory->openStore(klio::SQLITE3, db));
-        std::cout << "opened store: " << store->str() << std::endl;
-        std::vector<klio::Sensor::uuid_t> uuids = store->getSensorUUIDs();
-        std::vector<klio::Sensor::uuid_t>::iterator it;
-        for(  it = uuids.begin(); it < uuids.end(); it++) {
-          klio::Sensor::Ptr loadedSensor(store->getSensor(*it));
-          if (boost::iequals(loadedSensor->name(), sensor_id)) {
-            klio::readings_t_Ptr readings = store->get_all_readings(loadedSensor);
+    try {
+      if ( !vm.count("id")  ) {
+        std::cout << "You must specify the id of the sensor." 
+          << std::endl;
+        return 2;
+      }
+      std::string sensor_id(vm["id"].as<std::string>());
+      klio::Store::Ptr store(factory->openStore(klio::SQLITE3, db));
+      std::cout << "opened store: " << store->str() << std::endl;
+      std::vector<klio::Sensor::uuid_t> uuids = store->getSensorUUIDs();
+      std::vector<klio::Sensor::uuid_t>::iterator it;
+      for(  it = uuids.begin(); it < uuids.end(); it++) {
+        klio::Sensor::Ptr loadedSensor(store->getSensor(*it));
+        if (boost::iequals(loadedSensor->name(), sensor_id)) {
+          klio::readings_t_Ptr readings = store->get_all_readings(loadedSensor);
+
+
+          /**
+           * Dump sensor reading command
+           */
+          if (boost::iequals(action, std::string("TABLE"))) {
             klio::readings_it_t it;
             *outputstream << "timestamp\treading" << std::endl;
             for(  it = readings->begin(); it != readings->end(); it++) {
@@ -137,49 +139,30 @@ int main(int argc,char** argv) {
               *outputstream << ts1 << "\t" << val1 << std::endl;
             }
           }
-        }
-      } catch (klio::StoreException const& ex) {
-        std::cout << "Failed to create: " << ex.what() << std::endl;
-      }
-    }
 
-    /**
-     * Export to octave script file command
-     */
-    else if (boost::iequals(action, std::string("OCTAVE"))) {
-      try {
-        if ( !vm.count("id")  ) {
-          std::cout << "You must specify the id of the sensor." 
-            << std::endl;
-          return 2;
-        }
-        std::string sensor_id(vm["id"].as<std::string>());
-        klio::Store::Ptr store(factory->openStore(klio::SQLITE3, db));
-        std::cout << "opened store: " << store->str() << std::endl;
-        std::vector<klio::Sensor::uuid_t> uuids = store->getSensorUUIDs();
-        std::vector<klio::Sensor::uuid_t>::iterator it;
-        for(  it = uuids.begin(); it < uuids.end(); it++) {
-          klio::Sensor::Ptr loadedSensor(store->getSensor(*it));
-          if (boost::iequals(loadedSensor->name(), sensor_id)) {
-            klio::readings_t_Ptr readings = store->get_all_readings(loadedSensor);
+          /**
+           * Export to octave script file command
+           */
+          else if (boost::iequals(action, std::string("OCTAVE"))) {
             // create output stream
             klio::Exporter::Ptr octexporter(new klio::OctaveExporter(
                   *outputstream));
             octexporter->process(readings, 
                 loadedSensor->name(), loadedSensor->description());
+
+          }
+
+          /**
+           * UNKNOWN command
+           */
+          else {
+            std::cerr << "Unknown command " << action << std::endl;
+            return 1;
           }
         }
-      } catch (klio::StoreException const& ex) {
-        std::cout << "Failed to create: " << ex.what() << std::endl;
       }
-    }
-
-    /**
-     * UNKNOWN command
-     */
-    else {
-      std::cerr << "Unknown command " << action << std::endl;
-      return 1;
+    } catch (klio::StoreException const& ex) {
+      std::cout << "Failed to export: " << ex.what() << std::endl;
     }
 
     if (outputstream != &std::cout)

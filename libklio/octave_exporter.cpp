@@ -77,7 +77,7 @@ void OctaveExporter::write_values_function(const std::string& name,
     else
       _out << " ..." << std::endl;
   }
-  _out << "  ]" << std::endl;
+  _out << "  ];" << std::endl;
   _out << "end" << std::endl;
 }
 

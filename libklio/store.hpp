@@ -54,6 +54,7 @@ namespace klio {
       // methods for managing readings
       virtual void add_reading(klio::Sensor::Ptr sensor, timestamp_t timestamp, double value) = 0;
       virtual void add_readings(klio::Sensor::Ptr sensor, const readings_t& readings) = 0;
+      virtual void update_readings(klio::Sensor::Ptr sensor, const readings_t& readings) = 0;
       virtual readings_t_Ptr get_all_readings(klio::Sensor::Ptr sensor) = 0;
       virtual reading_t get_last_reading(klio::Sensor::Ptr sensor) = 0;
       virtual long int get_num_readings(klio::Sensor::Ptr sensor) = 0;

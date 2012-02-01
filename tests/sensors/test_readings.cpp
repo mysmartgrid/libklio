@@ -172,6 +172,69 @@ BOOST_AUTO_TEST_CASE ( check_bulk_insert ) {
   ;;
 }
 
+BOOST_AUTO_TEST_CASE ( check_bulk_insert_duplicates ) {
+  try {
+    std::cout << std::endl << "*** bulk-inserting readings with duplicates." << std::endl;
+    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+    klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", "MEZ")); 
+    std::cout << "Created " << sensor1->str() << std::endl;
+    klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
+    bfs::path db(TEST_DB_FILE);
+    klio::Store::Ptr store(factory->createStore(klio::SQLITE3, db));
+    std::cout << "Created: " << store->str() << std::endl;
+    try {
+      store->initialize();
+      store->addSensor(sensor1);
+      std::cout << "added to store: " << sensor1->str() << std::endl;
+      // insert a reading.
+      klio::TimeConverter::Ptr tc(new klio::TimeConverter());
+      klio::readings_t readings;
+      size_t num_readings=10;
+      for (size_t i=0; i<num_readings; i++) {
+        klio::timestamp_t timestamp=tc->get_timestamp()-i;
+        double reading=23;
+        klio::reading_t foo(timestamp, reading);
+        readings.insert(foo);
+      }
+      std::cout << "Inserting " << readings.size() << " readings." << std::endl;
+      store->add_readings(sensor1, readings);
+      // Now, generate some readings with overlapping timestamps.
+      // readings_t is an alias for a std::map - clear it.
+      readings.clear();
+      for (size_t i=0; i<num_readings; i++) {
+        klio::timestamp_t timestamp=tc->get_timestamp()-i+(num_readings/2);
+        double reading=42;
+        klio::reading_t foo(timestamp, reading);
+        readings.insert(foo);
+      }
+      std::cout << "Inserting " << readings.size() 
+        << " readings with overlapping timestamps." << std::endl;
+      store->update_readings(sensor1, readings);
+      // now, retrieve it and check.
+      klio::readings_t_Ptr loaded_readings = store->get_all_readings(sensor1);
+      std::cout << "Loaded " << loaded_readings->size() << " readings." << std::endl;
+      klio::readings_cit_t it;
+      size_t ret_size=0;
+      for(  it = loaded_readings->begin(); it != loaded_readings->end(); ++it) {
+        klio::timestamp_t ts1=(*it).first;
+        double val1=(*it).second;
+        std::cout << "Got timestamp " << ts1 << " -> value " << val1 << std::endl;
+        ret_size++;
+      }
+      BOOST_CHECK_EQUAL (num_readings+(num_readings/2), ret_size);
+      // cleanup 
+      store->removeSensor(sensor1);
+    } catch (klio::StoreException const& ex) {
+      std::cout << "Caught invalid exception: " << ex.what() << std::endl;
+      BOOST_FAIL( "Unexpected store exception occured during sensor test" );
+      //store->removeSensor(sensor1);
+    } 
+  } catch (std::exception const& ex) {
+    BOOST_FAIL( "Unexpected exception occured during sensor test" );
+  }
+  ;;
+}
+
 BOOST_AUTO_TEST_CASE ( check_num_readings ) {
   try {
     std::cout << std::endl << "*** checking number of readings." << std::endl;

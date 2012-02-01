@@ -41,6 +41,7 @@ namespace klio {
       virtual std::vector<klio::Sensor::Ptr> getSensorById(const std::string& sensor1_id);
       virtual void add_reading(klio::Sensor::Ptr sensor, timestamp_t timestamp, double value);
       virtual void add_readings(klio::Sensor::Ptr sensor, const readings_t& readings);
+      virtual void update_readings(klio::Sensor::Ptr sensor, const readings_t& readings);
       virtual void add_description(klio::Sensor::Ptr sensor, const std::string& desc);
       virtual readings_t_Ptr get_all_readings(klio::Sensor::Ptr sensor);
       virtual long int get_num_readings(klio::Sensor::Ptr sensor);

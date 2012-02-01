@@ -475,6 +475,44 @@ void SQLite3Store::add_description(klio::Sensor::Ptr sensor, const std::string& 
 
 }
 
+void SQLite3Store::update_readings(
+    klio::Sensor::Ptr sensor, const readings_t& readings) {
+  int rc;
+  checkSensorTable();
+  klio::TimeConverter::Ptr tc(new klio::TimeConverter());
+
+  Transaction transaction(db);
+  for( readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
+    klio::timestamp_t timestamp=(*it).first;
+    double value=(*it).second;
+    std::ostringstream oss;
+    // see http://stackoverflow.com/questions/2717590/sqlite-upsert-on-duplicate-key-update
+    // The SQL statement is constructed as two:
+    // 1. If the timestamp exists, the "or ignore" part of stmt 1 silently 
+    // ignores the insert statement.
+    oss << "INSERT OR IGNORE INTO '" << sensor->uuid_string() << "' "; 
+    oss << "(timestamp, value) VALUES";
+    oss << "(" << tc->convert_to_epoch(timestamp) << ", " << value << ");";
+    // 2. Instead, the update statement inserts the last received value.
+    oss << "UPDATE '" << sensor->uuid_string() << "' SET value='";
+    oss << value << "' WHERE timestamp LIKE '";
+    oss << tc->convert_to_epoch(timestamp) << "';";
+
+    std::string insertStmt=oss.str();
+    //std::cout << "Using SQL: " << insertStmt << std::endl;
+
+    char* zErrMsg=0;
+    rc=sqlite3_exec(db, insertStmt.c_str(), empty_callback, NULL, &zErrMsg);
+    if( rc!=SQLITE_OK ) {  // sqlite3_step has finished, no further result lines available
+      std::ostringstream oss;
+      oss << "Can't execute value insertion statement: " << zErrMsg << ", error code " << rc;
+      throw StoreException(oss.str());
+    }
+  }
+  transaction.commit();
+
+}
+
 void SQLite3Store::add_readings(klio::Sensor::Ptr sensor, const readings_t& readings) {
   int rc;
   checkSensorTable();

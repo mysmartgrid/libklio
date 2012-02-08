@@ -38,37 +38,26 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
       HINTS ${KLIO_HOME} ENV KLIO_HOME
       PATH_SUFFIXES lib
       )
-    find_library (KLIO_SQLITE3_LIBRARY
-      NAMES libklio_sqlite3.dylib
-      HINTS ${KLIO_HOME} ENV KLIO_HOME
-      PATH_SUFFIXES lib
-      )
   ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     # On Linux
     find_library (KLIO_LIBRARY
-      NAMES libklio.so
+      NAMES libklio.a
       HINTS ${KLIO_HOME} ENV KLIO_HOME
       PATH_SUFFIXES lib
       )
-    find_library (KLIO_SQLITE3_LIBRARY
-      NAMES libklio_sqlite3.so
-      HINTS ${KLIO_HOME} ENV KLIO_HOME
-      PATH_SUFFIXES lib
-      )
-
   ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 
-  if (KLIO_INCLUDE_DIR AND KLIO_LIBRARY AND KLIO_SQLITE3_LIBRARY)
+  if (KLIO_INCLUDE_DIR AND KLIO_LIBRARY)
   set (KLIO_FOUND TRUE)
   if (NOT KLIO_FIND_QUIETLY)
-    message (STATUS "Found klio headers in ${KLIO_INCLUDE_DIR} and libraries ${KLIO_LIBRARY} ${KLIO_SQLITE3_LIBRARY} ${KLIO_LIBRARY_SHARED}")
+    message (STATUS "Found klio headers in ${KLIO_INCLUDE_DIR} and library ${KLIO_LIBRARY} ${KLIO_SQLITE3_LIBRARY} ${KLIO_LIBRARY_SHARED}")
   endif (NOT KLIO_FIND_QUIETLY)
-  else (KLIO_INCLUDE_DIR AND KLIO_LIBRARY AND KLIO_SQLITE3_LIBRARY)
+  else (KLIO_INCLUDE_DIR AND KLIO_LIBRARY)
     if (KLIO_FIND_REQUIRED)
       message (FATAL_ERROR "klio could not be found! Cannot compile without. Try setting $KLIO_HOME")
     endif (KLIO_FIND_REQUIRED)
-  endif (KLIO_INCLUDE_DIR AND KLIO_LIBRARY AND KLIO_SQLITE3_LIBRARY)
+  endif (KLIO_INCLUDE_DIR AND KLIO_LIBRARY)
 
 else(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
   set(KLIO_FOUND true)

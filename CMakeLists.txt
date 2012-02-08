@@ -60,7 +60,7 @@ set(CMAKE_CXX_FLAGS "-Wall ")
 FIND_PACKAGE(Sqlite)
 # We depend on boost >= 1.46.1 because of the updated filesystem
 # library.
-# SET(Boost_ADDITIONAL_VERSIONS "1.46.1" "1.48.0" "1.48")
+SET(Boost_ADDITIONAL_VERSIONS "1.46.1" "1.48.0" "1.48")
 FIND_PACKAGE(Boost 1.46.1 COMPONENTS test_exec_monitor program_options filesystem system)
 
 include_directories(${CMAKE_BINARY_DIR})

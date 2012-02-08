@@ -43,7 +43,6 @@ namespace klio {
       virtual void open() = 0;
       virtual void initialize() = 0;
       virtual void close() = 0;
-      // getSensor: get singleton for sensor, data insertion + retrieval works over this one
       virtual void addSensor(klio::Sensor::Ptr sensor) = 0;
       virtual klio::Sensor::Ptr getSensor(const klio::Sensor::uuid_t& uuid) = 0;
       virtual std::vector<klio::Sensor::uuid_t> getSensorUUIDs() = 0;

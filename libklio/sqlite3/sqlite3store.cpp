@@ -344,7 +344,7 @@ std::vector<klio::Sensor::Ptr> SQLite3Store::getSensorById(const std::string& se
     const unsigned char* select_desc = sqlite3_column_text(stmt, 2);
     const unsigned char* select_unit = sqlite3_column_text(stmt, 3);
     const unsigned char* select_timezone = sqlite3_column_text(stmt, 4);
-    std::cout << " -> " << select_uuid << " . " << select_name << " . " << select_desc << " . "<< select_timezone << std::endl;
+    //std::cout << " -> " << select_uuid << " . " << select_name << " . " << select_desc << " . "<< select_timezone << std::endl;
     klio::Sensor::Ptr current(sensor_factory->createSensor(
         std::string((char*)select_uuid), 
         std::string((char*)select_name), 
@@ -358,6 +358,7 @@ std::vector<klio::Sensor::Ptr> SQLite3Store::getSensorById(const std::string& se
   sqlite3_finalize(stmt);
   return retval;
 }
+
 
 klio::Sensor::Ptr SQLite3Store::getSensor(const klio::Sensor::uuid_t& uuid) {
   int rc;

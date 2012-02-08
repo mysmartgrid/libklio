@@ -30,6 +30,8 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/program_options.hpp>
 #include <boost/program_options/positional_options.hpp>
+#include <boost/filesystem.hpp>
+namespace bfs = boost::filesystem; 
 namespace po = boost::program_options;
 
 int main(int argc,char** argv) {

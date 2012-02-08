@@ -1,23 +1,26 @@
 # -*- mode: cmake; -*-
 
 
-file(GLOB hdrs *.h *.hpp)
-install(FILES ${hdrs} DESTINATION include/libklio)
+file(GLOB klio_hdrs *.h *.hpp)
+install(FILES ${klio_hdrs} DESTINATION include/libklio)
+file(GLOB klio_sqlite3_hdrs *.h *.hpp)
+install(FILES ${klio_sqlite3_hdrs} DESTINATION include/klio/sqlite3)
 
 configure_file(config.h.in ${CMAKE_BINARY_DIR}/libklio/config.h)
 install(FILES ${CMAKE_BINARY_DIR}/libklio/config.h DESTINATION include/libklio)
 
-add_subdirectory(sqlite3)
 
 include_directories(${CMAKE_SOURCE_DIR}
+                    ${SQLITE3_INCLUDE_DIR}
                     ${Boost_INCLUDE_DIRS})
-file(GLOB all_klio_src *.cpp *.hpp)
-set(klio_src ${all_klio_src})
-ADD_LIBRARY(klio ${klio_src})
+file(GLOB klio_src *.cpp *.hpp)
+file(GLOB klio_sqlite3_src sqlite3/*.cpp sqlite3/*.hpp)
+ADD_LIBRARY(klio STATIC ${klio_src} ${klio_sqlite3_src})
 
-ADD_DEPENDENCIES(klio klio_sqlite3)
-
-target_link_libraries(klio ${Boost_LIBRARIES})
+target_link_libraries(klio
+  ${SQLITE3_LIBRARIES}
+  ${Boost_LIBRARIES}
+)
 
 #if(BUILD_SHARED_LIBS)
 # install(TARGETS klio LIBRARY DESTINATION lib)

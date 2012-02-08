@@ -10,10 +10,11 @@ add_executable(klio-sensor ${klio-sensor_src})
 add_executable(klio-store ${klio-store_src})
 add_executable(klio-export ${klio-export_src})
 #sensor_executable(foobar sourcetest.cpp)
-
 # Link the executable 
+target_link_libraries(klio-sensor klio_sqlite3 klio ${Boost_LIBRARIES})
 target_link_libraries(klio-sensor klio klio_sqlite3 ${Boost_LIBRARIES})
-target_link_libraries(klio-store klio klio_sqlite3 ${Boost_LIBRARIES})
+target_link_libraries(klio-store klio_sqlite3 klio ${Boost_LIBRARIES})
+target_link_libraries(klio-export klio_sqlite3 klio ${Boost_LIBRARIES})
 target_link_libraries(klio-export klio klio_sqlite3 ${Boost_LIBRARIES})
 
 # sensor programs to the install target

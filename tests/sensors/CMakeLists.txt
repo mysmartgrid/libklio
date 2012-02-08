@@ -14,6 +14,6 @@ add_executable(sensorstest ${sensorstest_src})
 ADD_TEST(SensorTest ${CMAKE_CURRENT_BINARY_DIR}/sensorstest TestSenors)
 
 # Link the executable 
-target_link_libraries(sensorstest klio klio_sqlite3 ${Boost_LIBRARIES} )
+target_link_libraries(sensorstest klio ${Boost_LIBRARIES} )
 
 

@@ -6,7 +6,7 @@ set(storetest_src ${all_storetest_src})
 add_executable(storetest ${storetest_src})
 
 # Link the executable 
-target_link_libraries(storetest klio klio_sqlite3 ${Boost_LIBRARIES} )
+target_link_libraries(storetest klio ${Boost_LIBRARIES} )
 
 ADD_TEST(StoreTest ${CMAKE_CURRENT_BINARY_DIR}/storetest TestStore)
 

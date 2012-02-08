@@ -1,0 +1,13 @@
+The FindKlio.cmake module can be used to discover this library during
+build time. In libflukso, the main CMakeLists.txt file contains this
+section:
+
+include(FindKlio)
+  if (KLIO_FOUND)
+    include_directories(${KLIO_INCLUDE_DIR})
+    include_directories(${KLIO_INCLUDE_DIRS})
+    link_directories(${KLIO_LIBRARY_DIR})
+    link_libraries(${KLIO_LIBRARY} ${KLIO_SQLITE3_LIBRARY})
+    message(STATUS "KLIO: '${KLIO_LIBRARY} ${KLIO_SQLITE3_LIBRARY}'
+        -I${KLIO_INCLUDE_DIR} -I${KLIO_INCLUDE_DIRS}")
+    endif(KLIO_FOUND)

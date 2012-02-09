@@ -114,6 +114,6 @@ This library is (c) Fraunhofer ITWM and distributed under the terms of
 the GPLv3.
 
 ## REFERENCES
-[0] http://en.wikipedia.org/wiki/Clio
-[1] http://listserv.mysmartgrid.de/mailman/listinfo/msg-dev
-[2] https://github.com/mysmartgrid/libklio/issues
+ * [0] http://en.wikipedia.org/wiki/Clio
+ * [1] http://listserv.mysmartgrid.de/mailman/listinfo/msg-dev
+ * [2] https://github.com/mysmartgrid/libklio/issues

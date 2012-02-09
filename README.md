@@ -43,35 +43,35 @@ A typical workflow would be:
 
 1. Create a store.
 
-    $ klio-store create teststore.db
-    Attempting to create "teststore.db"
-    Initialized store: SQLite3 database, stored in file "teststore.db"
+        $ klio-store create teststore.db
+        Attempting to create "teststore.db"
+        Initialized store: SQLite3 database, stored in file "teststore.db"
 
 2. Add a sensor definition.
 
-    $ klio-sensor create -s teststore.db -i bullshitsensor -u heveling -z MEZ \
-      -d "How much $foo is going on?" 
-    opened store: SQLite3 database, stored in file "teststore.db"
-    added: bullshitsensor(862acc00-9f18-4f58-9bcd-c4658f591d2d), unit heveling, 
-    tz=MEZ, description: Unknown
+        $ klio-sensor create -s teststore.db -i bullshitsensor -u heveling -z MEZ \
+          -d "How much $foo is going on?" 
+        opened store: SQLite3 database, stored in file "teststore.db"
+        added: bullshitsensor(862acc00-9f18-4f58-9bcd-c4658f591d2d), unit heveling, 
+        tz=MEZ, description: Unknown
 
 3. Add a value 42 with the unix timestamp 23 manually (typically, another 
     program would deal with this):
 
-    $ klio-sensor addreading -s teststore.db -i bullshitsensor -t 23 -r 42
-    opened store: SQLite3 database, stored in file "teststore.db"
-    Added reading to sensor bullshitsensor
+        $ klio-sensor addreading -s teststore.db -i bullshitsensor -t 23 -r 42
+        opened store: SQLite3 database, stored in file "teststore.db"
+        Added reading to sensor bullshitsensor
 
 4. Query the sensor:
 
-    $ klio-sensor info -s teststore.db -i bullshitsensor
-    opened store: SQLite3 database, stored in file "teststore.db"
-    Info for sensor bullshitsensor
-     * description:Unknown
-     * uuid:862acc00-9f18-4f58-9bcd-c4658f591d2d
-     * unit:heveling
-     * timezone:MEZ
-     * 1 readings stored
+        $ klio-sensor info -s teststore.db -i bullshitsensor
+        opened store: SQLite3 database, stored in file "teststore.db"
+        Info for sensor bullshitsensor
+         * description:Unknown
+         * uuid:862acc00-9f18-4f58-9bcd-c4658f591d2d
+         * unit:heveling
+         * timezone:MEZ
+         * 1 readings stored
 
 5. Export sensor data:
 

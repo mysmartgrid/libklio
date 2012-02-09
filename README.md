@@ -40,6 +40,7 @@ provides this information:
     -s [ --storefile ] arg the data store to use
 
 A typical workflow would be:
+
 1. Create a store.
 
     $ klio-store create teststore.db

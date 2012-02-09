@@ -27,7 +27,7 @@ Some utilities are included in the distribution:
 2. klio-sensor: Tool for the manipulation of sensors and sensor data.
 3. klio-export: Export the stored data in several different formats.
 
-Each commend comes with its own builtin help, so e.g.
+Each command comes with its own builtin help, so e.g.
 
     $ klio-store -h
 
@@ -84,7 +84,15 @@ A typical workflow would be:
   mysmartgrid developer mailing list[1]. Alternatively, the issue tracker
   for this library lives on github[2].
 
-## BUILDING
+## INSTALLATION
+So far, the library has been successfully compiled on Ubuntu Linux
+11.10, Debian Linux 6.0 and Mac OS 10.7 (Lion). The library depends on 
+several libraries:
+
+1. Boost version 1.48.0 or later
+2. sqlite3
+3. pkg-config
+
 The library uses CMake for compile-time configuration. A Makefile is
 provided which wraps the build infrastructure. A simple
 

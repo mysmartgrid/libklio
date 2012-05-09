@@ -43,6 +43,10 @@
 #define LOG(msg) 
 #endif
 
+// Use new boost filesystem implementation. See 
+// http://www.boost.org/doc/libs/1_49_0/libs/filesystem/v3/doc/index.htm
+#define BOOST_FILESYSTEM_VERSION 3
+
 #include <libklio/error.hpp>
 #include <stdint.h>
 #include <string>

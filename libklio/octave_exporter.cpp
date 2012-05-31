@@ -2,7 +2,6 @@
 #include <boost/algorithm/string.hpp>
 #include <vector>
 
-using namespace boost;
 using namespace klio;
 
 static const uint32_t SECONDS_PER_DAY=60*60*24;
@@ -92,10 +91,10 @@ void OctaveExporter::process(klio::readings_t_Ptr readings,
     const std::string& name, const std::string& description) {
   write_lead_in(name, description);
   std::string clean_name=
-    to_lower_copy( 
-        ireplace_all_copy( 
-          ireplace_all_copy( 
-            ireplace_all_copy( name, 
+    boost::to_lower_copy( 
+			boost::ireplace_all_copy( 
+          boost::ireplace_all_copy( 
+            boost::ireplace_all_copy( name, 
             "-", "_" ),
           "%", "_"),
         ":", "")

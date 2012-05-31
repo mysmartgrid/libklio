@@ -1,3 +1,4 @@
+# -*- mode: cmake; -*-
 
 include_directories(${CMAKE_SOURCE_DIR}
                     ${Boost_INCLUDE_DIRS})
@@ -6,6 +7,7 @@ set(storetest_src ${all_storetest_src})
 add_executable(storetest ${storetest_src})
 
 # Link the executable 
+link_directories(${SQLITE3_LIBRARY_DIRS})
 target_link_libraries(storetest klio ${Boost_LIBRARIES} )
 
 ADD_TEST(StoreTest ${CMAKE_CURRENT_BINARY_DIR}/storetest TestStore)

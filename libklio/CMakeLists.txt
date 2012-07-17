@@ -1,6 +1,5 @@
 # -*- mode: cmake; -*-
 
-
 file(GLOB klio_hdrs *.h *.hpp)
 install(FILES ${klio_hdrs} DESTINATION include/libklio)
 file(GLOB klio_sqlite3_hdrs *.h *.hpp)

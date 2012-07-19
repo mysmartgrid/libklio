@@ -1,4 +1,3 @@
-
 /**
  * This file is part of libklio.
  *
@@ -23,18 +22,13 @@
 #define LIBKLIO_STORE_HPP 1
 
 #include <libklio/common.hpp>
+#include <libklio/types.hpp>
 #include <libklio/sensor.hpp>
 #include <libklio/time.hpp>
 #include <vector>
 
 namespace klio {
   enum STORETYPE {UNDEFINED, SQLITE3};
-  typedef std::map<klio::timestamp_t, double> readings_t;
-  typedef std::tr1::shared_ptr< readings_t > readings_t_Ptr;
-  typedef std::map<klio::timestamp_t, double>::iterator readings_it_t;
-  typedef std::map<klio::timestamp_t, double>::const_iterator readings_cit_t;
-  typedef std::pair<klio::timestamp_t, double> reading_t;
-
   class Store {
     public:
       typedef std::tr1::shared_ptr<Store> Ptr;

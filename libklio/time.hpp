@@ -21,11 +21,10 @@
 #define LIBKLIO_TIME_HPP 1
 
 #include <libklio/common.hpp>
+#include <libklio/types.hpp>
 #include <ctime>
 
 namespace klio {
-  // We use unix timestamps to represent time in this library.
-  typedef time_t timestamp_t;
   class TimeConverter {
     public:
       typedef std::tr1::shared_ptr<TimeConverter> Ptr;

@@ -50,7 +50,7 @@ namespace klio {
       virtual void update_readings(klio::Sensor::Ptr sensor, const readings_t& readings) = 0;
       virtual readings_t_Ptr get_all_readings(klio::Sensor::Ptr sensor) = 0;
       virtual reading_t get_last_reading(klio::Sensor::Ptr sensor) = 0;
-      virtual long int get_num_readings(klio::Sensor::Ptr sensor) = 0;
+      virtual unsigned long int get_num_readings(klio::Sensor::Ptr sensor) = 0;
 
 
     private:

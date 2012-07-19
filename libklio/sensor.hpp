@@ -23,6 +23,7 @@
 
 #include <libklio/common.hpp>
 #include <map>
+#include <iostream>
 #include <boost/uuid/uuid.hpp>
 
 namespace klio {

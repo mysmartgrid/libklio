@@ -7,7 +7,7 @@
 
 
 std::vector<double> klio::get_sensordata_row(
-    const klio::sensordata_table_t& table, size_t row_index) {
+    const klio::sensordata_table_t& table, unsigned long int row_index) {
   std::vector<double> retval;
   klio::sensordata_array_t data=table.get<0>();
   if (row_index <= table.get<1>()) {
@@ -23,7 +23,7 @@ std::vector<double> klio::get_sensordata_row(
 klio::sensordata_table_t
 klio::collate(Store::Ptr store, const sensors_t& sensors) {
   // 1. Check if all sensors have the same size.
-  long int timestampcount=0;
+  unsigned long int timestampcount=0;
   bool first_sensor=true;
   for( klio::sensors_cit_t it = sensors.begin(); it < sensors.end(); ++it) {
     klio::Sensor::Ptr current=(*it);

@@ -15,7 +15,7 @@ namespace klio {
   klio::sensordata_table_t collate(Store::Ptr store, const sensors_t& sensors);    
 
   std::vector<double> get_sensordata_row(
-      const klio::sensordata_table_t& table, size_t row_index);
+      const klio::sensordata_table_t& table, unsigned long int row_index);
 
   // template implementation below
   template <typename Array>

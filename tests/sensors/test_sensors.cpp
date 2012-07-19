@@ -133,7 +133,7 @@ BOOST_AUTO_TEST_CASE ( check_retrieve_sensor_by_name ) {
   try {
     std::cout << std::endl << "*** Testing sensor query by name" << std::endl;
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-    std::string sensor1_id("sensor1");
+    std::string sensor1_id("sensor_1");
     klio::Sensor::Ptr sensor1(sensor_factory->createSensor(sensor1_id, "Watt", "MEZ")); 
     std::string sensor2_id("sensor2");
     klio::Sensor::Ptr sensor2a(sensor_factory->createSensor(sensor2_id, "Watt", "MEZ")); 

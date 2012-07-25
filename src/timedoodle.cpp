@@ -35,13 +35,15 @@ int main (int argc, char const* argv[]) {
 
   local_date_time nyc_time = lt->get_local_time(sensor, demotime);
   std::cout << "NYC Time: " << nyc_time << std::endl;
+  ptime nyc_utc = lt->get_utc_time(sensor, demotime);
+  std::cout << "NYC Time (UTC): " << nyc_utc << std::endl;
+  //Expected 1096906472
+  std::cout << "NYC time unix timestamp: " << lt->get_timestamp(sensor, nyc_time) << std::endl;
 
   ptime ptime_t_epoch(date(1970,1,1)); 
   std::cout << "Epoch: " << ptime_t_epoch << std::endl;
   std::cout << "Epoch as timestamp: " << lt->get_timestamp(ptime_t_epoch) << std::endl;
 
-  //Expected 1096906472
-  std::cout << "NYC time unix timestamp: " << lt->get_timestamp(sensor, nyc_time) << std::endl;
 
   partial_date new_years_day(1,Jan);
   ptime nyc_ptime(nyc_time.local_time());

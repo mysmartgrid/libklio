@@ -18,6 +18,8 @@ namespace klio {
         get_timezone_ptr(klio::Sensor::Ptr sensor);
       boost::local_time::local_date_time
         get_local_time(klio::Sensor::Ptr sensor, klio::timestamp_t time);
+      boost::posix_time::ptime
+        get_utc_time(klio::Sensor::Ptr sensor, klio::timestamp_t time);
       klio::timestamp_t 
         get_timestamp(boost::posix_time::ptime ptime);
       klio::timestamp_t 

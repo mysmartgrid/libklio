@@ -48,6 +48,12 @@ boost::local_time::local_date_time
   return local_date_time(pt, tz);
 }
 
+boost::posix_time::ptime
+  LocalTime::get_utc_time(klio::Sensor::Ptr sensor, klio::timestamp_t time) 
+{
+  return boost::posix_time::from_time_t(time);
+}
+
 klio::timestamp_t 
   LocalTime::get_timestamp(boost::posix_time::ptime ptime) 
 {

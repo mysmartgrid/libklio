@@ -28,8 +28,8 @@ namespace klio {
   class TimeConverter {
     public:
       typedef std::tr1::shared_ptr<TimeConverter> Ptr;
-      TimeConverter () {};
-      virtual ~TimeConverter() {};
+      TimeConverter();
+      virtual ~TimeConverter();
 
       timestamp_t get_timestamp();
       long convert_to_epoch(klio::timestamp_t time);

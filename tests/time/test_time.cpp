@@ -51,6 +51,19 @@ BOOST_AUTO_TEST_CASE ( check_timezone ) {
   BOOST_REQUIRE( reversed_local != reversed_utc ); 
 }
 
+BOOST_AUTO_TEST_CASE ( get_day_of_year ) {
+  std::cout << std::endl << "*** Checking get_day_of_year" << std::endl;
+  klio::TimeConverter::Ptr tc(new klio::TimeConverter());
+
+  //Timestamp: 1357039094
+  //UTC: Jul 24, 2012 12:18:14 PM
+  klio::timestamp_t timestamp = 1357039094;
+  std::string reversed_local = tc->str_local(timestamp);
+
+  std::cout << "Timestamp: " << timestamp 
+    << " -> reversed local: " << reversed_local << std::endl;
+  //BOOST_REQUIRE( reversed_local != reversed_utc ); 
+}
 
 
 //BOOST_AUTO_TEST_SUITE_END()

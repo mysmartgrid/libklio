@@ -21,6 +21,12 @@
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <libklio/time.hpp>
+#include <libklio/local_time.hpp>
+#include "boost/date_time/local_time/local_time.hpp"
+#include "boost/date_time/gregorian/gregorian.hpp"
+#include <iostream>
+#include <libklio/sensor.hpp>
+#include <libklio/sensorfactory.hpp>
 
 
 BOOST_AUTO_TEST_CASE ( check_time ) {
@@ -51,18 +57,47 @@ BOOST_AUTO_TEST_CASE ( check_timezone ) {
   BOOST_REQUIRE( reversed_local != reversed_utc ); 
 }
 
-BOOST_AUTO_TEST_CASE ( get_day_of_year ) {
-  std::cout << std::endl << "*** Checking get_day_of_year" << std::endl;
-  klio::TimeConverter::Ptr tc(new klio::TimeConverter());
+BOOST_AUTO_TEST_CASE ( local_time ) {
+  using namespace boost::gregorian; 
+  using namespace boost::local_time;
+  using namespace boost::posix_time;
 
-  //Timestamp: 1357039094
-  //UTC: Jul 24, 2012 12:18:14 PM
-  klio::timestamp_t timestamp = 1357039094;
-  std::string reversed_local = tc->str_local(timestamp);
+  std::cout << std::endl << "*** Checking new LocalTime class." << std::endl;
 
-  std::cout << "Timestamp: " << timestamp 
-    << " -> reversed local: " << reversed_local << std::endl;
-  //BOOST_REQUIRE( reversed_local != reversed_utc ); 
+  klio::LocalTime::Ptr lt(new klio::LocalTime("../.."));
+  klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+  std::string sensor_id("sensor_id");
+  std::string sensor_unit("unit");
+  std::string sensor_timezone("America/New_York");
+  klio::Sensor::Ptr sensor(sensor_factory->createSensor(
+        sensor_id, sensor_unit, sensor_timezone)); 
+
+  time_zone_ptr nyc_tz = lt->get_timezone_ptr(sensor);
+  std::cout << "Using time zone " << nyc_tz->std_zone_abbrev() << std::endl;
+  //date in_date(2004,10,04);
+  //time_duration td(12,14,32);
+  time_t demotime=1096906472;
+  local_date_time nyc_time = lt->get_local_time(sensor, demotime);
+  std::cout << "NYC Time: " << nyc_time << std::endl;
+  ptime nyc_utc = lt->get_utc_time(sensor, demotime);
+  std::cout << "NYC Time (UTC): " << nyc_utc << std::endl;
+  //Expected 1096906472
+  std::cout << "NYC time unix timestamp: " << lt->get_timestamp(sensor, nyc_time) << std::endl;
+  BOOST_REQUIRE( lt->get_timestamp(sensor, nyc_time) == demotime ); 
+
+  ptime ptime_t_epoch(date(1970,1,1)); 
+  std::cout << "Epoch: " << ptime_t_epoch << std::endl;
+  std::cout << "Epoch as timestamp: " << lt->get_timestamp(ptime_t_epoch) << std::endl;
+  BOOST_REQUIRE( lt->get_timestamp(ptime_t_epoch) == 0 ); 
+  std::cout << "NYC Date: " << lt->get_local_date(sensor, demotime) << std::endl;
+  std::cout << "Day of year: " << lt->get_local_day_of_year(sensor, demotime) << std::endl;
+  BOOST_REQUIRE( lt->get_local_day_of_year(sensor, demotime) == 278 ); 
+  std::cout << "Hours since midnight: " << lt->get_local_hour(sensor, demotime) << std::endl;
+  BOOST_REQUIRE( lt->get_local_hour(sensor, demotime) == 12 ); 
+
+
+
+
 }
 
 

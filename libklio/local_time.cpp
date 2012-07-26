@@ -15,9 +15,9 @@ LocalTime::LocalTime(const char* cmd)
   try {
     bfs::path zonespec_filename("date_time_zonespec.csv");
     std::ifstream zs_stream;
-    if (bfs::exists(bfs::path(cmd) / ".." / zonespec_filename)) {
+    if (bfs::exists(bfs::path(cmd) / ".." / "share" / "libklio" / zonespec_filename)) {
       _tz_db.load_from_file(
-          (bfs::path("/usr/share/libklio") / zonespec_filename).c_str()
+          (bfs::path(cmd) / ".."/ "share" / "libklio"  / zonespec_filename).c_str()
         );
     } else if (bfs::exists(bfs::path("./share/libklio") / zonespec_filename)) {
       _tz_db.load_from_file(
@@ -25,6 +25,10 @@ LocalTime::LocalTime(const char* cmd)
         );
     } else {
       std::cerr << "Cannot open " << zonespec_filename << ", aborting." << std::endl;
+      std::cerr << "Tried " <<  
+          (bfs::path(cmd) / ".." / zonespec_filename).c_str() << std::endl;
+      std::cerr << "Tried " <<  
+          (bfs::path("./share/libklio") / zonespec_filename).c_str() << std::endl;
       exit(-1);
     }
   }catch(data_not_accessible dna) {
@@ -54,8 +58,34 @@ boost::posix_time::ptime
   return boost::posix_time::from_time_t(time);
 }
 
-klio::timestamp_t 
-  LocalTime::get_timestamp(boost::posix_time::ptime ptime) 
+boost::gregorian::date
+  LocalTime::get_local_date(klio::Sensor::Ptr sensor, klio::timestamp_t time)
+{
+  return date(get_local_time(sensor, time).date());
+}
+
+
+uint16_t
+  LocalTime::get_local_day_of_year(klio::Sensor::Ptr sensor, klio::timestamp_t time)
+{
+  static partial_date new_years_day(1,Jan);
+  local_date_time localtime = get_local_time(sensor, time);
+  ptime local_ptime(localtime.local_time());
+  date local_date(local_ptime.date());
+  return (1 + (local_date - new_years_day.get_date(local_date.year())).days());
+}
+
+uint16_t LocalTime::get_local_hour(
+    klio::Sensor::Ptr sensor, klio::timestamp_t time)
+{
+  local_date_time localtime = get_local_time(sensor, time);
+  ptime local_ptime(localtime.local_time());
+  time_duration time_of_day(local_ptime.time_of_day());
+  return time_of_day.hours();
+}
+
+klio::timestamp_t LocalTime::get_timestamp(
+    boost::posix_time::ptime ptime) 
 {
   static boost::posix_time::ptime epoch(boost::gregorian::date(1970, 1, 1));
   time_duration diff(ptime - epoch);
@@ -63,8 +93,8 @@ klio::timestamp_t
 }
 
 
-klio::timestamp_t 
-  LocalTime::get_timestamp(klio::Sensor::Ptr sensor, boost::local_time::local_date_time time)
+klio::timestamp_t LocalTime::get_timestamp(
+    klio::Sensor::Ptr sensor, boost::local_time::local_date_time time)
 {
   static boost::posix_time::ptime epoch(boost::gregorian::date(1970, 1, 1));
 

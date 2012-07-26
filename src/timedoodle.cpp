@@ -43,17 +43,12 @@ int main (int argc, char const* argv[]) {
   ptime ptime_t_epoch(date(1970,1,1)); 
   std::cout << "Epoch: " << ptime_t_epoch << std::endl;
   std::cout << "Epoch as timestamp: " << lt->get_timestamp(ptime_t_epoch) << std::endl;
+  std::cout << "NYC Date: " << lt->get_local_date(sensor, demotime) << std::endl;
+  std::cout << "Day of year: " << lt->get_local_day_of_year(sensor, demotime) << std::endl;
+  std::cout << "Hours since midnight: " << lt->get_local_hour(sensor, demotime) << std::endl;
 
-
-  partial_date new_years_day(1,Jan);
-  ptime nyc_ptime(nyc_time.local_time());
-  date nyc_date(nyc_ptime.date());
-  time_duration nyc_time_of_day(nyc_ptime.time_of_day());
-  std::cout << "NYC Date: " << nyc_date << std::endl;
-  std::cout << "Days since new year: " << nyc_date - new_years_day.get_date(nyc_date.year()) << std::endl;
-  std::cout << "Day of year: " << 1 + (nyc_date - new_years_day.get_date(nyc_date.year())).days() << std::endl;
-
-  std::cout << "Hours since midnight: " << nyc_time_of_day.hours() << std::endl;
+  //time_duration nyc_time_of_day(nyc_ptime.time_of_day());
+  //std::cout << "Hours since midnight: " << nyc_time_of_day.hours() << std::endl;
 
 }
 

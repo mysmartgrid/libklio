@@ -17,6 +17,11 @@ LocalTime::LocalTime(const char* cmd)
   try {
     bfs::path zonespec_filename("date_time_zonespec.csv");
     std::ifstream zs_stream;
+    if (bfs::exists(bfs::path(cmd) / zonespec_filename)) {
+      _tz_db.load_from_file(
+          (bfs::path(cmd) / zonespec_filename).c_str()
+        );
+    }
     if (bfs::exists(bfs::path(cmd) / ".." / "share" / "libklio" / zonespec_filename)) {
       _tz_db.load_from_file(
           (bfs::path(cmd) / ".."/ "share" / "libklio"  / zonespec_filename).c_str()
@@ -35,6 +40,8 @@ LocalTime::LocalTime(const char* cmd)
           );
     } else {
       std::cerr << "Cannot open timezone database " << zonespec_filename << ", aborting." << std::endl;
+      std::cerr << "Tried " <<  
+          (bfs::path(cmd) / zonespec_filename).c_str() << std::endl;
       std::cerr << "Tried " <<  
         (bfs::path(cmd) / ".." / zonespec_filename).c_str() << std::endl;
       std::cerr << "Tried " <<  

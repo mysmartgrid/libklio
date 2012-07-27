@@ -61,13 +61,13 @@ BOOST_AUTO_TEST_CASE ( check_collate ) {
   try {
     klio::Store::Ptr store(generate_store());
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-    klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", "MEZ")); 
+    klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", "Europe/Berlin")); 
     store->addSensor(sensor1);
     std::cout << "Created: " << sensor1->str() << std::endl;
-    klio::Sensor::Ptr sensor2(sensor_factory->createSensor("sensor2", "Watt", "MEZ")); 
+    klio::Sensor::Ptr sensor2(sensor_factory->createSensor("sensor2", "Watt", "Europe/Berlin")); 
     store->addSensor(sensor2);
     std::cout << "Created: " << sensor2->str() << std::endl;
-    klio::Sensor::Ptr sensor3(sensor_factory->createSensor("sensor3", "Watt", "MEZ")); 
+    klio::Sensor::Ptr sensor3(sensor_factory->createSensor("sensor3", "Watt", "Europe/Berlin")); 
     store->addSensor(sensor3);
     std::cout << "Created: " << sensor3->str() << std::endl;
 

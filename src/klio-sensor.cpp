@@ -117,6 +117,9 @@ int main(int argc,char** argv) {
         klio::Store::Ptr store(factory->openStore(klio::SQLITE3, db));
         std::cout << "opened store: " << store->str() << std::endl;
         store->addSensor(new_sensor);
+        if (vm.count("description") > 0) {
+          store->add_description(new_sensor, vm["description"].as<std::string>());
+        }
         std::cout << "added: " << new_sensor->str() << std::endl;
       } catch (klio::StoreException const& ex) {
         std::cout << "Failed to create: " << ex.what() << std::endl;
@@ -173,7 +176,7 @@ int main(int argc,char** argv) {
         std::cout << "Failed to create: " << ex.what() << std::endl;
       }
     }
-    
+
     /**
      * ADDREADING to sensor command
      */
@@ -208,7 +211,7 @@ int main(int argc,char** argv) {
         std::cout << "Failed to create: " << ex.what() << std::endl;
       }
     }
-    
+
     /**
      * Change description of sensor 
      */

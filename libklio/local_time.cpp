@@ -27,22 +27,28 @@ LocalTime::LocalTime(const char* cmd)
         );
     } else if (bfs::exists(bfs::path(INSTALL_PREFIX) / bfs::path("share/libklio") / zonespec_filename)) {
       _tz_db.load_from_file(
-          (bfs::path(INSTALL_PREFIX) / bfs::path("./share/libklio") / zonespec_filename).c_str()
+          (bfs::path(INSTALL_PREFIX) / bfs::path("share/libklio") / zonespec_filename).c_str()
         );
+    } else if (bfs::exists(bfs::path("/usr") / bfs::path("share/libklio") / zonespec_filename)) {
+      _tz_db.load_from_file(
+          (bfs::path("/usr") / bfs::path("share/libklio") / zonespec_filename).c_str()
+          );
     } else {
-      std::cerr << "Cannot open " << zonespec_filename << ", aborting." << std::endl;
+      std::cerr << "Cannot open timezone database " << zonespec_filename << ", aborting." << std::endl;
       std::cerr << "Tried " <<  
-          (bfs::path(cmd) / ".." / zonespec_filename).c_str() << std::endl;
+        (bfs::path(cmd) / ".." / zonespec_filename).c_str() << std::endl;
       std::cerr << "Tried " <<  
-          (bfs::path("./share/libklio") / zonespec_filename).c_str() << std::endl;
+        (bfs::path("./share/libklio") / zonespec_filename).c_str() << std::endl;
       std::cerr << "Tried " <<  
-          (bfs::path(INSTALL_PREFIX) / bfs::path("./share/libklio") / zonespec_filename).c_str() << std::endl;
+        (bfs::path(INSTALL_PREFIX) / bfs::path("share/libklio") / zonespec_filename).c_str() << std::endl;
+      std::cerr << "Tried " <<  
+        (bfs::path("/usr") / bfs::path("share/libklio") / zonespec_filename).c_str() << std::endl;
       exit(-1);
     }
-  }catch(data_not_accessible dna) {
+  } catch(data_not_accessible dna) {
     std::cerr << "Error with time zone data file: " << dna.what() << std::endl;
     exit(EXIT_FAILURE);
-  }catch(bad_field_count bfc) {
+  } catch(bad_field_count bfc) {
     std::cerr << "Error with time zone data file: " << bfc.what() << std::endl;
     exit(EXIT_FAILURE);
   }

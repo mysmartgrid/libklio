@@ -2,7 +2,6 @@
 set(klio-sensor_src klio-sensor.cpp)
 set(klio-store_src klio-store.cpp)
 set(klio-export_src klio-export.cpp)
-set(timedoodle_src timedoodle.cpp)
 
 include_directories(${CMAKE_SOURCE_DIR}
                     ${CMAKE_CURRENT_SOURCE_DIR} 
@@ -10,13 +9,11 @@ include_directories(${CMAKE_SOURCE_DIR}
 add_executable(klio-sensor ${klio-sensor_src})
 add_executable(klio-store ${klio-store_src})
 add_executable(klio-export ${klio-export_src})
-add_executable(timedoodle ${timedoodle_src})
 #sensor_executable(foobar sourcetest.cpp)
 # Link the executable 
 target_link_libraries(klio-sensor klio ${Boost_LIBRARIES})
 target_link_libraries(klio-store klio ${Boost_LIBRARIES})
 target_link_libraries(klio-export klio ${Boost_LIBRARIES})
-target_link_libraries(timedoodle klio ${Boost_LIBRARIES})
 
 # sensor programs to the install target
 INSTALL(PROGRAMS 

@@ -470,7 +470,6 @@ void SQLite3Store::add_description(klio::Sensor::Ptr sensor, const std::string& 
   oss << "WHERE uuid='" << sensor->uuid_string() << "'";
   std::string updateStmt(oss.str());
 
-  std::cout << "Using SQL: " << updateStmt << std::endl;
 
   char* zErrMsg=0;
   rc=sqlite3_exec(db, updateStmt.c_str(), empty_callback, NULL, &zErrMsg);

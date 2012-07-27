@@ -1,5 +1,7 @@
 #include "local_time.hpp"
 #include <boost/filesystem.hpp>
+#include <boost/algorithm/string.hpp>
+
 namespace bfs = boost::filesystem; 
 
 using namespace klio;
@@ -23,12 +25,18 @@ LocalTime::LocalTime(const char* cmd)
       _tz_db.load_from_file(
           (bfs::path("./share/libklio") / zonespec_filename).c_str()
         );
+    } else if (bfs::exists(bfs::path(INSTALL_PREFIX) / bfs::path("share/libklio") / zonespec_filename)) {
+      _tz_db.load_from_file(
+          (bfs::path(INSTALL_PREFIX) / bfs::path("./share/libklio") / zonespec_filename).c_str()
+        );
     } else {
       std::cerr << "Cannot open " << zonespec_filename << ", aborting." << std::endl;
       std::cerr << "Tried " <<  
           (bfs::path(cmd) / ".." / zonespec_filename).c_str() << std::endl;
       std::cerr << "Tried " <<  
           (bfs::path("./share/libklio") / zonespec_filename).c_str() << std::endl;
+      std::cerr << "Tried " <<  
+          (bfs::path(INSTALL_PREFIX) / bfs::path("./share/libklio") / zonespec_filename).c_str() << std::endl;
       exit(-1);
     }
   }catch(data_not_accessible dna) {
@@ -40,33 +48,51 @@ LocalTime::LocalTime(const char* cmd)
   }
 }
 
+
+std::vector<std::string> LocalTime::get_valid_timezones() {
+  return _tz_db.region_list();
+}
+
+bool LocalTime::is_valid_timezone(const std::string& zone) {
+  std::vector<std::string> regions;
+  std::vector<std::string>::iterator it;
+  regions = _tz_db.region_list();
+  bool valid=false;
+  for(it = regions.begin(); it < regions.end(); ++it) {
+    if (boost::iequals((*it), zone)) {
+      valid = true;
+    }
+  }
+  return valid;
+}
+
 time_zone_ptr LocalTime::get_timezone_ptr(klio::Sensor::Ptr sensor) {
   return _tz_db.time_zone_from_region(sensor->timezone());
 }
 
-boost::local_time::local_date_time
-  LocalTime::get_local_time(klio::Sensor::Ptr sensor, klio::timestamp_t time) 
+  boost::local_time::local_date_time
+LocalTime::get_local_time(klio::Sensor::Ptr sensor, klio::timestamp_t time) 
 {
   time_zone_ptr tz(get_timezone_ptr(sensor));
   ptime pt = boost::posix_time::from_time_t(time);
   return local_date_time(pt, tz);
 }
 
-boost::posix_time::ptime
-  LocalTime::get_utc_time(klio::Sensor::Ptr sensor, klio::timestamp_t time) 
+  boost::posix_time::ptime
+LocalTime::get_utc_time(klio::Sensor::Ptr sensor, klio::timestamp_t time) 
 {
   return boost::posix_time::from_time_t(time);
 }
 
-boost::gregorian::date
-  LocalTime::get_local_date(klio::Sensor::Ptr sensor, klio::timestamp_t time)
+  boost::gregorian::date
+LocalTime::get_local_date(klio::Sensor::Ptr sensor, klio::timestamp_t time)
 {
   return date(get_local_time(sensor, time).date());
 }
 
 
-uint16_t
-  LocalTime::get_local_day_of_year(klio::Sensor::Ptr sensor, klio::timestamp_t time)
+  uint16_t
+LocalTime::get_local_day_of_year(klio::Sensor::Ptr sensor, klio::timestamp_t time)
 {
   static partial_date new_years_day(1,Jan);
   local_date_time localtime = get_local_time(sensor, time);

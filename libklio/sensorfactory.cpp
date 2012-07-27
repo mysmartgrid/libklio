@@ -1,6 +1,9 @@
 #include "sensorfactory.hpp"
 #include <boost/uuid/uuid_io.hpp>
 #include <sstream>
+#include <libklio/local_time.hpp>
+#include <libklio/error.hpp>
+
 
 using namespace klio;
 
@@ -52,5 +55,15 @@ klio::Sensor::Ptr SensorFactory::createSensor(
     const std::string& unit, 
     const std::string& timezone) 
 {
+  klio::LocalTime::Ptr lt(new klio::LocalTime("../.."));
+  if (! lt->is_valid_timezone(timezone)) {
+    std::vector<std::string> valid_regions(lt->get_valid_timezones());
+    std::ostringstream oss;
+    oss << "Invalid timezone " << timezone 
+      << ". Valid timezones are: " << std::endl;
+    std::copy(valid_regions.begin(), valid_regions.end(), 
+        std::ostream_iterator<std::string>(oss, ", "));
+    throw klio::DataFormatException(oss.str()); 
+  } 
   return Sensor::Ptr(new Sensor(uuid, name, description, unit, timezone));
 }

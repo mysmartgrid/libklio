@@ -14,6 +14,9 @@ namespace klio {
       LocalTime (const char* cmd);
       virtual ~LocalTime() {};
 
+      std::vector<std::string> get_valid_timezones();
+      bool is_valid_timezone(const std::string& zone);
+
       boost::local_time::time_zone_ptr 
         get_timezone_ptr(klio::Sensor::Ptr sensor);
 

@@ -57,6 +57,13 @@ BOOST_AUTO_TEST_CASE ( check_timezone ) {
   BOOST_REQUIRE( reversed_local != reversed_utc ); 
 }
 
+BOOST_AUTO_TEST_CASE ( check_timezones ) {
+  std::cout << std::endl << "*** Checking valid timezone behavior" << std::endl;
+  klio::LocalTime::Ptr lt(new klio::LocalTime("../.."));
+  BOOST_REQUIRE(lt->is_valid_timezone("America/New_York"));
+  BOOST_REQUIRE(! lt->is_valid_timezone("Horst"));
+}
+
 BOOST_AUTO_TEST_CASE ( local_time ) {
   using namespace boost::gregorian; 
   using namespace boost::local_time;
@@ -71,6 +78,14 @@ BOOST_AUTO_TEST_CASE ( local_time ) {
   std::string sensor_timezone("America/New_York");
   klio::Sensor::Ptr sensor(sensor_factory->createSensor(
         sensor_id, sensor_unit, sensor_timezone)); 
+
+  try {
+    klio::Sensor::Ptr broken_sensor(sensor_factory->createSensor(
+          sensor_id, sensor_unit, "HORST")); 
+    BOOST_FAIL("Created sensor with invalid timezone HORST");
+  } catch (klio::DataFormatException& dfe) {
+    std::cout << "Expected Exception: " << dfe.what() << std::endl;
+  }
 
   time_zone_ptr nyc_tz = lt->get_timezone_ptr(sensor);
   std::cout << "Using time zone " << nyc_tz->std_zone_abbrev() << std::endl;
@@ -94,9 +109,6 @@ BOOST_AUTO_TEST_CASE ( local_time ) {
   BOOST_REQUIRE( lt->get_local_day_of_year(sensor, demotime) == 278 ); 
   std::cout << "Hours since midnight: " << lt->get_local_hour(sensor, demotime) << std::endl;
   BOOST_REQUIRE( lt->get_local_hour(sensor, demotime) == 12 ); 
-
-
-
 
 }
 

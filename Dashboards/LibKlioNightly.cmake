@@ -6,7 +6,7 @@ include(CTestConfigLibKlio.cmake)
 
 set(URL "https://github.com/mysmartgrid/libklio.git")
 
-set(KDE_CTEST_DASHBOARD_DIR "/tmp/msgrid-kk")
+set(KDE_CTEST_DASHBOARD_DIR "/tmp/msgrid")
 set(CTEST_BASE_DIRECTORY "${KDE_CTEST_DASHBOARD_DIR}/${_projectNameDir}")
 set(CTEST_SOURCE_DIRECTORY "${CTEST_BASE_DIRECTORY}/${_srcDir}-${_git_branch}" )
 set(CTEST_BINARY_DIRECTORY "${CTEST_BASE_DIRECTORY}/${_buildDir}-${CTEST_BUILD_NAME}")

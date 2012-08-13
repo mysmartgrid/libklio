@@ -10,4 +10,5 @@ echo "Running ctest"
 
 ${CTEST} -V -VV -S ${HOME}/libklio/Dashboards/LibKlioNightly_1.cmake
 ${CTEST} -V -VV -S ${HOME}/libklio/Dashboards/LibKlioNightly_2.cmake
+# ${CTEST} -V -VV -S ${HOME}/libklio/Dashboards/LibKlioNightly_x86-kk-dev.cmake
 

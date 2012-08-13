@@ -20,8 +20,12 @@
 #include "time.hpp"
 #include <sstream>
 
-
 using namespace klio;
+
+TimeConverter::TimeConverter () {
+};
+
+TimeConverter::~TimeConverter() {};
 
 timestamp_t TimeConverter::get_timestamp() {
   std::time_t rawtime;
@@ -34,6 +38,7 @@ long TimeConverter::convert_to_epoch(timestamp_t time) {
 }
 
 timestamp_t TimeConverter::convert_from_epoch(long epoch) {
+
   return epoch;
   //return reinterpret_cast<timestamp_t> (epoch);
   //return std::time(&epoch); 

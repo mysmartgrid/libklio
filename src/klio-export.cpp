@@ -43,7 +43,7 @@ int main(int argc,char** argv) {
     desc.add_options()
       ("help,h", "produce help message")
       ("version,v", "print libklio version and exit")
-      ("action,a", po::value<std::string>(), "Valid actions: table, octave, json")
+      ("action,a", po::value<std::string>(), "Valid actions: table, plaintable, octave, json")
       ("storefile,s", po::value<std::string>(), "the data store to use")
       ("outputfile,o", po::value<std::string>(), "the output file to use")
       ("id,i", po::value<std::string>(), "the id of the sensor")
@@ -131,15 +131,19 @@ int main(int argc,char** argv) {
           /**
            * Dump sensor reading command
            */
-          if (boost::iequals(action, std::string("TABLE"))) {
+          if (boost::iequals(action, std::string("TABLE"))
+              || boost::iequals(action, std::string("PLAINTABLE"))) {
             klio::readings_it_t it;
-            *outputstream << "timestamp\treading" << std::endl;
+            if (boost::iequals(action, std::string("TABLE"))) {
+              *outputstream << "timestamp\treading" << std::endl;
+            }
             for(  it = readings->begin(); it != readings->end(); it++) {
               klio::timestamp_t ts1=(*it).first;
               double val1=(*it).second;
               *outputstream << ts1 << "\t" << val1 << std::endl;
             }
           }
+
 
           /**
            * Export to octave script file command

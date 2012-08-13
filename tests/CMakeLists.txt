@@ -6,4 +6,5 @@ link_directories(${SQLITE3_LIBRARY_DIRS})
 add_subdirectory(store)
 add_subdirectory(sensors)
 add_subdirectory(time)
+add_subdirectory(algorithms)
 

@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE ( check_add_retrieve_reading ) {
   try {
     std::cout << std::endl << "*** Adding & retrieving a reading to/from a sensor." << std::endl;
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-    klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", "MEZ")); 
+    klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", "Europe/Berlin")); 
     std::cout << "Created " << sensor1->str() << std::endl;
     klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
     bfs::path db(TEST_DB_FILE);
@@ -78,7 +78,7 @@ BOOST_AUTO_TEST_CASE ( check_retrieve_last_reading ) {
   try {
     std::cout << std::endl << "*** retrieving the last reading from a sensor." << std::endl;
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-    klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", "MEZ")); 
+    klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", "Europe/Berlin")); 
     std::cout << "Created " << sensor1->str() << std::endl;
     klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
     bfs::path db(TEST_DB_FILE);
@@ -124,7 +124,7 @@ BOOST_AUTO_TEST_CASE ( check_bulk_insert ) {
   try {
     std::cout << std::endl << "*** bulk-inserting some readings." << std::endl;
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-    klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", "MEZ")); 
+    klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", "Europe/Berlin")); 
     std::cout << "Created " << sensor1->str() << std::endl;
     klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
     bfs::path db(TEST_DB_FILE);
@@ -176,7 +176,7 @@ BOOST_AUTO_TEST_CASE ( check_bulk_insert_duplicates ) {
   try {
     std::cout << std::endl << "*** bulk-inserting readings with duplicates." << std::endl;
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-    klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", "MEZ")); 
+    klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", "Europe/Berlin")); 
     std::cout << "Created " << sensor1->str() << std::endl;
     klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
     bfs::path db(TEST_DB_FILE);
@@ -239,7 +239,7 @@ BOOST_AUTO_TEST_CASE ( check_num_readings ) {
   try {
     std::cout << std::endl << "*** checking number of readings." << std::endl;
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-    klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", "MEZ")); 
+    klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", "Europe/Berlin")); 
     std::cout << "Created " << sensor1->str() << std::endl;
     klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
     bfs::path db(TEST_DB_FILE);

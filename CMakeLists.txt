@@ -16,8 +16,8 @@ set(CMAKE_VERBOSE_MAKEFILE true)
 ENABLE_TESTING()
 
 set(V_MAJOR 0)
-set(V_MINOR 1)
-set(V_PATCH 2)
+set(V_MINOR 2)
+set(V_PATCH 0)
 
 # add a path where some libraries might be stored
 set(CMAKE_ADDITIONAL_PATH "$ENV{CMAKE_ADDITIONAL_PATH}" CACHE PATH "Path where many locally installed libraries can be found")
@@ -65,7 +65,8 @@ FIND_PACKAGE(Sqlite)
 SET(Boost_ADDITIONAL_VERSIONS "1.46.1" "1.47" "1.47.1" "1.48.0" "1.48"
   "1.49.0" "1.49" "1.50.0" "1.50")
 SET(Boost_DETAILED_FAILURE_MSG true)
-FIND_PACKAGE(Boost 1.46.1 COMPONENTS test_exec_monitor program_options filesystem system)
+FIND_PACKAGE(Boost 1.46.1 
+  COMPONENTS test_exec_monitor program_options filesystem system date_time)
 
 include_directories(${CMAKE_BINARY_DIR})
 
@@ -78,7 +79,12 @@ add_subdirectory(libklio)
 add_subdirectory(tests)
 
 # add some files to the installation target
-INSTALL(FILES README.md LICENSE DESTINATION share/doc/libklio)
+INSTALL(FILES README.md LICENSE 
+    DESTINATION share/doc/libklio
+  )
+INSTALL(FILES share/libklio/date_time_zonespec.csv 
+    DESTINATION share/libklio
+  )
 
 # CPACK packaging
 INCLUDE(InstallRequiredSystemLibraries)

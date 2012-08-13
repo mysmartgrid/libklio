@@ -44,7 +44,7 @@ namespace klio {
       virtual void update_readings(klio::Sensor::Ptr sensor, const readings_t& readings);
       virtual void add_description(klio::Sensor::Ptr sensor, const std::string& desc);
       virtual readings_t_Ptr get_all_readings(klio::Sensor::Ptr sensor);
-      virtual long int get_num_readings(klio::Sensor::Ptr sensor);
+      virtual unsigned long int get_num_readings(klio::Sensor::Ptr sensor);
       virtual std::pair<timestamp_t, double> get_last_reading(klio::Sensor::Ptr sensor);
       void open();
       void initialize();

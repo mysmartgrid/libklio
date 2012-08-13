@@ -2,6 +2,7 @@
 #define LIBKLIO_STORE_FACTORY_HPP 1
 
 #include <libklio/common.hpp>
+#include <libklio/types.hpp>
 #include <libklio/store.hpp>
 #include <boost/filesystem.hpp>
 namespace bfs = boost::filesystem;

@@ -319,7 +319,7 @@ std::vector<klio::Sensor::Ptr> SQLite3Store::getSensorById(const std::string& se
   const char* pzTail ;
   klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
 
-  LOG("Attempting to load sensor " << uuid);
+  LOG("Attempting to load sensor " << sensor_id);
   checkSensorTable();
 
   rc=sqlite3_prepare_v2(
@@ -352,10 +352,16 @@ std::vector<klio::Sensor::Ptr> SQLite3Store::getSensorById(const std::string& se
         std::string((char*)select_unit), 
         std::string((char*)select_timezone))); 
     retval.push_back(current);
+    //std::cout << "klio: Found sensor " << current->str() << std::endl;
   }
   sqlite3_clear_bindings(stmt);
   sqlite3_reset(stmt);
   sqlite3_finalize(stmt);
+  //for( std::vector<klio::Sensor::Ptr>::iterator it = retval.begin(); 
+  //    it < retval.end(); it++) {
+  //  std::cout << "klio: Sensor id: " << (*it)->name() 
+  //    << " - use count " << it->use_count() << std::endl;
+  //}
   return retval;
 }
 
@@ -464,7 +470,6 @@ void SQLite3Store::add_description(klio::Sensor::Ptr sensor, const std::string& 
   oss << "WHERE uuid='" << sensor->uuid_string() << "'";
   std::string updateStmt(oss.str());
 
-  std::cout << "Using SQL: " << updateStmt << std::endl;
 
   char* zErrMsg=0;
   rc=sqlite3_exec(db, updateStmt.c_str(), empty_callback, NULL, &zErrMsg);
@@ -632,7 +637,7 @@ static int get_num_readings_callback(void *num, int argc, char **argv, char **az
   return 0;
 }
 
-long int SQLite3Store::get_num_readings(klio::Sensor::Ptr sensor) {
+unsigned long int SQLite3Store::get_num_readings(klio::Sensor::Ptr sensor) {
   long int retval;
   int rc;
 

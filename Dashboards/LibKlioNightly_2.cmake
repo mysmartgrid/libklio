@@ -1,5 +1,4 @@
 #set(TARGET_ARCH ar71xx)
 set(CTEST_PUSH_PACKAGES 1)
-set(BOOST_ROOT /homes/krueger/external_software/ubuntu_100403/boost/1.46)
 get_filename_component(_currentDir "${CMAKE_CURRENT_LIST_FILE}" PATH)
 include( "${_currentDir}/LibKlioNightly.cmake")

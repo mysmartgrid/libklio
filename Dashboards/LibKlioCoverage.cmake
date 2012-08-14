@@ -65,6 +65,7 @@ if(CMAKE_TOOLCHAIN_FILE)
     CMAKE_BUILD_TYPE
     )
 else(CMAKE_TOOLCHAIN_FILE)
+  set(BOOST_ROOT /homes/krueger/external_software/ubuntu_100403/${CMAKE_SYSTEM_PROCESSOR}/boost/1.46)
   kde_ctest_write_initial_cache("${CTEST_BINARY_DIRECTORY}"
     BOOST_ROOT
     CMAKE_INSTALL_PREFIX

@@ -3,12 +3,14 @@ set(klio-sensor_src klio-sensor.cpp)
 set(klio-store_src klio-store.cpp)
 set(klio-export_src klio-export.cpp)
 
+link_directories(${SQLITE3_LIBRARY_DIRS})
 include_directories(${CMAKE_SOURCE_DIR}
                     ${CMAKE_CURRENT_SOURCE_DIR} 
                     ${Boost_INCLUDE_DIRS})
 add_executable(klio-sensor ${klio-sensor_src})
 add_executable(klio-store ${klio-store_src})
 add_executable(klio-export ${klio-export_src})
+
 #sensor_executable(foobar sourcetest.cpp)
 # Link the executable 
 target_link_libraries(klio-sensor klio ${Boost_LIBRARIES})

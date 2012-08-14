@@ -46,7 +46,7 @@ endif(NOT EXISTS "${CTEST_SOURCE_DIRECTORY}/.git/HEAD")
 ctest_empty_binary_directory("${CTEST_BINARY_DIRECTORY}")
 ctest_start(${_ctest_type})
 ctest_update(SOURCE "${CTEST_SOURCE_DIRECTORY}")
-#ctest_submit(PARTS Update)
+ctest_submit(PARTS Update)
 
 execute_process(
   COMMAND ${CTEST_GIT_COMMAND} checkout  ${_git_branch}
@@ -89,6 +89,6 @@ message("====> BUILD: ${build_res}")
 ctest_test(BUILD "${CTEST_BINARY_DIRECTORY}" RETURN_VALUE test_res)
 message("====> TESTS: ${test_res}")
 
-#ctest_submit(RETURN_VALUE res)
+ctest_submit(RETURN_VALUE res)
 
 message("DONE")

@@ -15,7 +15,7 @@ set(CTEST_DROP_METHOD "http")
 set(CTEST_DROP_SITE "cdash.hexabus.de")
 set(CTEST_DROP_LOCATION "/submit.php?project=${CTEST_PROJECT_NAME}")
 set(CTEST_DROP_SITE_CDASH TRUE)
-#set(CTEST_USE_LAUNCHERS 0)
+set(CTEST_USE_LAUNCHERS 0)
 
 set(CTEST_PACKAGE_SITE "packages.mysmartgrid.de")
 
@@ -27,7 +27,6 @@ site_name(CTEST_SITE)
 if( NOT _git_branch )
   set(_git_branch "development")
 endif( NOT _git_branch )
-#set(_git_branch "kk-dev")
 set(GIT_UPDATE_OPTIONS "pull")
 
 if(NOT TARGET_ARCH)

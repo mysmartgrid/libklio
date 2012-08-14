@@ -16,6 +16,12 @@ function(create_project_xml)
   ctest_submit(FILES "${CTEST_BINARY_DIRECTORY}/Project.xml") 
 endfunction()
 
+function(configure_ctest_config _CTEST_VCS_REPOSITORY configfile)
+  string(REGEX REPLACE "[ /:\\.]" "_" _tmpDir ${_CTEST_VCS_REPOSITORY})
+  set(_tmpDir "${_CTEST_DASHBOARD_DIR}/tmp/${_tmpDir}")
+  configure_file(${configfile} ${_tmpDir}/CTestConfig.cmake COPYONLY)
+endfunction()
+
 function(FindOS OS_NAME OS_VERSION)
 
   set(_LinuxReleaseFiles

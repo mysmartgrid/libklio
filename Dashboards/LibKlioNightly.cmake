@@ -58,6 +58,9 @@ if(CMAKE_TOOLCHAIN_FILE)
     CMAKE_TOOLCHAIN_FILE
     CMAKE_INSTALL_PREFIX
     )
+  set(OS_NAME "openWRT")
+  set(OS_VERSION "10.03.1")
+  set(CMAKE_SYSTEM_PROCESSOR ${openwrt_arch})
 else(CMAKE_TOOLCHAIN_FILE)
   set(BOOST_ROOT /homes/krueger/external_software/ubuntu_100403/${CMAKE_SYSTEM_PROCESSOR}/boost/1.46)
   kde_ctest_write_initial_cache("${CTEST_BINARY_DIRECTORY}"

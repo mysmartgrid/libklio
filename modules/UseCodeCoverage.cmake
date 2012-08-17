@@ -25,9 +25,9 @@ OPTION( ENABLE_CODECOVERAGE "Enable code coverage testing support" )
 
 if ( ENABLE_CODECOVERAGE )
 
-  if ( NOT CMAKE_BUILD_TYPE STREQUAL "Debug" )
+  if ( NOT CMAKE_BUILD_TYPE STREQUAL "Debug" AND NOT CMAKE_BUILD_TYPE STREQUAL "Profile" )
     message( WARNING "Code coverage results with an optimised (non-Debug) build may be misleading" )
-  endif ( NOT CMAKE_BUILD_TYPE STREQUAL "Debug" )
+  endif ( NOT CMAKE_BUILD_TYPE STREQUAL "Debug" AND NOT CMAKE_BUILD_TYPE STREQUAL "Profile" )
 
   if ( NOT DEFINED CODECOV_OUTPUTFILE )
     set( CODECOV_OUTPUTFILE cmake_coverage.output )

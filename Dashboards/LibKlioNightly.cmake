@@ -2,6 +2,7 @@
 
 set(ENV{https_proxy} "http://squid.itwm.fhg.de:3128/")
 include(Tools.cmake)
+my_ctest_setup()
 include(CTestConfigLibKlio.cmake)
 set(_ctest_type "Nightly")
 # set(_ctest_type "Continuous")
@@ -22,10 +23,6 @@ set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
 #set(CTEST_BUILD_CONFIGURATION "Profiling")
 
 configure_ctest_config(${KDE_CTEST_VCS_REPOSITORY} "CTestConfigLibKlio.cmake")
-
-# generic support code, provides the kde_ctest_setup() macro, which sets up everything required:
-get_filename_component(_currentDir "${CMAKE_CURRENT_LIST_FILE}" PATH)
-include( "${_currentDir}/KDECTestNightly.cmake")
 kde_ctest_setup()
 
 FindOS(OS_NAME OS_VERSION)
@@ -34,6 +31,8 @@ set(ctest_config ${CTEST_SOURCE_DIRECTORY}/CTestConfig.cmake)
 #######################################################################
 ctest_empty_binary_directory(${CTEST_BINARY_DIRECTORY})
 
+message("_git_branch ..: '${_git_branch}'")
+message("compiler    ..: '${COMPILER_ID}'")
 
 find_program(CTEST_GIT_COMMAND NAMES git)
 set(CTEST_UPDATE_TYPE git)

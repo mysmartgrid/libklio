@@ -16,6 +16,7 @@ set(CTEST_DROP_SITE "cdash.hexabus.de")
 set(CTEST_DROP_LOCATION "/submit.php?project=${CTEST_PROJECT_NAME}")
 set(CTEST_DROP_SITE_CDASH TRUE)
 set(CTEST_USE_LAUNCHERS 0)
+set(KDE_CTEST_DASHBOARD_DIR "/tmp/msgrid")
 
 set(CTEST_PACKAGE_SITE "packages.mysmartgrid.de")
 

@@ -10,7 +10,6 @@ set(_ctest_type "Nightly")
 
 set(URL "https://github.com/mysmartgrid/libklio.git")
 
-set(KDE_CTEST_DASHBOARD_DIR "/tmp/msgrid")
 set(CTEST_BASE_DIRECTORY "${KDE_CTEST_DASHBOARD_DIR}/${_projectNameDir}/${_ctest_type}")
 set(CTEST_SOURCE_DIRECTORY "${CTEST_BASE_DIRECTORY}/${_srcDir}-${_git_branch}" )
 set(CTEST_BINARY_DIRECTORY "${CTEST_BASE_DIRECTORY}/${_buildDir}-${CTEST_BUILD_NAME}")
@@ -27,7 +26,7 @@ kde_ctest_setup()
 
 FindOS(OS_NAME OS_VERSION)
 
-set(ctest_config ${CTEST_SOURCE_DIRECTORY}/CTestConfig.cmake)
+set(ctest_config ${CTEST_BASE_DIRECTORY}/CTestConfig.cmake)
 #######################################################################
 ctest_empty_binary_directory(${CTEST_BINARY_DIRECTORY})
 
@@ -42,9 +41,8 @@ if(NOT EXISTS "${CTEST_SOURCE_DIRECTORY}/.git/HEAD")
   set(CTEST_CHECKOUT_COMMAND "${CTEST_GIT_COMMAND} clone ${URL} ${CTEST_SOURCE_DIRECTORY}")
 endif(NOT EXISTS "${CTEST_SOURCE_DIRECTORY}/.git/HEAD")
 
-ctest_empty_binary_directory("${CTEST_BINARY_DIRECTORY}")
 ctest_start(${_ctest_type})
-ctest_update(SOURCE "${CTEST_SOURCE_DIRECTORY}")
+ctest_update(SOURCE ${CTEST_SOURCE_DIRECTORY})
 ctest_submit(PARTS Update)
 
 execute_process(

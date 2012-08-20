@@ -13,7 +13,8 @@ OPTION(ENABLE_LOGGING
 set(CMAKE_VERBOSE_MAKEFILE true)
 
 # use ctest
-ENABLE_TESTING()
+include(CTest)
+enable_testing()
 
 set(V_MAJOR 0)
 set(V_MINOR 2)

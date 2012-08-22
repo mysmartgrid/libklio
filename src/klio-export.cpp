@@ -122,9 +122,11 @@ int main(int argc,char** argv) {
       std::cout << "opened store: " << store->str() << std::endl;
       std::vector<klio::Sensor::uuid_t> uuids = store->getSensorUUIDs();
       std::vector<klio::Sensor::uuid_t>::iterator it;
+      bool found_sensor=false;
       for(  it = uuids.begin(); it < uuids.end(); it++) {
         klio::Sensor::Ptr loadedSensor(store->getSensor(*it));
         if (boost::iequals(loadedSensor->name(), sensor_id)) {
+          found_sensor=true;
           klio::readings_t_Ptr readings = store->get_all_readings(loadedSensor);
 
 
@@ -172,6 +174,9 @@ int main(int argc,char** argv) {
             return 1;
           }
         }
+      }
+      if (! found_sensor) {
+        std::cout << "Sensor " << sensor_id << " not found. Aborting." << std::endl;
       }
     } catch (klio::StoreException const& ex) {
       std::cout << "Failed to export: " << ex.what() << std::endl;

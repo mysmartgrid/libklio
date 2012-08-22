@@ -49,11 +49,17 @@ A typical workflow would be:
 
 2. Add a sensor definition.
 
-        $ klio-sensor create -s teststore.db -i bullshitsensor -u heveling -z MEZ \
-          -d "How much $foo is going on?" 
+        $ klio-sensor create -s teststore.db -i bullshitsensor -u heveling \
+          -z "Europe/Berlin" -d "How much $foo is going on?" 
         opened store: SQLite3 database, stored in file "teststore.db"
         added: bullshitsensor(862acc00-9f18-4f58-9bcd-c4658f591d2d), unit heveling, 
-        tz=MEZ, description: Unknown
+        tz=Europe/Berlin, description: How much $foo is going on?
+
+   You must provide a valid timezone for each sensor - the command will
+   list valid timezones if you don't specify one. It is not possible to
+   specify MESZ etc, because the change between daylight saving time an
+   normal time is dependent on the geographic location (can be one day
+       in Germany, and two weeks later in France).
 
 3. Add a value 42 with the unix timestamp 23 manually (typically, another 
     program would deal with this):

@@ -81,7 +81,7 @@ A typical workflow would be:
 
 5. Export sensor data:
 
-        $ klio-export json -s teststore.db -i bullshit -o log.json
+        $ klio-export json -s teststore.db -i bullshitsensor -o log.json
         opened store: SQLite3 database, stored in file "teststore.db"
 
 

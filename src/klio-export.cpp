@@ -28,6 +28,7 @@
 #include <libklio/exporter.hpp>
 #include <libklio/octave_exporter.hpp>
 #include <libklio/json_exporter.hpp>
+#include <libklio/local_time.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/program_options.hpp>
@@ -146,6 +147,21 @@ int main(int argc,char** argv) {
             }
           }
 
+          /**
+           * Dump sensor reading command
+           */
+          else if (boost::iequals(action, std::string("CSV"))) {
+            klio::readings_it_t it;
+            *outputstream << "timestamp\treading" << std::endl;
+            klio::LocalTime::Ptr lt(new klio::LocalTime("."));
+            for(  it = readings->begin(); it != readings->end(); it++) {
+              klio::timestamp_t ts1=(*it).first;
+              boost::local_time::local_date_time localtime = 
+                lt->get_local_time(loadedSensor, ts1);
+              double val1=(*it).second;
+              *outputstream << "\"" << localtime << "\";" << val1 << std::endl;
+            }
+          }
 
           /**
            * Export to octave script file command

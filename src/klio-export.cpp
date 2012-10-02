@@ -33,7 +33,10 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/program_options.hpp>
 #include <boost/program_options/positional_options.hpp>
+#include <boost/date_time/gregorian/gregorian.hpp>
+
 namespace po = boost::program_options;
+using namespace boost::gregorian;
 
 int main(int argc,char** argv) {
 
@@ -152,14 +155,21 @@ int main(int argc,char** argv) {
            */
           else if (boost::iequals(action, std::string("CSV"))) {
             klio::readings_it_t it;
-            *outputstream << "timestamp;reading" << std::endl;
+            *outputstream << "date;time;reading" << std::endl;
             klio::LocalTime::Ptr lt(new klio::LocalTime("."));
+            boost::local_time::local_time_facet* output_facet
+              = new boost::local_time::local_time_facet();
+            output_facet->format("%Y.%m.%d;%H:%M:%S");
+            std::ostringstream oss;
+            oss.imbue(std::locale(std::locale::classic(), output_facet));
             for(  it = readings->begin(); it != readings->end(); it++) {
               klio::timestamp_t ts1=(*it).first;
               boost::local_time::local_date_time localtime = 
                 lt->get_local_time(loadedSensor, ts1);
+              oss.str("");
+              oss << localtime;
               double val1=(*it).second;
-              *outputstream << localtime << ";" << val1 << std::endl;
+              *outputstream << oss.str() << ";" << val1 << std::endl;
             }
           }
 

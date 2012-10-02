@@ -44,7 +44,7 @@ int main(int argc,char** argv) {
     desc.add_options()
       ("help,h", "produce help message")
       ("version,v", "print libklio version and exit")
-      ("action,a", po::value<std::string>(), "Valid actions: table, plaintable, octave, json")
+      ("action,a", po::value<std::string>(), "Valid actions: table, plaintable, octave, json, csv")
       ("storefile,s", po::value<std::string>(), "the data store to use")
       ("outputfile,o", po::value<std::string>(), "the output file to use")
       ("id,i", po::value<std::string>(), "the id of the sensor")
@@ -152,14 +152,14 @@ int main(int argc,char** argv) {
            */
           else if (boost::iequals(action, std::string("CSV"))) {
             klio::readings_it_t it;
-            *outputstream << "timestamp\treading" << std::endl;
+            *outputstream << "timestamp;reading" << std::endl;
             klio::LocalTime::Ptr lt(new klio::LocalTime("."));
             for(  it = readings->begin(); it != readings->end(); it++) {
               klio::timestamp_t ts1=(*it).first;
               boost::local_time::local_date_time localtime = 
                 lt->get_local_time(loadedSensor, ts1);
               double val1=(*it).second;
-              *outputstream << "\"" << localtime << "\";" << val1 << std::endl;
+              *outputstream << localtime << ";" << val1 << std::endl;
             }
           }
 

@@ -658,3 +658,12 @@ unsigned long int SQLite3Store::get_num_readings(klio::Sensor::Ptr sensor) {
   }
   return retval;
 }
+
+void SQLite3Store::sync_readings(klio::Sensor::Ptr sensor, klio::Store::Ptr store) {
+  
+  sensor = getSensor(sensor->uuid());
+    
+  klio::readings_t_Ptr readings = store->get_all_readings(sensor);
+
+  update_readings(sensor, *readings);
+}

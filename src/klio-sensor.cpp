@@ -51,8 +51,7 @@ int main(int argc,char** argv) {
       ("description,d", po::value<std::string>(), "the description of the sensor")
       ("reading,r", po::value<double>(), "the reading to add")
       ("timestamp,t", po::value<long>(), "a timestamp to use for the reading")
-      ("sourcestorefile,x", po::value<std::string>(), "the data store to use as synchronization source")
-      ("sourceid,y", po::value<std::string>(), "the id of the sensor to use as synchronization source")
+      ("sourcestorefile,y", po::value<std::string>(), "the data store to use as synchronization source")
       ;
     po::positional_options_description p;
     p.add("action", 1);
@@ -310,11 +309,6 @@ int main(int argc,char** argv) {
      */
     else if (boost::iequals(action, std::string("SYNC"))) {
       try {
-        if ( !vm.count("sourceid")  ) {
-          std::cout << "You must specify the id of the source sensor." 
-            << std::endl;
-          return 2;
-        }
         if ( !vm.count("sourcestorefile")  ) {
           std::cout << "You must specify the source store file path." 
             << std::endl;
@@ -322,25 +316,17 @@ int main(int argc,char** argv) {
         }
 
         std::string sensor_id(vm["id"].as<std::string>());
+        std::string sourcestorefile(vm["sourcestorefile"].as<std::string>());
+
+        bfs::path sourcedb(sourcestorefile);
         klio::Store::Ptr store(factory->openStore(klio::SQLITE3, db));
         std::cout << "opened store: " << store->str() << std::endl;
 
-        std::string sourcestorefile(vm["sourcestorefile"].as<std::string>());
-        bfs::path sourcedb(sourcestorefile);
-
-        std::string source_sensor_id(vm["sourceid"].as<std::string>());
         klio::Store::Ptr sourcestore(factory->openStore(klio::SQLITE3, sourcedb));
         std::cout << "opened source store: " << sourcestore->str() << std::endl;
 
-        klio::Sensor::Ptr loadedSensor =
-                *store->getSensorById(sensor_id).begin();
-
-        klio::Sensor::Ptr loadedSourceSensor =
-                *sourcestore->getSensorById(source_sensor_id).begin();
-
-        klio::readings_t_Ptr readings = sourcestore->get_all_readings(loadedSourceSensor);
-
-        store->update_readings(loadedSensor, *readings);
+        klio::Sensor::Ptr sensor = *store->getSensorById(sensor_id).begin();
+        store->sync_readings(sensor, sourcestore);
 
       } catch (klio::StoreException const& ex) {
         std::cout << "Failed to create: " << ex.what() << std::endl;

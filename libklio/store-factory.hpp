@@ -11,19 +11,20 @@ namespace klio {
   class StoreFactory {
     public:
       typedef std::tr1::shared_ptr<StoreFactory> Ptr;
+
       StoreFactory () {};
-      Store::Ptr createStore(const STORETYPE& type, const bfs::path& path);
-      Store::Ptr openStore(const STORETYPE& type, const bfs::path& path);
       virtual ~StoreFactory() {};
 
+      Store::Ptr createStore(const STORETYPE& type, const bfs::path& path);
+      Store::Ptr openStore(const STORETYPE& type, const bfs::path& path);
+
+      Store::Ptr createSQLite3Store(const bfs::path& path);
+      Store::Ptr createMSGStore(const std::string& url);
+      
     private:
       StoreFactory (const StoreFactory& original);
-      StoreFactory& operator= (const StoreFactory& rhs);
-      
+      StoreFactory& operator = (const StoreFactory& rhs);
   };
-  
 };
 
-
 #endif /* LIBKLIO_STORE-FACTORY_HPP */
-

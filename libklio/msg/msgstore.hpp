@@ -15,25 +15,32 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with libklio. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
-#ifndef LIBKLIO_SQLITE3_SQLITE3STORE_HPP
-#define LIBKLIO_SQLITE3_SQLITE3STORE_HPP 1
+#ifndef LIBKLIO_MSG_MSGSTORE_HPP
+#define LIBKLIO_MSG_MSGSTORE_HPP 1
 
 #include <libklio/common.hpp>
+#include <libklio/types.hpp>
 #include <libklio/store.hpp>
 #include <vector>
-#include <sqlite3.h>
-#include <boost/filesystem.hpp>
-namespace bfs = boost::filesystem;
 
 namespace klio {
-  class SQLite3Store : public Store {
+  class MSGStore : public Store {
     public:
-      typedef std::tr1::shared_ptr<SQLite3Store> Ptr;
-      SQLite3Store (const bfs::path& path) :
-        _path(path) {};
+      typedef std::tr1::shared_ptr<MSGStore> Ptr;
+
+      MSGStore (const std::string& url) :
+        _url(url) {};
+      virtual ~MSGStore () {
+        close();
+      };
+
+      void open();
+      void initialize();
+      void close();
+      const std::string str(); 
+
       virtual void addSensor(klio::Sensor::Ptr sensor);
       virtual void removeSensor(const klio::Sensor::Ptr sensor);
       virtual klio::Sensor::Ptr getSensor(const klio::Sensor::uuid_t& uuid);
@@ -47,26 +54,12 @@ namespace klio {
       virtual unsigned long int get_num_readings(klio::Sensor::Ptr sensor);
       virtual std::pair<timestamp_t, double> get_last_reading(klio::Sensor::Ptr sensor);
       virtual void sync_readings(klio::Sensor::Ptr sensor, klio::Store::Ptr store);
-
-      void open();
-      void initialize();
-      void close();
-      const std::string str(); 
-      virtual ~SQLite3Store() {
-        close();
-      };
-
+      
     private:
-      SQLite3Store (const SQLite3Store& original);
-      SQLite3Store& operator = (const SQLite3Store& rhs);
-      bool has_table(std::string name);
-      void checkSensorTable();
-      sqlite3 *db;
-      bfs::path _path;
+      MSGStore (const MSGStore& original);
+      MSGStore& operator = (const MSGStore& rhs);
+      std::string _url;
   };
-  
 };
 
-
-#endif /* LIBKLIO_SQLITE3_SQLITE3STORE_HPP */
-
+#endif /* LIBKLIO_MSG_MSGSTORE_HPP */

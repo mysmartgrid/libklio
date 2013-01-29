@@ -15,7 +15,6 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with libklio. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 #ifndef LIBKLIO_STORE_HPP
@@ -28,22 +27,25 @@
 #include <vector>
 
 namespace klio {
-  enum STORETYPE {UNDEFINED, SQLITE3};
+  enum STORETYPE {UNDEFINED, SQLITE3, MSG};
   class Store {
     public:
       typedef std::tr1::shared_ptr<Store> Ptr;
+
       Store () {};
       virtual ~Store() {};
+
       virtual void open() = 0;
-      virtual void initialize() = 0;
       virtual void close() = 0;
+      virtual void initialize() = 0;
+      virtual const std::string str() = 0;
+
       virtual void addSensor(klio::Sensor::Ptr sensor) = 0;
       virtual klio::Sensor::Ptr getSensor(const klio::Sensor::uuid_t& uuid) = 0;
       virtual std::vector<klio::Sensor::uuid_t> getSensorUUIDs() = 0;
       virtual std::vector<klio::Sensor::Ptr> getSensorById(const std::string& sensor1_id) = 0;
       virtual void add_description(klio::Sensor::Ptr sensor, const std::string& desc) = 0;
       virtual void removeSensor(const klio::Sensor::Ptr sensor) = 0;
-      virtual const std::string str() = 0;
       // methods for managing readings
       virtual void add_reading(klio::Sensor::Ptr sensor, timestamp_t timestamp, double value) = 0;
       virtual void add_readings(klio::Sensor::Ptr sensor, const readings_t& readings) = 0;
@@ -53,12 +55,10 @@ namespace klio {
       virtual unsigned long int get_num_readings(klio::Sensor::Ptr sensor) = 0;
       virtual void sync_readings(klio::Sensor::Ptr sensor, klio::Store::Ptr store) = 0;
 
-
     private:
       Store (const Store& original);
       Store& operator= (const Store& rhs);
   };
 };
 
-#endif 
-
+#endif /* LIBKLIO_STORE_HPP */

@@ -27,7 +27,7 @@
 #include <vector>
 
 namespace klio {
-  enum STORETYPE {UNDEFINED, SQLITE3, MSG};
+  enum STORETYPE {UNDEFINED, SQLITE3};
   class Store {
     public:
       typedef std::tr1::shared_ptr<Store> Ptr;

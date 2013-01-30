@@ -1,9 +1,12 @@
-#include "msgstore.hpp"
 #include <iostream>
 #include <sstream>
 #include <cstdio>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <curl/curl.h>
+
+#include "msgstore.hpp"
+
 
 using namespace klio;
 
@@ -61,6 +64,12 @@ void MSGStore::add_readings(klio::Sensor::Ptr sensor, const readings_t& readings
 }
 
 readings_t_Ptr MSGStore::get_all_readings(klio::Sensor::Ptr sensor) {
+
+  std::string sensor_url = "";
+  sensor_url.append(_url);
+  sensor_url.append("/sensor/");
+  sensor_url.append(sensor->uuid_string());
+  sensor_url.append("?interval=hour&unit=watt");
 
   readings_t_Ptr retval(new readings_t());
   return retval;

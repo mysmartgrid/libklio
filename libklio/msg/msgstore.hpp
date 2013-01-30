@@ -20,10 +20,10 @@
 #ifndef LIBKLIO_MSG_MSGSTORE_HPP
 #define LIBKLIO_MSG_MSGSTORE_HPP 1
 
+#include <vector>
 #include <libklio/common.hpp>
 #include <libklio/types.hpp>
 #include <libklio/store.hpp>
-#include <vector>
 
 namespace klio {
   class MSGStore : public Store {

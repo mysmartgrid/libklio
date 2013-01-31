@@ -26,41 +26,45 @@
 #include <libklio/store.hpp>
 
 namespace klio {
-  class MSGStore : public Store {
+
+    class MSGStore : public Store {
     public:
-      typedef std::tr1::shared_ptr<MSGStore> Ptr;
+        typedef std::tr1::shared_ptr<MSGStore> Ptr;
 
-      MSGStore (const std::string& url) :
-        _url(url) {};
-      virtual ~MSGStore () {
-        close();
-      };
+        MSGStore(const std::string& url) :
+        _url(url) {
+        };
 
-      void open();
-      void initialize();
-      void close();
-      const std::string str(); 
+        virtual ~MSGStore() {
+            close();
+        };
 
-      virtual void addSensor(klio::Sensor::Ptr sensor);
-      virtual void removeSensor(const klio::Sensor::Ptr sensor);
-      virtual klio::Sensor::Ptr getSensor(const klio::Sensor::uuid_t& uuid);
-      virtual std::vector<klio::Sensor::uuid_t> getSensorUUIDs();
-      virtual std::vector<klio::Sensor::Ptr> getSensorById(const std::string& sensor1_id);
-      virtual void add_reading(klio::Sensor::Ptr sensor, timestamp_t timestamp, double value);
-      virtual void add_readings(klio::Sensor::Ptr sensor, const readings_t& readings);
-      virtual void update_readings(klio::Sensor::Ptr sensor, const readings_t& readings);
-      virtual void add_description(klio::Sensor::Ptr sensor, const std::string& desc);
-      virtual readings_t_Ptr get_all_readings(klio::Sensor::Ptr sensor);
-      virtual unsigned long int get_num_readings(klio::Sensor::Ptr sensor);
-      virtual std::pair<timestamp_t, double> get_last_reading(klio::Sensor::Ptr sensor);
-      virtual void sync_readings(klio::Sensor::Ptr sensor, klio::Store::Ptr store);
-      
+        void open();
+        void initialize();
+        void close();
+        const std::string str();
+
+        virtual void addSensor(klio::Sensor::Ptr sensor);
+        virtual void removeSensor(const klio::Sensor::Ptr sensor);
+        virtual klio::Sensor::Ptr getSensor(const klio::Sensor::uuid_t& uuid);
+        virtual std::vector<klio::Sensor::uuid_t> getSensorUUIDs();
+        virtual std::vector<klio::Sensor::Ptr> getSensorById(const std::string& sensor1_id);
+        virtual void add_reading(klio::Sensor::Ptr sensor, timestamp_t timestamp, double value);
+        virtual void add_readings(klio::Sensor::Ptr sensor, const readings_t& readings);
+        virtual void update_readings(klio::Sensor::Ptr sensor, const readings_t& readings);
+        virtual void add_description(klio::Sensor::Ptr sensor, const std::string& desc);
+        virtual readings_t_Ptr get_all_readings(klio::Sensor::Ptr sensor);
+        virtual unsigned long int get_num_readings(klio::Sensor::Ptr sensor);
+        virtual std::pair<timestamp_t, double> get_last_reading(klio::Sensor::Ptr sensor);
+        virtual void sync_readings(klio::Sensor::Ptr sensor, klio::Store::Ptr store);
+
     private:
-      MSGStore (const MSGStore& original);
-      MSGStore& operator = (const MSGStore& rhs);
-      std::string _url;
-      int perform_get_all_readings(void);
-  };
+        MSGStore(const MSGStore& original);
+        MSGStore& operator =(const MSGStore& rhs);
+        std::string _url;
+
+        std::string perform_http_get_sensor(std::string sensor_url, std::string sensor_token);
+    };
 };
 
 #endif /* LIBKLIO_MSG_MSGSTORE_HPP */

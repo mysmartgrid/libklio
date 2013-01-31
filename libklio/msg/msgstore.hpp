@@ -27,6 +27,11 @@
 
 namespace klio {
 
+    typedef struct {
+            char *data;
+            size_t size;
+    } CURLresponse;
+    
     class MSGStore : public Store {
     public:
         typedef std::tr1::shared_ptr<MSGStore> Ptr;
@@ -65,6 +70,8 @@ namespace klio {
 
         std::string perform_http_get_sensor(std::string sensor_url, std::string sensor_token);
     };
+    
+    size_t curl_write_custom_callback(void *ptr, size_t size, size_t nmemb, void *data);
 };
 
 #endif /* LIBKLIO_MSG_MSGSTORE_HPP */

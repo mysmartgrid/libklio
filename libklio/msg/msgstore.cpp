@@ -68,10 +68,12 @@ void MSGStore::add_readings(klio::Sensor::Ptr sensor, const readings_t& readings
 
 readings_t_Ptr MSGStore::get_all_readings(klio::Sensor::Ptr sensor) {
 
+    //TODO: use uuid and token informed as sensor properties
+    
     std::string sensor_url = "";
     sensor_url.append(_url);
     sensor_url.append("/sensor/");
-    sensor_url.append(sensor->uuid_string());
+    sensor_url.append("90c180748bcf240bdb7cc1281038adcb");
     sensor_url.append("?interval=hour&unit=watt");
 
     readings_t_Ptr readings(new readings_t());
@@ -91,7 +93,11 @@ std::string MSGStore::perform_http_get_sensor(std::string sensor_url, std::strin
 
     CURL *curl;
     CURLcode res = CURLE_OK;
-    std::string response = "";
+    long int http_code;
+
+    CURLresponse response;
+    response.data = NULL;
+    response.size = 0;
 
     curl_global_init(CURL_GLOBAL_DEFAULT);
     curl = curl_easy_init();
@@ -107,25 +113,50 @@ std::string MSGStore::perform_http_get_sensor(std::string sensor_url, std::strin
         token_header.append(sensor_token);
 
         curl_slist *headers = NULL;
-        curl_slist_append(headers, token_header.c_str());
-        curl_slist_append(headers, "X-Version: 1.0");
-        curl_slist_append(headers, "Accept: application/json");
+        headers = curl_slist_append(headers, "User-Agent: libklio");
+        headers = curl_slist_append(headers, "X-Version: 1.0");
+        headers = curl_slist_append(headers, token_header.c_str());
+        headers = curl_slist_append(headers, "Accept: application/json");
+
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_custom_callback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *) &response);
 
         res = curl_easy_perform(curl);
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
 
-        if (res != CURLE_OK) {
+        curl_easy_cleanup(curl);
+        curl_global_cleanup();
+
+        if (res != CURLE_OK || http_code != 200) {
             std::ostringstream oss;
-            oss << "HTTPS connection failed: " << curl_easy_strerror(res) << "\n";
-            curl_easy_cleanup(curl);
-            curl_global_cleanup();
+            oss << "HTTPS request failed. " << curl_easy_strerror(res) << " HTTP code: " << http_code;
             throw StoreException(oss.str());
         }
     }
-    curl_easy_cleanup(curl);
-    curl_global_cleanup();
 
-    return response;
+    std::string data = std::string(response.data);
+    free(response.data);
+
+    return data;
+}
+
+size_t klio::curl_write_custom_callback(void *ptr, size_t size, size_t nmemb, void *data) {
+
+    size_t realsize = size * nmemb;
+    CURLresponse *response = static_cast<CURLresponse *> (data);
+
+    response->data = (char *) realloc(response->data, response->size + realsize + 1);
+    if (response->data == NULL) { // out of memory!
+        LOG("Cannot allocate memory");
+        exit(EXIT_FAILURE);
+    }
+
+    memcpy(&(response->data[response->size]), ptr, realsize);
+    response->size += realsize;
+    response->data[response->size] = 0;
+
+    return realsize;
 }
 
 std::pair<timestamp_t, double> MSGStore::get_last_reading(klio::Sensor::Ptr sensor) {

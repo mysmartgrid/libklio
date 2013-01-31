@@ -23,6 +23,9 @@ ADD_LIBRARY(klio STATIC ${klio_src} ${klio_sqlite3_src} ${klio_msg_src} ${klio_a
 target_link_libraries(klio
   ${SQLITE3_LIBRARIES}
   ${Boost_LIBRARIES}
+  ${CURL_SHARED_LIBRARIES}
+  ${CURL_LIBRARIES}
+  ${GNUTLS_LIBRARIES} lber pthread
 )
 
 #if(BUILD_SHARED_LIBS)

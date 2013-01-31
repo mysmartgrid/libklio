@@ -3,6 +3,10 @@
 #include <cstdio>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <curl/curl.h>
 
 #include "msgstore.hpp"
@@ -71,8 +75,31 @@ readings_t_Ptr MSGStore::get_all_readings(klio::Sensor::Ptr sensor) {
   sensor_url.append(sensor->uuid_string());
   sensor_url.append("?interval=hour&unit=watt");
 
+  perform_get_all_readings();
+  
   readings_t_Ptr retval(new readings_t());
   return retval;
+}
+
+int MSGStore::perform_get_all_readings(void) {
+
+  CURL *curl;
+  CURLcode res;
+ 
+  curl = curl_easy_init();
+  if(curl) {
+    curl_easy_setopt(curl, CURLOPT_URL, "http://www.google.com");
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+ 
+    res = curl_easy_perform(curl);
+
+    if (res != CURLE_OK) {
+      fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+    }
+ 
+    curl_easy_cleanup(curl);
+  }
+  return 0;
 }
 
 std::pair<timestamp_t, double> MSGStore::get_last_reading(klio::Sensor::Ptr sensor) {

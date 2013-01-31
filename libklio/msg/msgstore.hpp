@@ -59,6 +59,7 @@ namespace klio {
       MSGStore (const MSGStore& original);
       MSGStore& operator = (const MSGStore& rhs);
       std::string _url;
+      int perform_get_all_readings(void);
   };
 };
 

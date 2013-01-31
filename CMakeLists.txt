@@ -68,6 +68,16 @@ SET(Boost_DETAILED_FAILURE_MSG true)
 FIND_PACKAGE(Boost 1.46.1 
   COMPONENTS test_exec_monitor program_options filesystem system date_time)
 
+# check for curl
+IF(WIN32)
+  add_definitions(-DCURL_STATICLIB)
+  include(FindCURL_WIN32)
+else(WIN32)
+  #  add_definitions(-DCURL_STATICLIB)
+  include(FindCurl)
+  include(FindGnutls)
+endif(WIN32)
+
 include_directories(${CMAKE_BINARY_DIR})
 
 # Check for some compiler stuff

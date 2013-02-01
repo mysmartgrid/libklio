@@ -69,25 +69,20 @@ void MSGStore::add_readings(klio::Sensor::Ptr sensor, const readings_t& readings
 
 readings_t_Ptr MSGStore::get_all_readings(klio::Sensor::Ptr sensor) {
 
-    //TODO: use uuid and token informed as sensor properties
-
     std::string sensor_url = "";
     sensor_url.append(_url);
     sensor_url.append("/sensor/");
-    sensor_url.append("90c180748bcf240bdb7cc1281038adcb");
+    sensor_url.append(sensor->uuid_short().c_str());
     sensor_url.append("?interval=hour&unit=watt");
 
-    //TODO: Complete method
-    std::string response = perform_http_get_sensor(sensor_url, "2dd8605907fa2c9d4ef8bb831d21030e");
-
-    klio::TimeConverter::Ptr tc(new klio::TimeConverter());
+    std::string response = perform_http_get_sensor(sensor_url, sensor->token());
     struct json_object *parsed = json_tokener_parse(response.c_str());
 
+    klio::TimeConverter::Ptr tc(new klio::TimeConverter());
     readings_t_Ptr readings(new readings_t());
     int length = json_object_array_length(parsed);
-    int i;
 
-    for (i = 0; i < length; i++) {
+    for (int i = 0; i < length; i++) {
 
         json_object *jpair = json_object_array_get_idx(parsed, i);
         json_object *jtimestamp = json_object_array_get_idx(jpair, 0);
@@ -95,16 +90,15 @@ readings_t_Ptr MSGStore::get_all_readings(klio::Sensor::Ptr sensor) {
         json_object *jvalue = json_object_array_get_idx(jpair, 1);
 
         readings->insert(
-          std::pair<timestamp_t, double>(
-            tc->convert_from_epoch(time),
-            json_object_get_double(jvalue)
-          )
-        );
+                std::pair<timestamp_t, double>(
+                tc->convert_from_epoch(time),
+                json_object_get_double(jvalue)
+                ));
     }
     return readings;
 }
 
-std::string MSGStore::perform_http_get_sensor(std::string sensor_url, std::string sensor_token) {
+std::string MSGStore::perform_http_get_sensor(std::string url, std::string token) {
 
     CURL *curl;
     CURLcode res = CURLE_OK;
@@ -118,14 +112,14 @@ std::string MSGStore::perform_http_get_sensor(std::string sensor_url, std::strin
     curl = curl_easy_init();
 
     if (curl) {
-        curl_easy_setopt(curl, CURLOPT_URL, sensor_url.c_str());
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 
         std::string token_header = "";
         token_header.append("X-Token: ");
-        token_header.append(sensor_token);
+        token_header.append(token);
 
         curl_slist *headers = NULL;
         headers = curl_slist_append(headers, "User-Agent: libklio");

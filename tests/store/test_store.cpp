@@ -130,11 +130,12 @@ BOOST_AUTO_TEST_CASE(check_get_all_readings_msg) {
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
 
         klio::Sensor::Ptr sensor(sensor_factory->createSensor(
-                std::string("90c180748bcf240bdb7cc1281038adcb"),
+                std::string("90c18074-8bcf-240b-db7c-c1281038adcb"),
                 std::string("Test V2"),
                 std::string("description"),
                 std::string("watt"),
-                std::string("Europe/Berlin")));
+                std::string("Europe/Berlin"),
+                std::string("2dd8605907fa2c9d4ef8bb831d21030e")));
 
         klio::readings_t_Ptr readings = store->get_all_readings(sensor);
 

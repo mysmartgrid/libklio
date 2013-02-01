@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <curl/curl.h>
+#include <json/json.h>
 
 #include "msgstore.hpp"
 
@@ -69,23 +70,37 @@ void MSGStore::add_readings(klio::Sensor::Ptr sensor, const readings_t& readings
 readings_t_Ptr MSGStore::get_all_readings(klio::Sensor::Ptr sensor) {
 
     //TODO: use uuid and token informed as sensor properties
-    
+
     std::string sensor_url = "";
     sensor_url.append(_url);
     sensor_url.append("/sensor/");
     sensor_url.append("90c180748bcf240bdb7cc1281038adcb");
     sensor_url.append("?interval=hour&unit=watt");
 
-    readings_t_Ptr readings(new readings_t());
-
     //TODO: Complete method
     std::string response = perform_http_get_sensor(sensor_url, "2dd8605907fa2c9d4ef8bb831d21030e");
 
-    //TODO: remove this test block
-    std::ostringstream oss;
-    oss << "get_all_readings response: " << response << "\n";
-    LOG(oss);
+    klio::TimeConverter::Ptr tc(new klio::TimeConverter());
+    struct json_object *parsed = json_tokener_parse(response.c_str());
 
+    readings_t_Ptr readings(new readings_t());
+    int length = json_object_array_length(parsed);
+    int i;
+
+    for (i = 0; i < length; i++) {
+
+        json_object *jpair = json_object_array_get_idx(parsed, i);
+        json_object *jtimestamp = json_object_array_get_idx(jpair, 0);
+        long time = json_object_get_int(jtimestamp);
+        json_object *jvalue = json_object_array_get_idx(jpair, 1);
+
+        readings->insert(
+          std::pair<timestamp_t, double>(
+            tc->convert_from_epoch(time),
+            json_object_get_double(jvalue)
+          )
+        );
+    }
     return readings;
 }
 
@@ -121,6 +136,12 @@ std::string MSGStore::perform_http_get_sensor(std::string sensor_url, std::strin
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_custom_callback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *) &response);
+
+        // signal-handling in libcurl is NOT thread-safe. so force to deactivated them!
+        curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
+
+        // set timeout to 5 sec. required if next router has an ip-change.
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5);
 
         res = curl_easy_perform(curl);
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);

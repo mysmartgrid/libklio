@@ -68,7 +68,7 @@ namespace klio {
         MSGStore& operator =(const MSGStore& rhs);
         std::string _url;
 
-        std::string perform_http_get_sensor(std::string sensor_url, std::string sensor_token);
+        std::string perform_http_get_sensor(std::string url, std::string token);
     };
     
     size_t curl_write_custom_callback(void *ptr, size_t size, size_t nmemb, void *data);

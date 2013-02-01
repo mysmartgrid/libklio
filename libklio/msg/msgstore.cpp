@@ -69,13 +69,13 @@ void MSGStore::add_readings(klio::Sensor::Ptr sensor, const readings_t& readings
 
 readings_t_Ptr MSGStore::get_all_readings(klio::Sensor::Ptr sensor) {
 
-    std::string sensor_url = "";
-    sensor_url.append(_url);
-    sensor_url.append("/sensor/");
-    sensor_url.append(sensor->uuid_short().c_str());
-    sensor_url.append("?interval=hour&unit=watt");
+    std::string url = "";
+    url.append(_url);
+    url.append("/sensor/");
+    url.append(sensor->uuid_short().c_str());
+    url.append("?interval=hour&unit=watt");
 
-    std::string response = perform_http_get_sensor(sensor_url, sensor->token());
+    std::string response = perform_http_get_sensor(url, sensor->token());
     struct json_object *parsed = json_tokener_parse(response.c_str());
 
     klio::TimeConverter::Ptr tc(new klio::TimeConverter());
@@ -100,16 +100,8 @@ readings_t_Ptr MSGStore::get_all_readings(klio::Sensor::Ptr sensor) {
 
 std::string MSGStore::perform_http_get_sensor(std::string url, std::string token) {
 
-    CURL *curl;
-    CURLcode res = CURLE_OK;
-    long int http_code;
-
-    CURLresponse response;
-    response.data = NULL;
-    response.size = 0;
-
     curl_global_init(CURL_GLOBAL_DEFAULT);
-    curl = curl_easy_init();
+    CURL *curl = curl_easy_init();
 
     if (curl) {
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
@@ -128,32 +120,44 @@ std::string MSGStore::perform_http_get_sensor(std::string url, std::string token
         headers = curl_slist_append(headers, "Accept: application/json");
 
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_custom_callback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *) &response);
 
-        // signal-handling in libcurl is NOT thread-safe. so force to deactivated them!
+        CURLresponse response;
+        response.data = NULL;
+        response.size = 0;
+
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *) &response);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_custom_callback);
+
+        // signal-handling in libcurl is NOT thread-safe.
         curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
 
-        // set timeout to 5 sec. required if next router has an ip-change.
+        //Required if next router has an ip-change.
         curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5);
 
-        res = curl_easy_perform(curl);
+        CURLcode curl_code = curl_easy_perform(curl);
+        
+        long int http_code;
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
 
         curl_easy_cleanup(curl);
         curl_global_cleanup();
 
-        if (res != CURLE_OK || http_code != 200) {
+        if (curl_code != CURLE_OK || http_code != 200) {
             std::ostringstream oss;
-            oss << "HTTPS request failed. " << curl_easy_strerror(res) << " HTTP code: " << http_code;
+            oss << "HTTPS request failed. " << curl_easy_strerror(curl_code) << " HTTP code: " << http_code;
             throw StoreException(oss.str());
         }
+
+        std::string data = std::string(response.data);
+        free(response.data);
+
+        return data;
+        
+    } else {
+        std::ostringstream oss;
+        oss << "CURL could not be initiated.";
+        throw StoreException(oss.str());
     }
-
-    std::string data = std::string(response.data);
-    free(response.data);
-
-    return data;
 }
 
 size_t klio::curl_write_custom_callback(void *ptr, size_t size, size_t nmemb, void *data) {

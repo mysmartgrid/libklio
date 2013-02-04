@@ -6,17 +6,26 @@ export LANG=en_US.UTF-8
 export CTEST=/usr/bin/ctest
 
 echo "Running ctest"
+dir=${HOME}/libklio/Dashboards
+#dir=/homes/krueger/Project/MySmartGrid/github/libklio/Dashboards
 
 
 ${CTEST} -V -VV -S ${HOME}/libklio/Dashboards/LibKlioNightly.cmake,TARGET_ARCH=ar71xx,CTEST_PUSH_PACKAGES=1
 ${CTEST} -V -VV -S ${HOME}/libklio/Dashboards/LibKlioNightly.cmake,CTEST_PUSH_PACKAGES=1
 
 ${CTEST} -V -VV -S ${HOME}/libklio/Dashboards/LibKlioNightly.cmake,compiler=clang
-${CTEST} -V -VV -S ${HOME}/libklio/Dashboards/LibKlioNightly.cmake,_git_branch=kk-dev
 
 #${CTEST} -V -VV -S ${HOME}/libklio/Dashboards/LibKlioNightly_2.cmake
 # ${CTEST} -V -VV -S ${HOME}/libklio/Dashboards/LibKlioNightly_x86-kk-dev.cmake
 
-${CTEST} -V -VV -S ${HOME}/libklio/Dashboards/LibKlioCoverage.cmake,_git_branch=kk-dev
-${CTEST} -V -VV -S ${HOME}/libklio/Dashboards/LibKlioCoverage.cmake,_git_branch=kk-dev,compiler=clang
+# compiliere alle xx-dev branches
+allBranches=`git branch -a | grep remotes | sed -e 's%remotes/origin/%%' | grep '.*[-_]dev$' `
+for branch in ${allBranches}
+do
+  echo ${CTEST} -V -VV -S ${dir}/LibKlioNightly.cmake,_git_branch=${branch}
+  ${CTEST} -V -VV -S ${dir}/LibKlioNightly.cmake,_git_branch=${branch}
+  ${CTEST} -V -VV -S ${dir}/LibKlioContinuous.cmake,_git_branch=${branch}
+  ${CTEST} -V -VV -S ${dir}/LibKlioCoverage.cmake,_git_branch=${branch}
+  ${CTEST} -V -VV -S ${dir}/LibKlioCoverage.cmake,_git_branch=${branch},compiler=clang
+done
 

@@ -68,8 +68,10 @@ namespace klio {
         MSGStore& operator =(const MSGStore& rhs);
         std::string _url;
 
-        std::string perform_http_get_sensor(std::string url, std::string key);
-        std::string perform_http_post_sensor(std::string url, const char* data, const char* key);
+        std::string perform_http_get(std::string url, const char* key);
+        std::string perform_http_post(std::string url, const char* key, const char* body);
+        std::string perform_http_request(std::string url, const char* auth_header, const char* body);
+
         char *digest_message(const char *data, const char *key);
     };
 

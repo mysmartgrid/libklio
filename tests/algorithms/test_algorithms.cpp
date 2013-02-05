@@ -18,8 +18,8 @@
  *
  */
 
-#include <boost/test/unit_test.hpp>
 #include <iostream>
+#include <boost/test/unit_test.hpp>
 #include <libklio/algorithm/collate.hpp>
 #include <libklio/types.hpp>
 #include <libklio/sensor.hpp>
@@ -33,7 +33,7 @@ klio::Store::Ptr generate_store() {
   klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
   bfs::path db(TEST_DB_FILE);
   std::cout << "Attempting to create " << db << std::endl;
-  klio::Store::Ptr store(factory->createStore(klio::SQLITE3, db));
+  klio::Store::Ptr store(factory->create_store(klio::SQLITE3, db));
   std::cout << "Created: " << store->str() << std::endl;
   store->open(); // Second call to open - should not break
   store->initialize();
@@ -62,13 +62,13 @@ BOOST_AUTO_TEST_CASE ( check_collate ) {
     klio::Store::Ptr store(generate_store());
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
     klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", "Europe/Berlin")); 
-    store->addSensor(sensor1);
+    store->add_sensor(sensor1);
     std::cout << "Created: " << sensor1->str() << std::endl;
     klio::Sensor::Ptr sensor2(sensor_factory->createSensor("sensor2", "Watt", "Europe/Berlin")); 
-    store->addSensor(sensor2);
+    store->add_sensor(sensor2);
     std::cout << "Created: " << sensor2->str() << std::endl;
     klio::Sensor::Ptr sensor3(sensor_factory->createSensor("sensor3", "Watt", "Europe/Berlin")); 
-    store->addSensor(sensor3);
+    store->add_sensor(sensor3);
     std::cout << "Created: " << sensor3->str() << std::endl;
 
     klio::sensors_t sensors;
@@ -103,4 +103,3 @@ BOOST_AUTO_TEST_CASE ( check_collate ) {
 
   //BOOST_CHECK_EQUAL (timestamp, reversed_ts);
 }
-

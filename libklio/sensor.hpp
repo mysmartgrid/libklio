@@ -26,51 +26,73 @@
 #include <libklio/common.hpp>
 
 namespace klio {
-  const static std::string DEFAULT_SENSOR_DESCRIPTION="Unknown";
-  class Sensor {
-    public:
-      typedef std::tr1::shared_ptr<Sensor> Ptr;
-      typedef boost::uuids::uuid uuid_t;
+    const static std::string DEFAULT_SENSOR_DESCRIPTION = "Unknown";
 
-      Sensor(const uuid_t uuid,
-          const std::string& name,
-          const std::string& description,
-          const std::string& unit,
-          const std::string& timezone,
-          const std::string& key) :
+    class Sensor {
+    public:
+        typedef std::tr1::shared_ptr<Sensor> Ptr;
+        typedef boost::uuids::uuid uuid_t;
+
+        Sensor(const uuid_t uuid,
+                const std::string& name,
+                const std::string& description,
+                const std::string& unit,
+                const std::string& timezone,
+                const std::string& key) :
         _uuid(uuid),
         _name(name),
         _unit(unit),
         _timezone(timezone),
         _description(description),
-        _key(key) {};
-      virtual ~Sensor() {};
+        _key(key) {
+        };
 
-      // standard sensor methods
-      const uuid_t uuid() const { return _uuid; };
-      const std::string name() const { return _name; };
-      const std::string description() const { return _description; };
-      const std::string unit() const { return _unit; };
-      const std::string timezone() const { return _timezone; };
-      const std::string key() const { return _key; };
+        virtual ~Sensor() {
+        };
 
-      const std::string str();
-      const std::string uuid_string() const;
-      const std::string uuid_short() const;
+        // standard sensor methods
 
-      bool operator == (const Sensor& rhs);
-      bool operator != (const Sensor& rhs);
+        const uuid_t uuid() const {
+            return _uuid;
+        };
+
+        const std::string name() const {
+            return _name;
+        };
+
+        const std::string description() const {
+            return _description;
+        };
+
+        const std::string unit() const {
+            return _unit;
+        };
+
+        const std::string timezone() const {
+            return _timezone;
+        };
+
+        const std::string key() const {
+            return _key;
+        };
+
+        const std::string str();
+        const std::string uuid_string() const;
+        const std::string uuid_short() const;
+
+        bool operator ==(const Sensor& rhs);
+        bool operator !=(const Sensor& rhs);
 
     private:
-      Sensor (const Sensor& original);
-      Sensor& operator = (const Sensor& rhs);
-      uuid_t _uuid;
-      std::string _name;
-      std::string _unit;
-      std::string _timezone;
-      std::string _description;
-      std::string _key;
-  };
+        Sensor(const Sensor& original);
+        Sensor& operator =(const Sensor& rhs);
+        uuid_t _uuid;
+        std::string _name;
+        std::string _unit;
+        std::string _timezone;
+        std::string _description;
+        std::string _key;
+    };
 };
 
 #endif /* LIBKLIO_SENSOR_HPP */

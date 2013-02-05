@@ -18,34 +18,37 @@
  *
  */
 
-
 #ifndef LIBKLIO_EXPORTER_HPP
 #define LIBKLIO_EXPORTER_HPP 1
 
 #include <iostream>
 #include "store.hpp"
 
+
 namespace klio {
-  class Exporter {
+
+    class Exporter {
     public:
-      typedef std::tr1::shared_ptr<Exporter> Ptr;
-      Exporter (std::ostream& out) :
-        _out(out) {};
-      virtual void process(klio::readings_t_Ptr readings,
-          const std::string& name, const std::string& description) = 0;
-      virtual ~Exporter() {};
+        typedef std::tr1::shared_ptr<Exporter> Ptr;
+
+        Exporter(std::ostream& out) :
+        _out(out) {
+        };
+        virtual void process(klio::readings_t_Ptr readings,
+                const std::string& name, const std::string& description) = 0;
+
+        virtual ~Exporter() {
+        };
 
     protected:
-      std::ostream& _out;
+        std::ostream& _out;
 
     private:
-      Exporter (const Exporter& original);
-      Exporter& operator= (const Exporter& rhs);
-      
-  };
-  
+        Exporter(const Exporter& original);
+        Exporter& operator=(const Exporter& rhs);
+
+    };
+
 };
 
-
 #endif /* LIBKLIO_EXPORTER_HPP */
-

@@ -15,12 +15,12 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with libklio. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 #define BOOST_TEST_MODULE store_test
-#include <boost/test/unit_test.hpp>
+
 #include <iostream>
+#include <boost/test/unit_test.hpp>
 #include <libklio/store.hpp>
 #include <libklio/msg/msgstore.hpp>
 #include <libklio/store-factory.hpp>
@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE(check_create_storage_sqlite3) {
     bfs::path db(TEST_DB_FILE);
     try {
         std::cout << "Attempting to create " << db << std::endl;
-        klio::Store::Ptr store(factory->createStore(klio::SQLITE3, db));
+        klio::Store::Ptr store(factory->create_store(klio::SQLITE3, db));
         std::cout << "Created: " << store->str() << std::endl;
         store->open(); // Second call to open - should not break
         store->initialize();
@@ -61,8 +61,8 @@ BOOST_AUTO_TEST_CASE(check_create_storage_sqlite3) {
         BOOST_FAIL("Unexpected exception occurred for initialize request");
     }
     try {
-        klio::Store::Ptr invalid_store(factory->createStore(klio::UNDEFINED, db));
-        BOOST_FAIL("No exception occurred for invalid createStore request");
+        klio::Store::Ptr invalid_store(factory->create_store(klio::UNDEFINED, db));
+        BOOST_FAIL("No exception occurred for invalid create_store request");
     } catch (klio::GenericException const & ex) {
         std::cout << "Caught valid exception: " << ex.what() << std::endl;
     }
@@ -74,20 +74,20 @@ BOOST_AUTO_TEST_CASE(check_open_storage_sqlite3) {
     bfs::path db(TEST_DB_FILE);
     try {
         std::cout << "Attempting to create " << db << std::endl;
-        klio::Store::Ptr store(factory->createStore(klio::SQLITE3, db));
+        klio::Store::Ptr store(factory->create_store(klio::SQLITE3, db));
         std::cout << "Created database: " << store->str() << std::endl;
         store->initialize();
         store->close();
 
-        klio::Store::Ptr loaded(factory->openStore(klio::SQLITE3, db));
+        klio::Store::Ptr loaded(factory->open_store(klio::SQLITE3, db));
         std::cout << "Opened database: " << loaded->str() << std::endl;
     } catch (klio::StoreException const& ex) {
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
     }
     try {
-        klio::Store::Ptr invalid_store(factory->createStore(klio::UNDEFINED, db));
-        BOOST_FAIL("No exception occurred for invalid createStore request");
+        klio::Store::Ptr invalid_store(factory->create_store(klio::UNDEFINED, db));
+        BOOST_FAIL("No exception occurred for invalid create_store request");
     } catch (klio::GenericException const & ex) {
         std::cout << "Caught valid exception: " << ex.what() << std::endl;
     }
@@ -102,7 +102,7 @@ BOOST_AUTO_TEST_CASE(check_create_storage_msg) {
 
     try {
         std::cout << "Attempting to create MSG store " << url << std::endl;
-        klio::Store::Ptr store(factory->createMSGStore(url));
+        klio::Store::Ptr store(factory->open_msg_store(url));
         std::cout << "Created: " << store->str() << std::endl;
         store->open(); // Second call to open - should not break
         store->initialize();
@@ -122,7 +122,7 @@ BOOST_AUTO_TEST_CASE(check_get_all_readings_msg) {
     try {
         std::cout << "Attempting to create MSG store " << url << std::endl;
 
-        klio::Store::Ptr store(factory->createMSGStore(url));
+        klio::Store::Ptr store(factory->open_msg_store(url));
 
         std::cout << "Created: " << store->str() << std::endl;
         store->open(); // Second call to open - should not break

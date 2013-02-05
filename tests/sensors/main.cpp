@@ -46,4 +46,3 @@ BOOST_AUTO_TEST_CASE ( check_sanity ) {
     BOOST_FAIL( "23 == 42, oh noes");             // #4 throws on error
   }
 }
-

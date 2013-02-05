@@ -19,13 +19,13 @@
  */
 
 //#define BOOST_TEST_MODULE data_test
-#include <boost/test/unit_test.hpp>
 #include <iostream>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/test/unit_test.hpp>
 #include <libklio/store.hpp>
 #include <libklio/store-factory.hpp>
 #include <libklio/sensor.hpp>
 #include <libklio/sensorfactory.hpp>
-#include <boost/uuid/uuid_io.hpp>
 
 /**
  * see http://www.boost.org/doc/libs/1_43_0/libs/test/doc/html/tutorials/hello-the-testing-world.html
@@ -38,7 +38,7 @@ BOOST_AUTO_TEST_CASE ( check_sensor_data_points ) {
     klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", "Europe/Berlin")); 
     std::cout << "Created: " << sensor1->str() << std::endl;
 //    try {
-//      klio::Sensor::Ptr loadedSensor1(store->getSensor(sensor1->uuid()));
+//      klio::Sensor::Ptr loadedSensor1(store->get_sensor(sensor1->uuid()));
 //      std::cout << "loaded: " << loadedSensor1->str() << std::endl;
 //      if ((*sensor1) != (*loadedSensor1)) {
 //        BOOST_FAIL("loaded sensor differs from its original.");
@@ -50,18 +50,17 @@ BOOST_AUTO_TEST_CASE ( check_sensor_data_points ) {
 //      BOOST_FAIL( "Unexpected store exception occured during sensor test" );
 //    } 
 //    try {
-//      store->addSensor(sensor1);
+//      store->add_sensor(sensor1);
 //      BOOST_FAIL( "No exception occured during duplicate sensor add request" );
 //    } catch (klio::StoreException const& ex) {
 //      std::cout << "Caught expected exception: " << ex.what() << std::endl;
 //      //ok.
 //    } 
 //    // cleanup.
-//    store->removeSensor(sensor1);
+//    store->remove_sensor(sensor1);
   } catch (std::exception const& ex) {
     BOOST_FAIL( "Unexpected exception occured during sensor test" );
   }
 }
-
 
 //BOOST_AUTO_TEST_SUITE_END()

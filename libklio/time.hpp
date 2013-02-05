@@ -17,34 +17,35 @@
  * along with libklio. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
 #ifndef LIBKLIO_TIME_HPP
 #define LIBKLIO_TIME_HPP 1
 
+#include <ctime>
 #include <libklio/common.hpp>
 #include <libklio/types.hpp>
-#include <ctime>
+
 
 namespace klio {
-  class TimeConverter {
-    public:
-      typedef std::tr1::shared_ptr<TimeConverter> Ptr;
-      TimeConverter();
-      virtual ~TimeConverter();
 
-      timestamp_t get_timestamp();
-      long convert_to_epoch(klio::timestamp_t time);
-      timestamp_t convert_from_epoch(long epoch);
-      std::string str_local(timestamp_t time);
-      std::string str_utc(timestamp_t time);
+    class TimeConverter {
+    public:
+        typedef std::tr1::shared_ptr<TimeConverter> Ptr;
+        TimeConverter();
+        virtual ~TimeConverter();
+
+        timestamp_t get_timestamp();
+        long convert_to_epoch(klio::timestamp_t time);
+        timestamp_t convert_from_epoch(long epoch);
+        std::string str_local(timestamp_t time);
+        std::string str_utc(timestamp_t time);
 
     private:
-      TimeConverter (const TimeConverter& original);
-      TimeConverter& operator= (const TimeConverter& rhs);
+        TimeConverter(const TimeConverter& original);
+        TimeConverter& operator=(const TimeConverter& rhs);
 
-  };
+    };
 
 };
 
-
 #endif /* LIBKLIO_TIME_HPP */
-

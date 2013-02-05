@@ -21,6 +21,7 @@
 #include <boost/uuid/uuid_io.hpp>
 #include "sensor.hpp"
 
+
 using namespace klio;
 
 const std::string Sensor::uuid_string() const {

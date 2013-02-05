@@ -25,12 +25,12 @@
 /* Include TR1 shared ptrs in a portable way. */
 #include <cstddef> // for __GLIBCXX__
 #ifdef __GLIBCXX__
-#  include <tr1/memory>
+#include <tr1/memory>
 #else
-#  ifdef __IBMCPP__
-#    define __IBMCPP_TR1__
-#  endif
-#  include <memory>
+#ifdef __IBMCPP__
+#define __IBMCPP_TR1__
+#endif
+#include <memory>
 #endif
 
 //#define ENABLE_LOGGING 0
@@ -52,18 +52,23 @@
 #include <string>
 
 namespace klio {
-  class VersionInfo {
+
+    class VersionInfo {
     public:
-      typedef std::tr1::shared_ptr<VersionInfo> Ptr;
-      VersionInfo () {};
-      virtual ~VersionInfo() {};
-      const std::string getVersion();
+        typedef std::tr1::shared_ptr<VersionInfo> Ptr;
+
+        VersionInfo() {
+        };
+
+        virtual ~VersionInfo() {
+        };
+        const std::string getVersion();
 
     private:
-      VersionInfo (const VersionInfo& original);
-      VersionInfo& operator= (const VersionInfo& rhs);
-      
-  };
+        VersionInfo(const VersionInfo& original);
+        VersionInfo& operator=(const VersionInfo& rhs);
+
+    };
 
 };
 

@@ -1,7 +1,8 @@
 /**
  * This file is part of libklio.
  *
- * (c) Fraunhofer ITWM - Mathias Dalheimer <dalheimer@itwm.fhg.de>, 2010
+ * (c) Fraunhofer ITWM - Mathias Dalheimer <dalheimer@itwm.fhg.de>,    2010
+ *                       Ely de Oliveira   <ely.oliveira@itwm.fhg.de>, 2013
  *
  * libklio is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,10 +23,10 @@
 
 #include <vector>
 #include <curl/curl.h>
-
 #include <libklio/common.hpp>
 #include <libklio/types.hpp>
 #include <libklio/store.hpp>
+
 
 namespace klio {
 
@@ -51,11 +52,11 @@ namespace klio {
         void close();
         const std::string str();
 
-        virtual void addSensor(klio::Sensor::Ptr sensor);
-        virtual void removeSensor(const klio::Sensor::Ptr sensor);
-        virtual klio::Sensor::Ptr getSensor(const klio::Sensor::uuid_t& uuid);
-        virtual std::vector<klio::Sensor::uuid_t> getSensorUUIDs();
-        virtual std::vector<klio::Sensor::Ptr> getSensorById(const std::string& sensor1_id);
+        virtual void add_sensor(klio::Sensor::Ptr sensor);
+        virtual void remove_sensor(const klio::Sensor::Ptr sensor);
+        virtual klio::Sensor::Ptr get_sensor(const klio::Sensor::uuid_t& uuid);
+        virtual std::vector<klio::Sensor::uuid_t> get_sensor_uuids();
+        virtual std::vector<klio::Sensor::Ptr> get_sensor_by_id(const std::string& sensor1_id);
         virtual void add_reading(klio::Sensor::Ptr sensor, timestamp_t timestamp, double value);
         virtual void add_readings(klio::Sensor::Ptr sensor, const readings_t& readings);
         virtual void update_readings(klio::Sensor::Ptr sensor, const readings_t& readings);

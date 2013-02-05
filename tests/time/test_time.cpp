@@ -18,13 +18,12 @@
  *
  */
 
-#include <boost/test/unit_test.hpp>
 #include <iostream>
-#include <libklio/time.hpp>
-#include <libklio/local_time.hpp>
+#include <boost/test/unit_test.hpp>
 #include "boost/date_time/local_time/local_time.hpp"
 #include "boost/date_time/gregorian/gregorian.hpp"
-#include <iostream>
+#include <libklio/time.hpp>
+#include <libklio/local_time.hpp>
 #include <libklio/sensor.hpp>
 #include <libklio/sensorfactory.hpp>
 
@@ -111,6 +110,5 @@ BOOST_AUTO_TEST_CASE ( local_time ) {
   BOOST_REQUIRE( lt->get_local_hour(sensor, demotime) == 12 ); 
 
 }
-
 
 //BOOST_AUTO_TEST_SUITE_END()

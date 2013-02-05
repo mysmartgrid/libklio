@@ -1,19 +1,17 @@
 #include <iostream>
 #include <sstream>
 #include <cstdio>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <openssl/ssl.h>
 #include <openssl/hmac.h>
 #include <openssl/sha.h>
 #include <openssl/evp.h>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
 #include <curl/curl.h>
 #include <json/json.h>
-
 #include "msgstore.hpp"
 
 
@@ -35,25 +33,25 @@ const std::string MSGStore::str() {
     return str.str();
 };
 
-void MSGStore::addSensor(klio::Sensor::Ptr sensor) {
+void MSGStore::add_sensor(klio::Sensor::Ptr sensor) {
 }
 
-void MSGStore::removeSensor(const klio::Sensor::Ptr sensor) {
+void MSGStore::remove_sensor(const klio::Sensor::Ptr sensor) {
 }
 
-std::vector<klio::Sensor::uuid_t> MSGStore::getSensorUUIDs() {
+std::vector<klio::Sensor::uuid_t> MSGStore::get_sensor_uuids() {
 
     std::vector<klio::Sensor::uuid_t> uuids;
     return uuids;
 }
 
-std::vector<klio::Sensor::Ptr> MSGStore::getSensorById(const std::string& sensor_id) {
+std::vector<klio::Sensor::Ptr> MSGStore::get_sensor_by_id(const std::string& sensor_id) {
 
     std::vector<klio::Sensor::Ptr> retval;
     return retval;
 }
 
-klio::Sensor::Ptr MSGStore::getSensor(const klio::Sensor::uuid_t& uuid) {
+klio::Sensor::Ptr MSGStore::get_sensor(const klio::Sensor::uuid_t& uuid) {
 
     klio::Sensor::Ptr retval;
     return retval;
@@ -278,7 +276,7 @@ unsigned long int MSGStore::get_num_readings(klio::Sensor::Ptr sensor) {
 
 void MSGStore::sync_readings(klio::Sensor::Ptr sensor, klio::Store::Ptr store) {
 
-    sensor = getSensor(sensor->uuid());
+    sensor = get_sensor(sensor->uuid());
 
     klio::readings_t_Ptr readings = store->get_all_readings(sensor);
 

@@ -15,7 +15,6 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with libklio. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 /*
@@ -24,9 +23,8 @@
  */
 #define BOOST_TEST_MODULE sensors_test
 
-#include <boost/test/unit_test.hpp>
 #include <iostream>
-
+#include <boost/test/unit_test.hpp>
 
 /**
  * see http://www.boost.org/doc/libs/1_43_0/libs/test/doc/html/tutorials/hello-the-testing-world.html
@@ -46,4 +44,3 @@ BOOST_AUTO_TEST_CASE ( check_sanity ) {
     BOOST_FAIL( "23 == 42, oh noes");             // #4 throws on error
   }
 }
-

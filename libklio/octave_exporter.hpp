@@ -23,27 +23,30 @@
 
 #include "exporter.hpp"
 
+
 namespace klio {
-  class OctaveExporter : public Exporter {
+
+    class OctaveExporter : public Exporter {
     public:
-      typedef std::tr1::shared_ptr<OctaveExporter> Ptr;
-      OctaveExporter (std::ostream& out) : Exporter(out) {};
-      virtual void process(klio::readings_t_Ptr readings,
-          const std::string& name, const std::string& description);
-      virtual ~OctaveExporter() {};
+        typedef std::tr1::shared_ptr<OctaveExporter> Ptr;
+
+        OctaveExporter(std::ostream& out) : Exporter(out) {
+        };
+        virtual void process(klio::readings_t_Ptr readings,
+                const std::string& name, const std::string& description);
+
+        virtual ~OctaveExporter() {
+        };
 
     private:
-      OctaveExporter (const OctaveExporter& original);
-      OctaveExporter& operator= (const OctaveExporter& rhs);
-      void write_lead_in(const std::string& name, const std::string& description);
-      void write_description_function(const std::string& name,
-          const std::string& description);
-      void write_values_function(const std::string& name,
-          klio::readings_t_Ptr readings);
-  };
-  
+        OctaveExporter(const OctaveExporter& original);
+        OctaveExporter& operator=(const OctaveExporter& rhs);
+        void write_lead_in(const std::string& name, const std::string& description);
+        void write_description_function(const std::string& name,
+                const std::string& description);
+        void write_values_function(const std::string& name,
+                klio::readings_t_Ptr readings);
+    };
 };
 
-
 #endif /* LIBKLIO_OCTAVE_EXPORTER_HPP */
-

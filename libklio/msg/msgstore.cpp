@@ -124,24 +124,45 @@ readings_t_Ptr MSGStore::get_all_readings(klio::Sensor::Ptr sensor) {
     return readings;
 }
 
-std::string MSGStore::perform_http_get(std::string url, const char* key) {
+std::string MSGStore::perform_http_get(std::string url, std::string key) {
 
     std::string token_header = "X-Token: ";
     token_header.append(key);
 
-    return perform_http_request(url, token_header.c_str(), NULL);
+    curl_slist *headers = create_curl_headers();
+    headers = curl_slist_append(headers, token_header.c_str());
+
+    CURL *curl = create_curl_handler(url, headers);
+
+    return perform_http_request(curl);
 }
 
-std::string MSGStore::perform_http_post(std::string url, const char* key, const char* body) {
+std::string MSGStore::perform_http_post(std::string url, std::string key, std::string body) {
 
-    char* digest = digest_message(body, key);
+    std::string digest = digest_message(body, key);
     std::string digest_header = "X-Digest: ";
     digest_header.append(digest);
 
-    return perform_http_request(url, digest_header.c_str(), body);
+    curl_slist *headers = create_curl_headers();
+    headers = curl_slist_append(headers, digest_header.c_str());
+
+    CURL *curl = create_curl_handler(url, headers);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body.c_str());
+
+    return perform_http_request(curl);
 }
 
-std::string MSGStore::perform_http_request(std::string url, const char* auth_header, const char* body) {
+curl_slist *MSGStore::create_curl_headers() {
+
+    curl_slist *headers = NULL;
+    headers = curl_slist_append(headers, "User-Agent: libklio");
+    headers = curl_slist_append(headers, "X-Version: 1.0");
+    headers = curl_slist_append(headers, "Accept: application/json");
+
+    return headers;
+}
+
+CURL *MSGStore::create_curl_handler(std::string url, curl_slist *headers) {
 
     curl_global_init(CURL_GLOBAL_DEFAULT);
     CURL *curl = curl_easy_init();
@@ -151,6 +172,7 @@ std::string MSGStore::perform_http_request(std::string url, const char* auth_hea
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
         // signal-handling in libcurl is NOT thread-safe.
         curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
@@ -158,49 +180,7 @@ std::string MSGStore::perform_http_request(std::string url, const char* auth_hea
         //Required if next router has an ip-change.
         curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5);
 
-        curl_slist *headers = NULL;
-        headers = curl_slist_append(headers, "User-Agent: libklio");
-        headers = curl_slist_append(headers, "X-Version: 1.0");
-        headers = curl_slist_append(headers, "Accept: application/json");
-        headers = curl_slist_append(headers, auth_header);
-
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-
-        //Makes it a POST request
-        if (body != NULL) {
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body);
-        }
-
-        CURLresponse curl_response;
-        curl_response.data = NULL;
-        curl_response.size = 0;
-
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *) &curl_response);
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_custom_callback);
-
-        CURLcode curl_code = curl_easy_perform(curl);
-
-        long int http_code;
-        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
-
-        curl_easy_cleanup(curl);
-        curl_global_cleanup();
-
-        if (curl_code != CURLE_OK) {
-            std::ostringstream oss;
-            oss << "HTTPS request failed. " << curl_easy_strerror(curl_code);
-            throw StoreException(oss.str());
-        }
-
-        if (http_code != 200) {
-            std::ostringstream oss;
-            oss << "HTTPS request failed. HTTPS code: " << http_code;
-            throw StoreException(oss.str());
-        }
-
-        std::string response = std::string(curl_response.data);
-        free(curl_response.data);
-        return response;
+        return curl;
 
     } else {
         std::ostringstream oss;
@@ -209,11 +189,11 @@ std::string MSGStore::perform_http_request(std::string url, const char* auth_hea
     }
 }
 
-char *MSGStore::digest_message(const char *data, const char *key) {
+std::string MSGStore::digest_message(std::string data, std::string key) {
 
     HMAC_CTX hmacContext;
-    HMAC_Init(&hmacContext, key, strlen(key), EVP_sha1());
-    HMAC_Update(&hmacContext, (const unsigned char*) data, strlen(data));
+    HMAC_Init(&hmacContext, key.c_str(), key.length(), EVP_sha1());
+    HMAC_Update(&hmacContext, (const unsigned char*) data.c_str(), data.length());
 
     unsigned char out[EVP_MAX_MD_SIZE];
     unsigned int len = EVP_MAX_MD_SIZE;
@@ -226,12 +206,45 @@ char *MSGStore::digest_message(const char *data, const char *key) {
         char s[4];
         snprintf(s, 3, "%02x:", out[i]);
         strncat(ret, s, 2 * len);
-        //strncat(ret, s, sizeof(ret));
     }
 
     char digest[255];
     snprintf(digest, 255, "%s", ret);
-    return digest;
+    return std::string(digest);
+}
+
+std::string MSGStore::perform_http_request(CURL *curl) {
+
+    CURLresponse curl_response;
+    curl_response.data = NULL;
+    curl_response.size = 0;
+
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *) &curl_response);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_custom_callback);
+
+    CURLcode curl_code = curl_easy_perform(curl);
+
+    long int http_code;
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+
+    curl_easy_cleanup(curl);
+    curl_global_cleanup();
+
+    if (curl_code != CURLE_OK) {
+        std::ostringstream oss;
+        oss << "HTTPS request failed. " << curl_easy_strerror(curl_code);
+        throw StoreException(oss.str());
+    }
+
+    if (http_code != 200) {
+        std::ostringstream oss;
+        oss << "HTTPS request failed. HTTPS code: " << http_code;
+        throw StoreException(oss.str());
+    }
+
+    std::string response = std::string(curl_response.data);
+    free(curl_response.data);
+    return response;
 }
 
 size_t klio::curl_write_custom_callback(void *ptr, size_t size, size_t nmemb, void *data) {

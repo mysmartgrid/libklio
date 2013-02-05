@@ -21,6 +21,8 @@
 #define LIBKLIO_MSG_MSGSTORE_HPP 1
 
 #include <vector>
+#include <curl/curl.h>
+
 #include <libklio/common.hpp>
 #include <libklio/types.hpp>
 #include <libklio/store.hpp>
@@ -68,11 +70,12 @@ namespace klio {
         MSGStore& operator =(const MSGStore& rhs);
         std::string _url;
 
-        std::string perform_http_get(std::string url, const char* key);
-        std::string perform_http_post(std::string url, const char* key, const char* body);
-        std::string perform_http_request(std::string url, const char* auth_header, const char* body);
-
-        char *digest_message(const char *data, const char *key);
+        std::string perform_http_get(std::string url, std::string key);
+        std::string perform_http_post(std::string url, std::string key, std::string body);
+        curl_slist *create_curl_headers();
+        CURL *create_curl_handler(std::string url, curl_slist *headers);
+        std::string digest_message(std::string data, std::string key);
+        std::string perform_http_request(CURL *curl);
     };
 
     size_t curl_write_custom_callback(void *ptr, size_t size, size_t nmemb, void *data);

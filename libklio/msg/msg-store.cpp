@@ -80,7 +80,7 @@ void MSGStore::add_reading(klio::Sensor::Ptr sensor, timestamp_t timestamp, doub
     perform_http_post(url, sensor->key().c_str(), json_str);
 }
 
-void MSGStore::add_description(klio::Sensor::Ptr sensor, const std::string& desc) {
+void MSGStore::add_description(klio::Sensor::Ptr sensor, const std::string& description) {
 }
 
 void MSGStore::update_readings(klio::Sensor::Ptr sensor, const readings_t& readings) {

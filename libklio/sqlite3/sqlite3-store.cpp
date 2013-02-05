@@ -452,17 +452,17 @@ void SQLite3Store::add_reading(klio::Sensor::Ptr sensor,
     }
 }
 
-void SQLite3Store::add_description(klio::Sensor::Ptr sensor, const std::string& desc) {
+void SQLite3Store::add_description(klio::Sensor::Ptr sensor, const std::string& description) {
     int rc;
 
-    LOG("Adding description " << desc << " to sensor: " << sensor->str());
+    LOG("Adding description " << description << " to sensor: " << sensor->str());
 
     checkSensorTable();
 
     // TODO: Insert statement
     std::ostringstream oss;
     oss << "UPDATE sensors ";
-    oss << "SET description='" << desc << "' ";
+    oss << "SET description='" << description << "' ";
     oss << "WHERE uuid='" << sensor->uuid_string() << "'";
     std::string updateStmt(oss.str());
 

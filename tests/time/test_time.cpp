@@ -23,9 +23,9 @@
 #include "boost/date_time/local_time/local_time.hpp"
 #include "boost/date_time/gregorian/gregorian.hpp"
 #include <libklio/time.hpp>
-#include <libklio/local_time.hpp>
+#include <libklio/local-time.hpp>
 #include <libklio/sensor.hpp>
-#include <libklio/sensorfactory.hpp>
+#include <libklio/sensor-factory.hpp>
 
 
 BOOST_AUTO_TEST_CASE ( check_time ) {

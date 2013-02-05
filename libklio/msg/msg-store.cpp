@@ -12,7 +12,7 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <curl/curl.h>
 #include <json/json.h>
-#include "msgstore.hpp"
+#include "msg-store.hpp"
 
 
 using namespace klio;

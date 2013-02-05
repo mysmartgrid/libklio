@@ -25,7 +25,7 @@
 #include <libklio/store.hpp>
 #include <libklio/store-factory.hpp>
 #include <libklio/sensor.hpp>
-#include <libklio/sensorfactory.hpp>
+#include <libklio/sensor-factory.hpp>
 
 /**
  * see http://www.boost.org/doc/libs/1_43_0/libs/test/doc/html/tutorials/hello-the-testing-world.html

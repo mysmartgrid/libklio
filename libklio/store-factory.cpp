@@ -1,5 +1,5 @@
-#include <libklio/sqlite3/sqlite3store.hpp>
-#include <libklio/msg/msgstore.hpp>
+#include <libklio/sqlite3/sqlite3-store.hpp>
+#include <libklio/msg/msg-store.hpp>
 #include "store-factory.hpp"
 
 

@@ -22,9 +22,9 @@
 #include <iostream>
 #include <boost/test/unit_test.hpp>
 #include <libklio/store.hpp>
-#include <libklio/msg/msgstore.hpp>
+#include <libklio/msg/msg-store.hpp>
 #include <libklio/store-factory.hpp>
-#include <libklio/sensorfactory.hpp>
+#include <libklio/sensor-factory.hpp>
 #include <testconfig.h>
 
 /**

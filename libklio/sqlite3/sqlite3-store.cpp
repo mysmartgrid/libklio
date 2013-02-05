@@ -3,9 +3,9 @@
 #include <cstdio>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
-#include <libklio/sensorfactory.hpp>
+#include <libklio/sensor-factory.hpp>
 #include <libklio/sqlite3/transaction.hpp>
-#include "sqlite3store.hpp"
+#include "sqlite3-store.hpp"
 
 
 using namespace klio;

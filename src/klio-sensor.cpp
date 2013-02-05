@@ -23,9 +23,9 @@
 #include <libklio/store.hpp>
 #include <libklio/store-factory.hpp>
 #include <libklio/sensor.hpp>
-#include <libklio/sensorfactory.hpp>
+#include <libklio/sensor-factory.hpp>
 #include <libklio/exporter.hpp>
-#include <libklio/octave_exporter.hpp>
+#include <libklio/octave-exporter.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/program_options.hpp>

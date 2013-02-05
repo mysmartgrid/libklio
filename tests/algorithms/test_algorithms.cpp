@@ -23,7 +23,7 @@
 #include <libklio/algorithm/collate.hpp>
 #include <libklio/types.hpp>
 #include <libklio/sensor.hpp>
-#include <libklio/sensorfactory.hpp>
+#include <libklio/sensor-factory.hpp>
 #include <libklio/store.hpp>
 #include <libklio/store-factory.hpp>
 #include <testconfig.h>

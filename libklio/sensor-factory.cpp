@@ -1,8 +1,8 @@
 #include <sstream>
 #include <boost/uuid/uuid_io.hpp>
-#include <libklio/local_time.hpp>
+#include <libklio/local-time.hpp>
 #include <libklio/error.hpp>
-#include "sensorfactory.hpp"
+#include "sensor-factory.hpp"
 
 
 using namespace klio;

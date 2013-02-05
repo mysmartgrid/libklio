@@ -27,7 +27,6 @@
 
 namespace klio {
   const static std::string DEFAULT_SENSOR_DESCRIPTION="Unknown";
-  const static std::string DEFAULT_SENSOR_TOKEN="Unknown";
   class Sensor {
     public:
       typedef std::tr1::shared_ptr<Sensor> Ptr;
@@ -38,13 +37,13 @@ namespace klio {
           const std::string& description,
           const std::string& unit,
           const std::string& timezone,
-          const std::string& token) :
+          const std::string& key) :
         _uuid(uuid),
         _name(name),
         _unit(unit),
         _timezone(timezone),
         _description(description),
-        _token(token) {};
+        _key(key) {};
       virtual ~Sensor() {};
 
       // standard sensor methods
@@ -53,7 +52,7 @@ namespace klio {
       const std::string description() const { return _description; };
       const std::string unit() const { return _unit; };
       const std::string timezone() const { return _timezone; };
-      const std::string token() const { return _token; };
+      const std::string key() const { return _key; };
 
       const std::string str();
       const std::string uuid_string() const;
@@ -70,7 +69,7 @@ namespace klio {
       std::string _unit;
       std::string _timezone;
       std::string _description;
-      std::string _token;
+      std::string _key;
   };
 };
 

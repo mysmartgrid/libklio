@@ -25,7 +25,7 @@ target_link_libraries(klio
   ${Boost_LIBRARIES}
   ${CURL_SHARED_LIBRARIES}
   ${CURL_LIBRARIES}
-  ${GNUTLS_LIBRARIES} lber pthread json
+  ${GNUTLS_LIBRARIES} lber pthread json crypto
 )
 
 #if(BUILD_SHARED_LIBS)

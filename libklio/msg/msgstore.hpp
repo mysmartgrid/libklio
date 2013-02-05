@@ -7,7 +7,7 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * libklio is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -28,10 +28,10 @@
 namespace klio {
 
     typedef struct {
-            char *data;
-            size_t size;
+        char *data;
+        size_t size;
     } CURLresponse;
-    
+
     class MSGStore : public Store {
     public:
         typedef std::tr1::shared_ptr<MSGStore> Ptr;
@@ -68,9 +68,11 @@ namespace klio {
         MSGStore& operator =(const MSGStore& rhs);
         std::string _url;
 
-        std::string perform_http_get_sensor(std::string url, std::string token);
+        std::string perform_http_get_sensor(std::string url, std::string key);
+        std::string perform_http_post_sensor(std::string url, const char* data, const char* key);
+        char *digest_message(const char *data, const char *key);
     };
-    
+
     size_t curl_write_custom_callback(void *ptr, size_t size, size_t nmemb, void *data);
 };
 

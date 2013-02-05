@@ -34,7 +34,7 @@ namespace klio {
           const std::string& description, 
           const std::string& unit, 
           const std::string& timezone,
-          const std::string& token
+          const std::string& key
           );
  
       virtual ~SensorFactory() {};
@@ -49,7 +49,7 @@ namespace klio {
         const std::string& description, 
         const std::string& unit, 
         const std::string& timezone,
-        const std::string& token
+        const std::string& key
       );
   };
 };

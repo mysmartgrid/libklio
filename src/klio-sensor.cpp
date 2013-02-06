@@ -325,7 +325,7 @@ int main(int argc,char** argv) {
         klio::Store::Ptr sourcestore(factory->create_sqlite3_store(sourcedb));
         std::cout << "opened source store: " << sourcestore->str() << std::endl;
 
-        klio::Sensor::Ptr sensor = *store->get_sensor_by_name(sensor_id).begin();
+        klio::Sensor::Ptr sensor = *store->get_sensors_by_name(sensor_id).begin();
         store->sync_readings(sensor, sourcestore);
 
       } catch (klio::StoreException const& ex) {

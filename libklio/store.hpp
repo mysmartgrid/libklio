@@ -48,7 +48,7 @@ namespace klio {
         virtual void add_sensor(klio::Sensor::Ptr sensor) = 0;
         virtual void remove_sensor(const klio::Sensor::Ptr sensor) = 0;
         virtual klio::Sensor::Ptr get_sensor(const klio::Sensor::uuid_t& uuid) = 0;
-        virtual std::vector<klio::Sensor::Ptr> get_sensor_by_name(const std::string& name) = 0;
+        virtual std::vector<klio::Sensor::Ptr> get_sensors_by_name(const std::string& name) = 0;
         virtual std::vector<klio::Sensor::uuid_t> get_sensor_uuids() = 0;
         virtual void add_description(klio::Sensor::Ptr sensor, const std::string& description) = 0;
 
@@ -58,7 +58,7 @@ namespace klio {
         virtual readings_t_Ptr get_all_readings(klio::Sensor::Ptr sensor) = 0;
         virtual reading_t get_last_reading(klio::Sensor::Ptr sensor) = 0;
         virtual unsigned long int get_num_readings(klio::Sensor::Ptr sensor) = 0;
-        virtual void sync_readings(klio::Sensor::Ptr sensor, klio::Store::Ptr store) = 0;
+        virtual void sync_readings(klio::Sensor::Ptr sensor, klio::Store::Ptr store);
 
     private:
         Store(const Store& original);

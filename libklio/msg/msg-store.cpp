@@ -34,6 +34,30 @@ const std::string MSGStore::str() {
 };
 
 void MSGStore::add_sensor(klio::Sensor::Ptr sensor) {
+
+    json_object *jobject = json_object_new_object();
+    json_object *jkey = json_object_new_string(sensor->key().c_str());
+    json_object_object_add(jobject, "key", jkey);
+
+    std::ostringstream url1;
+    url1 << _url << "/device/" << sensor->uuid_short();
+
+    perform_http_post(url1.str(), sensor->key(), jobject);
+
+    json_object *jdevice = json_object_new_string(sensor->uuid_short().c_str());
+    json_object *jname = json_object_new_string(sensor->name().c_str());
+
+    json_object *jconfig = json_object_new_object();
+    json_object_object_add(jconfig, "device", jdevice);
+    json_object_object_add(jconfig, "function", jname);
+
+    jobject = json_object_new_object();
+    json_object_object_add(jobject, "config", jconfig);    
+    
+    std::ostringstream url2;
+    url2 << _url << "/sensor/" << sensor->uuid_short();
+
+    perform_http_post(url2.str(), sensor->key(), jobject);
 }
 
 void MSGStore::remove_sensor(const klio::Sensor::Ptr sensor) {
@@ -45,10 +69,10 @@ klio::Sensor::Ptr MSGStore::get_sensor(const klio::Sensor::uuid_t& uuid) {
     return sensor;
 }
 
-std::vector<klio::Sensor::Ptr> MSGStore::get_sensor_by_name(const std::string& name) {
+std::vector<klio::Sensor::Ptr> MSGStore::get_sensors_by_name(const std::string& name) {
 
-    std::vector<klio::Sensor::Ptr> retval;
-    return retval;
+    std::vector<klio::Sensor::Ptr> sensors;
+    return sensors;
 }
 
 std::vector<klio::Sensor::uuid_t> MSGStore::get_sensor_uuids() {
@@ -65,35 +89,33 @@ void MSGStore::add_reading(klio::Sensor::Ptr sensor, timestamp_t timestamp, doub
     klio::reading_t reading(timestamp, value);
     readings_t readings;
     readings.insert(reading);
-    
+
     add_readings(sensor, readings);
 }
 
 void MSGStore::add_readings(klio::Sensor::Ptr sensor, const readings_t& readings) {
 
-    std::string url = "";
-    url.append(_url);
-    url.append("/sensor/");
-    url.append(sensor->uuid_short().c_str());
-
-    json_object *json_tuples = json_object_new_array();
+    json_object *jtuples = json_object_new_array();
 
     for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
 
         klio::timestamp_t timestamp = (*it).first;
         long value = (*it).second;
 
-        struct json_object *json_tuple = json_object_new_array();
-        json_object_array_add(json_tuple, json_object_new_int(timestamp));
-        json_object_array_add(json_tuple, json_object_new_int(value));
+        struct json_object *jtuple = json_object_new_array();
+        json_object_array_add(jtuple, json_object_new_int(timestamp));
+        json_object_array_add(jtuple, json_object_new_int(value));
 
-        json_object_array_add(json_tuples, json_tuple);
+        json_object_array_add(jtuples, jtuple);
     }
 
-    json_object *json_obj = json_object_new_object();
-    json_object_object_add(json_obj, "measurements", json_tuples);
+    json_object *jobject = json_object_new_object();
+    json_object_object_add(jobject, "measurements", jtuples);
 
-    perform_http_post(url, sensor->key(), json_obj);
+    std::ostringstream url;
+    url << _url << "/sensor/" << sensor->uuid_short();
+
+    perform_http_post(url.str(), sensor->key(), jobject);
 }
 
 void MSGStore::update_readings(klio::Sensor::Ptr sensor, const readings_t& readings) {
@@ -103,22 +125,19 @@ void MSGStore::update_readings(klio::Sensor::Ptr sensor, const readings_t& readi
 
 readings_t_Ptr MSGStore::get_all_readings(klio::Sensor::Ptr sensor) {
 
-    std::string url = "";
-    url.append(_url);
-    url.append("/sensor/");
-    url.append(sensor->uuid_short());
-    url.append("?interval=hour&unit=watt");
+    std::ostringstream url;
+    url << _url << "/sensor/" << sensor->uuid_short();
+    url << "?interval=hour&unit=" << sensor->unit();
 
-    std::string response = perform_http_get(url, sensor->key());
-    struct json_object *parsed = json_tokener_parse(response.c_str());
+    struct json_object *jobject = perform_http_get(url.str(), sensor->key());
+    int length = json_object_array_length(jobject);
 
     klio::TimeConverter::Ptr tc(new klio::TimeConverter());
     readings_t_Ptr readings(new readings_t());
-    int length = json_object_array_length(parsed);
 
     for (int i = 0; i < length; i++) {
 
-        json_object *jpair = json_object_array_get_idx(parsed, i);
+        json_object *jpair = json_object_array_get_idx(jobject, i);
         json_object *jtimestamp = json_object_array_get_idx(jpair, 0);
         json_object *jvalue = json_object_array_get_idx(jpair, 1);
 
@@ -141,42 +160,37 @@ unsigned long int MSGStore::get_num_readings(klio::Sensor::Ptr sensor) {
 
 std::pair<timestamp_t, double> MSGStore::get_last_reading(klio::Sensor::Ptr sensor) {
 
-    std::pair<timestamp_t, double> retval;
-    return retval;
+    std::pair<timestamp_t, double> reading;
+    return reading;
 }
 
-void MSGStore::sync_readings(klio::Sensor::Ptr sensor, klio::Store::Ptr store) {
-
-    sensor = get_sensor(sensor->uuid());
-
-    klio::readings_t_Ptr readings = store->get_all_readings(sensor);
-
-    update_readings(sensor, *readings);
-}
-
-std::string MSGStore::perform_http_get(std::string url, std::string key) {
-
-    std::string token_header = "X-Token: ";
-    token_header.append(key);
+struct json_object *MSGStore::perform_http_get(std::string url, std::string key) {
 
     curl_slist *headers = create_curl_headers();
-    headers = curl_slist_append(headers, token_header.c_str());
+
+    std::ostringstream header;
+    header << "X-Token: " << key;
+    headers = curl_slist_append(headers, header.str().c_str());
 
     CURL *curl = create_curl_handler(url, headers);
 
     return perform_http_request(curl);
 }
 
-std::string MSGStore::perform_http_post(std::string url, std::string key, json_object *json_obj) {
+struct json_object *MSGStore::perform_http_post(std::string url, std::string key, json_object *jobject) {
 
-    const char* body = json_object_to_json_string(json_obj);
-    
-    std::string digest = digest_message(body, key);
-    std::string digest_header = "X-Digest: ";
-    digest_header.append(digest);
+    const char* body = json_object_to_json_string(jobject);
 
     curl_slist *headers = create_curl_headers();
-    headers = curl_slist_append(headers, digest_header.c_str());
+    headers = curl_slist_append(headers, "Content-type: application/json");
+
+    std::ostringstream header1;
+    header1 << "Content-Length: " << strlen(body);
+    headers = curl_slist_append(headers, header1.str().c_str());
+
+    std::ostringstream header2;
+    header2 << "X-Digest: " << digest_message(body, key);
+    headers = curl_slist_append(headers, header2.str().c_str());
 
     CURL *curl = create_curl_handler(url, headers);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body);
@@ -189,7 +203,7 @@ curl_slist *MSGStore::create_curl_headers() {
     curl_slist *headers = NULL;
     headers = curl_slist_append(headers, "User-Agent: libklio");
     headers = curl_slist_append(headers, "X-Version: 1.0");
-    headers = curl_slist_append(headers, "Accept: application/json");
+    headers = curl_slist_append(headers, "Accept: application/json,text/html");
 
     return headers;
 }
@@ -245,7 +259,25 @@ std::string MSGStore::digest_message(std::string data, std::string key) {
     return std::string(digest);
 }
 
-std::string MSGStore::perform_http_request(CURL *curl) {
+static size_t curl_write_custom_callback(void *ptr, size_t size, size_t nmemb, void *data) {
+
+    size_t realsize = size * nmemb;
+    CURLresponse *response = static_cast<CURLresponse *> (data);
+
+    response->data = (char *) realloc(response->data, response->size + realsize + 1);
+    if (response->data == NULL) { // out of memory!
+        LOG("Cannot allocate memory");
+        exit(EXIT_FAILURE);
+    }
+
+    memcpy(&(response->data[response->size]), ptr, realsize);
+    response->size += realsize;
+    response->data[response->size] = 0;
+
+    return realsize;
+}
+
+struct json_object *MSGStore::perform_http_request(CURL *curl) {
 
     CURLresponse curl_response;
     curl_response.data = NULL;
@@ -275,23 +307,6 @@ std::string MSGStore::perform_http_request(CURL *curl) {
 
     std::string response = std::string(curl_response.data);
     free(curl_response.data);
-    return response;
-}
 
-size_t klio::curl_write_custom_callback(void *ptr, size_t size, size_t nmemb, void *data) {
-
-    size_t realsize = size * nmemb;
-    CURLresponse *response = static_cast<CURLresponse *> (data);
-
-    response->data = (char *) realloc(response->data, response->size + realsize + 1);
-    if (response->data == NULL) { // out of memory!
-        LOG("Cannot allocate memory");
-        exit(EXIT_FAILURE);
-    }
-
-    memcpy(&(response->data[response->size]), ptr, realsize);
-    response->size += realsize;
-    response->data[response->size] = 0;
-
-    return realsize;
+    return json_tokener_parse(response.c_str());
 }

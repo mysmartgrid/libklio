@@ -1,7 +1,8 @@
 /**
  * This file is part of libklio.
  *
- * (c) Fraunhofer ITWM - Mathias Dalheimer <dalheimer@itwm.fhg.de>, 2010
+ * (c) Fraunhofer ITWM - Mathias Dalheimer <dalheimer@itwm.fhg.de>,    2010
+ *                       Ely de Oliveira   <ely.oliveira@itwm.fhg.de>, 2013
  *
  * libklio is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,7 +16,6 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with libklio. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 #include <iostream>
@@ -38,7 +38,7 @@ BOOST_AUTO_TEST_CASE(check_add_retrieve_reading) {
         std::cout << "Created " << sensor1->str() << std::endl;
         klio::StoreFactory::Ptr factory(new klio::StoreFactory());
         bfs::path db(TEST_DB_FILE);
-        klio::Store::Ptr store(factory->open_sqlite3_store(db));
+        klio::Store::Ptr store(factory->create_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
         try {
             store->initialize();
@@ -83,7 +83,7 @@ BOOST_AUTO_TEST_CASE(check_retrieve_last_reading) {
         std::cout << "Created " << sensor1->str() << std::endl;
         klio::StoreFactory::Ptr factory(new klio::StoreFactory());
         bfs::path db(TEST_DB_FILE);
-        klio::Store::Ptr store(factory->open_sqlite3_store(db));
+        klio::Store::Ptr store(factory->create_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
         try {
             store->initialize();
@@ -130,7 +130,7 @@ BOOST_AUTO_TEST_CASE(check_bulk_insert) {
         std::cout << "Created " << sensor1->str() << std::endl;
         klio::StoreFactory::Ptr factory(new klio::StoreFactory());
         bfs::path db(TEST_DB_FILE);
-        klio::Store::Ptr store(factory->open_sqlite3_store(db));
+        klio::Store::Ptr store(factory->create_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
         try {
             store->initialize();
@@ -183,7 +183,7 @@ BOOST_AUTO_TEST_CASE(check_bulk_insert_duplicates) {
         std::cout << "Created " << sensor1->str() << std::endl;
         klio::StoreFactory::Ptr factory(new klio::StoreFactory());
         bfs::path db(TEST_DB_FILE);
-        klio::Store::Ptr store(factory->open_sqlite3_store(db));
+        klio::Store::Ptr store(factory->create_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
         try {
             store->initialize();
@@ -248,7 +248,7 @@ BOOST_AUTO_TEST_CASE(check_num_readings) {
         std::cout << "Created " << sensor1->str() << std::endl;
         klio::StoreFactory::Ptr factory(new klio::StoreFactory());
         bfs::path db(TEST_DB_FILE);
-        klio::Store::Ptr store(factory->open_sqlite3_store(db));
+        klio::Store::Ptr store(factory->create_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
         try {
             store->initialize();
@@ -293,10 +293,10 @@ BOOST_AUTO_TEST_CASE(check_sync_readings) {
         bfs::path db1(TEST_DB_FILE);
         bfs::path db2(TEST_DB2_FILE);
 
-        klio::Store::Ptr storeA(factory->open_sqlite3_store(db1));
+        klio::Store::Ptr storeA(factory->create_sqlite3_store(db1));
         std::cout << "Created: " << storeA->str() << std::endl;
 
-        klio::Store::Ptr storeB(factory->open_sqlite3_store(db2));
+        klio::Store::Ptr storeB(factory->create_sqlite3_store(db2));
         std::cout << "Created: " << storeB->str() << std::endl;
 
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
@@ -403,7 +403,7 @@ BOOST_AUTO_TEST_CASE(check_add_reading_msg) {
     try {
         std::cout << "Attempting to create MSG store " << url << std::endl;
 
-        klio::Store::Ptr store(factory->open_msg_store(url));
+        klio::Store::Ptr store(factory->create_msg_store(url));
 
         std::cout << "Created: " << store->str() << std::endl;
         store->open(); // Second call to open - should not break

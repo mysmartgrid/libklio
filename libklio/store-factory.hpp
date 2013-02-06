@@ -41,8 +41,9 @@ namespace klio {
         virtual ~StoreFactory() {
         };
 
-        Store::Ptr open_sqlite3_store(const bfs::path& path);
-        Store::Ptr open_msg_store(const std::string& url);
+        Store::Ptr create_sqlite3_store(const bfs::path& path);
+        Store::Ptr create_msg_store();
+        Store::Ptr create_msg_store(const std::string& url);
 
     private:
         StoreFactory(const StoreFactory& original);
@@ -50,4 +51,4 @@ namespace klio {
     };
 };
 
-#endif /* LIBKLIO_STORE-FACTORY_HPP */
+#endif /* LIBKLIO_STORE_FACTORY_HPP */

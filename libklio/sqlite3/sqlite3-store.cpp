@@ -10,30 +10,31 @@
 
 using namespace klio;
 
-// database statements
+
+// database statements //TODO: Change these constants to real prepared statements
 const std::string createSensorTableStmt(
-        "CREATE TABLE sensors(uuid VARCHAR(16) PRIMARY KEY, name VARCHAR(100), description VARCHAR(255), unit VARCHAR(20), timezone INTEGER);");
-//TODO: Change this to real prepared statement
+        "CREATE TABLE sensors(uuid VARCHAR(16) PRIMARY KEY, name VARCHAR(100), description VARCHAR(255), unit VARCHAR(20), timezone INTEGER);"
+        );
+
 const std::string insertSensorStmt(
         "INSERT INTO sensors (uuid, name, description, unit, timezone) VALUES (?1,?2,?3,?4,?5)"
         );
-//TODO: Change this to real prepared statement
+
 const std::string selectSensorStmt(
         "SELECT uuid, name, description, unit, timezone FROM sensors WHERE uuid = ?1"
         );
-//TODO: Change this to real prepared statement
+
 const std::string selectSensorByNameStmt(
         "SELECT uuid, name, description, unit, timezone FROM sensors WHERE name = ?1"
         );
+
 const std::string selectAllSensorUUIDsStmt(
         "SELECT uuid FROM sensors"
         );
-//TODO: Change this to real prepared statement
+
 const std::string remove_sensorStmt(
         "DELETE FROM sensors WHERE uuid = ?1"
         );
-
-// Opens a Database file.
 
 void SQLite3Store::open() {
     int rc = sqlite3_open(_path.c_str(), &db);
@@ -82,38 +83,6 @@ void SQLite3Store::initialize() {
 
 void SQLite3Store::close() {
     sqlite3_close(db);
-}
-
-bool SQLite3Store::has_table(std::string name) {
-    int rc;
-    sqlite3_stmt* stmt;
-    const char* pzTail;
-    std::ostringstream oss;
-    oss << "select * from sqlite_master where name='" << name << "';";
-    std::string hasSensorTableStmt(oss.str());
-
-    rc = sqlite3_prepare(
-            db, /* Database handle */
-            hasSensorTableStmt.c_str(), /* SQL statement, UTF-8 encoded */
-            -1, /* Maximum length of zSql in bytes - read complete string. */
-            &stmt, /* OUT: Statement handle */
-            &pzTail /* OUT: Pointer to unused portion of zSql */
-            );
-    if (rc != SQLITE_OK) {
-        std::ostringstream oss;
-        oss << "Can't create sensors query command: " << sqlite3_errmsg(db) << ", error code " << rc;
-        sqlite3_finalize(stmt);
-        throw StoreException(oss.str());
-    }
-
-    rc = sqlite3_step(stmt);
-    if (rc != SQLITE_ROW) { // sqlite3_step has finished, there was no result row.
-        sqlite3_finalize(stmt);
-        return false;
-    } else { // there was a result row - the table exists.
-        sqlite3_finalize(stmt);
-        return true;
-    }
 }
 
 const std::string SQLite3Store::str() {
@@ -196,14 +165,6 @@ void SQLite3Store::add_sensor(klio::Sensor::Ptr sensor) {
     transaction.commit();
 }
 
-void SQLite3Store::checkSensorTable() {
-    if (!has_table("sensors")) {
-        std::ostringstream oss;
-        oss << "table sensors is missing in " << str();
-        throw StoreException(oss.str());
-    }
-}
-
 void SQLite3Store::remove_sensor(const klio::Sensor::Ptr sensor) {
     int rc;
     sqlite3_stmt* stmt;
@@ -267,20 +228,20 @@ void SQLite3Store::remove_sensor(const klio::Sensor::Ptr sensor) {
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
     transaction.commit();
-
 }
 
-std::vector<klio::Sensor::uuid_t> SQLite3Store::get_sensor_uuids() {
+klio::Sensor::Ptr SQLite3Store::get_sensor(const klio::Sensor::uuid_t& uuid) {
     int rc;
     sqlite3_stmt* stmt;
     const char* pzTail;
-    std::vector<klio::Sensor::uuid_t> uuids;
+    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
 
-    LOG("Retrieving UUIDs from store.");
+    LOG("Attempting to load sensor " << uuid);
     checkSensorTable();
+
     rc = sqlite3_prepare_v2(
             db, /* Database handle */
-            selectAllSensorUUIDsStmt.c_str(), /* SQL statement, UTF-8 encoded */
+            selectSensorStmt.c_str(), /* SQL statement, UTF-8 encoded */
             -1, /* Maximum length of zSql in bytes - read complete string. */
             &stmt, /* OUT: Statement handle */
             &pzTail /* OUT: Pointer to unused portion of zSql */
@@ -292,22 +253,32 @@ std::vector<klio::Sensor::uuid_t> SQLite3Store::get_sensor_uuids() {
         throw StoreException(oss.str());
     }
 
-    //sqlite3_bind_text(stmt, 1, to_string(uuid).c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 1, to_string(uuid).c_str(), -1, SQLITE_TRANSIENT);
 
-    while (SQLITE_ROW == sqlite3_step(stmt)) {
-        const unsigned char* select_uuid = sqlite3_column_text(stmt, 0);
-        //std::cout << " -> " << select_uuid  << std::endl;
-        // type conversion: uuid_string to real uuid type
-        boost::uuids::uuid u;
-        std::stringstream ss;
-        ss << select_uuid;
-        ss >> u;
-        uuids.push_back(u);
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_ROW) { // there MUST be only one result - otherwise, ve would have several primary IDs stored.
+        std::ostringstream oss;
+        oss << "Can't execute sensor select statement: " << sqlite3_errmsg(db) << ", error code " << rc;
+        sqlite3_finalize(stmt);
+        throw StoreException(oss.str());
     }
+    const unsigned char* select_uuid = sqlite3_column_text(stmt, 0);
+    const unsigned char* select_name = sqlite3_column_text(stmt, 1);
+    const unsigned char* select_desc = sqlite3_column_text(stmt, 2);
+    const unsigned char* select_unit = sqlite3_column_text(stmt, 3);
+    const unsigned char* select_timezone = sqlite3_column_text(stmt, 4);
+    //std::cout << " -> " << select_uuid << " . " << select_name << " . " << select_timezone << std::endl;
+
+    klio::Sensor::Ptr retval(sensor_factory->createSensor(
+            std::string((char*) select_uuid),
+            std::string((char*) select_name),
+            std::string((char*) select_desc),
+            std::string((char*) select_unit),
+            std::string((char*) select_timezone)));
     sqlite3_clear_bindings(stmt);
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
-    return uuids;
+    return retval;
 }
 
 std::vector<klio::Sensor::Ptr> SQLite3Store::get_sensor_by_name(const std::string& name) {
@@ -364,18 +335,17 @@ std::vector<klio::Sensor::Ptr> SQLite3Store::get_sensor_by_name(const std::strin
     return retval;
 }
 
-klio::Sensor::Ptr SQLite3Store::get_sensor(const klio::Sensor::uuid_t& uuid) {
+std::vector<klio::Sensor::uuid_t> SQLite3Store::get_sensor_uuids() {
     int rc;
     sqlite3_stmt* stmt;
     const char* pzTail;
-    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+    std::vector<klio::Sensor::uuid_t> uuids;
 
-    LOG("Attempting to load sensor " << uuid);
+    LOG("Retrieving UUIDs from store.");
     checkSensorTable();
-
     rc = sqlite3_prepare_v2(
             db, /* Database handle */
-            selectSensorStmt.c_str(), /* SQL statement, UTF-8 encoded */
+            selectAllSensorUUIDsStmt.c_str(), /* SQL statement, UTF-8 encoded */
             -1, /* Maximum length of zSql in bytes - read complete string. */
             &stmt, /* OUT: Statement handle */
             &pzTail /* OUT: Pointer to unused portion of zSql */
@@ -387,32 +357,22 @@ klio::Sensor::Ptr SQLite3Store::get_sensor(const klio::Sensor::uuid_t& uuid) {
         throw StoreException(oss.str());
     }
 
-    sqlite3_bind_text(stmt, 1, to_string(uuid).c_str(), -1, SQLITE_TRANSIENT);
+    //sqlite3_bind_text(stmt, 1, to_string(uuid).c_str(), -1, SQLITE_TRANSIENT);
 
-    rc = sqlite3_step(stmt);
-    if (rc != SQLITE_ROW) { // there MUST be only one result - otherwise, ve would have several primary IDs stored.
-        std::ostringstream oss;
-        oss << "Can't execute sensor select statement: " << sqlite3_errmsg(db) << ", error code " << rc;
-        sqlite3_finalize(stmt);
-        throw StoreException(oss.str());
+    while (SQLITE_ROW == sqlite3_step(stmt)) {
+        const unsigned char* select_uuid = sqlite3_column_text(stmt, 0);
+        //std::cout << " -> " << select_uuid  << std::endl;
+        // type conversion: uuid_string to real uuid type
+        boost::uuids::uuid u;
+        std::stringstream ss;
+        ss << select_uuid;
+        ss >> u;
+        uuids.push_back(u);
     }
-    const unsigned char* select_uuid = sqlite3_column_text(stmt, 0);
-    const unsigned char* select_name = sqlite3_column_text(stmt, 1);
-    const unsigned char* select_desc = sqlite3_column_text(stmt, 2);
-    const unsigned char* select_unit = sqlite3_column_text(stmt, 3);
-    const unsigned char* select_timezone = sqlite3_column_text(stmt, 4);
-    //std::cout << " -> " << select_uuid << " . " << select_name << " . " << select_timezone << std::endl;
-
-    klio::Sensor::Ptr retval(sensor_factory->createSensor(
-            std::string((char*) select_uuid),
-            std::string((char*) select_name),
-            std::string((char*) select_desc),
-            std::string((char*) select_unit),
-            std::string((char*) select_timezone)));
     sqlite3_clear_bindings(stmt);
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
-    return retval;
+    return uuids;
 }
 
 /**
@@ -425,9 +385,29 @@ static int empty_callback(void *NotUsed, int argc, char **argv, char **azColName
     return 0;
 }
 
-void SQLite3Store::add_reading(klio::Sensor::Ptr sensor,
-        timestamp_t timestamp, double value) {
-    int rc;
+void SQLite3Store::add_description(klio::Sensor::Ptr sensor, const std::string& description) {
+
+    LOG("Adding description " << description << " to sensor: " << sensor->str());
+
+    checkSensorTable();
+
+    // TODO: Insert statement
+    std::ostringstream oss;
+    oss << "UPDATE sensors ";
+    oss << "SET description='" << description << "' ";
+    oss << "WHERE uuid='" << sensor->uuid_string() << "'";
+    std::string updateStmt(oss.str());
+
+    char* zErrMsg = 0;
+    int rc = sqlite3_exec(db, updateStmt.c_str(), empty_callback, NULL, &zErrMsg);
+    if (rc != SQLITE_OK) { // sqlite3_step has finished, no further result lines available
+        std::ostringstream oss;
+        oss << "Can't execute description update statement: " << zErrMsg << ", error code " << rc;
+        throw StoreException(oss.str());
+    }
+}
+
+void SQLite3Store::add_reading(klio::Sensor::Ptr sensor, timestamp_t timestamp, double value) {
 
     LOG("Adding to sensor: " << sensor->str()
             << " time=" << timestamp
@@ -445,7 +425,7 @@ void SQLite3Store::add_reading(klio::Sensor::Ptr sensor,
     //std::cout << "Using SQL: " << insertStmt << std::endl;
 
     char* zErrMsg = 0;
-    rc = sqlite3_exec(db, insertStmt.c_str(), empty_callback, NULL, &zErrMsg);
+    int rc = sqlite3_exec(db, insertStmt.c_str(), empty_callback, NULL, &zErrMsg);
     if (rc != SQLITE_OK) { // sqlite3_step has finished, no further result lines available
         std::ostringstream oss;
         oss << "Can't execute value insertion statement: " << zErrMsg << ", error code " << rc;
@@ -453,34 +433,36 @@ void SQLite3Store::add_reading(klio::Sensor::Ptr sensor,
     }
 }
 
-void SQLite3Store::add_description(klio::Sensor::Ptr sensor, const std::string& description) {
-    int rc;
-
-    LOG("Adding description " << description << " to sensor: " << sensor->str());
+void SQLite3Store::add_readings(klio::Sensor::Ptr sensor, const readings_t& readings) {
 
     checkSensorTable();
+    klio::TimeConverter::Ptr tc(new klio::TimeConverter());
 
-    // TODO: Insert statement
-    std::ostringstream oss;
-    oss << "UPDATE sensors ";
-    oss << "SET description='" << description << "' ";
-    oss << "WHERE uuid='" << sensor->uuid_string() << "'";
-    std::string updateStmt(oss.str());
-
-
-    char* zErrMsg = 0;
-    rc = sqlite3_exec(db, updateStmt.c_str(), empty_callback, NULL, &zErrMsg);
-    if (rc != SQLITE_OK) { // sqlite3_step has finished, no further result lines available
+    Transaction transaction(db);
+    for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
+        klio::timestamp_t timestamp = (*it).first;
+        double value = (*it).second;
         std::ostringstream oss;
-        oss << "Can't execute description update statement: " << zErrMsg << ", error code " << rc;
-        throw StoreException(oss.str());
-    }
+        oss << "INSERT INTO '" << sensor->uuid_string() << "' ";
+        oss << "(timestamp, value) VALUES";
+        oss << "(" << tc->convert_to_epoch(timestamp) << ", " << value << ");";
+        std::string insertStmt = oss.str();
 
+        //std::cout << "Using SQL: " << insertStmt << std::endl;
+
+        char* zErrMsg = 0;
+        int rc = sqlite3_exec(db, insertStmt.c_str(), empty_callback, NULL, &zErrMsg);
+        if (rc != SQLITE_OK) { // sqlite3_step has finished, no further result lines available
+            std::ostringstream oss;
+            oss << "Can't execute value insertion statement: " << zErrMsg << ", error code " << rc;
+            throw StoreException(oss.str());
+        }
+    }
+    transaction.commit();
 }
 
-void SQLite3Store::update_readings(
-        klio::Sensor::Ptr sensor, const readings_t& readings) {
-    int rc;
+void SQLite3Store::update_readings(klio::Sensor::Ptr sensor, const readings_t& readings) {
+
     checkSensorTable();
     klio::TimeConverter::Ptr tc(new klio::TimeConverter());
 
@@ -505,36 +487,7 @@ void SQLite3Store::update_readings(
         //std::cout << "Using SQL: " << insertStmt << std::endl;
 
         char* zErrMsg = 0;
-        rc = sqlite3_exec(db, insertStmt.c_str(), empty_callback, NULL, &zErrMsg);
-        if (rc != SQLITE_OK) { // sqlite3_step has finished, no further result lines available
-            std::ostringstream oss;
-            oss << "Can't execute value insertion statement: " << zErrMsg << ", error code " << rc;
-            throw StoreException(oss.str());
-        }
-    }
-    transaction.commit();
-
-}
-
-void SQLite3Store::add_readings(klio::Sensor::Ptr sensor, const readings_t& readings) {
-    int rc;
-    checkSensorTable();
-    klio::TimeConverter::Ptr tc(new klio::TimeConverter());
-
-    Transaction transaction(db);
-    for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
-        klio::timestamp_t timestamp = (*it).first;
-        double value = (*it).second;
-        std::ostringstream oss;
-        oss << "INSERT INTO '" << sensor->uuid_string() << "' ";
-        oss << "(timestamp, value) VALUES";
-        oss << "(" << tc->convert_to_epoch(timestamp) << ", " << value << ");";
-        std::string insertStmt = oss.str();
-
-        //std::cout << "Using SQL: " << insertStmt << std::endl;
-
-        char* zErrMsg = 0;
-        rc = sqlite3_exec(db, insertStmt.c_str(), empty_callback, NULL, &zErrMsg);
+        int rc = sqlite3_exec(db, insertStmt.c_str(), empty_callback, NULL, &zErrMsg);
         if (rc != SQLITE_OK) { // sqlite3_step has finished, no further result lines available
             std::ostringstream oss;
             oss << "Can't execute value insertion statement: " << zErrMsg << ", error code " << rc;
@@ -544,9 +497,6 @@ void SQLite3Store::add_readings(klio::Sensor::Ptr sensor, const readings_t& read
     transaction.commit();
 }
 
-/**
- * Dummy helper for sqlite3_exec - dumps the return values.
- */
 static int get_all_readings_callback(void *store, int argc, char **argv, char **azColName) {
     std::map<timestamp_t, double>* datastore;
     datastore = reinterpret_cast<std::map<timestamp_t, double>*> (store);
@@ -564,11 +514,10 @@ static int get_all_readings_callback(void *store, int argc, char **argv, char **
     return 0;
 }
 
-readings_t_Ptr SQLite3Store::get_all_readings(
-        klio::Sensor::Ptr sensor) {
+readings_t_Ptr SQLite3Store::get_all_readings(klio::Sensor::Ptr sensor) {
+    
     //std::map<timestamp_t, double> retval;//(new std::map<timestamp_t, double>());
     readings_t_Ptr retval(new readings_t());
-    int rc;
 
     LOG("Retrieving all readings of sensor " << sensor->str());
     checkSensorTable();
@@ -579,7 +528,7 @@ readings_t_Ptr SQLite3Store::get_all_readings(
     //std::cout << "Using SQL: " << selectStmt << std::endl;
 
     char* zErrMsg = 0;
-    rc = sqlite3_exec(db, selectStmt.c_str(), get_all_readings_callback, retval.get(), &zErrMsg);
+    int rc = sqlite3_exec(db, selectStmt.c_str(), get_all_readings_callback, retval.get(), &zErrMsg);
     if (rc != SQLITE_OK) { // sqlite3_step has finished, no further result lines available
         std::ostringstream oss;
         oss << "Can't execute reading select statement: " << zErrMsg << ", error code " << rc;
@@ -587,6 +536,34 @@ readings_t_Ptr SQLite3Store::get_all_readings(
     }
     //std::cout << "Got " << retval->size() << " readings." << std::endl;
 
+    return retval;
+}
+
+static int get_num_readings_callback(void *num, int argc, char **argv, char **azColName) {
+    long int* numreadings = (long int*) num;
+    *numreadings = atol(argv[0]);
+    return 0;
+}
+
+unsigned long int SQLite3Store::get_num_readings(klio::Sensor::Ptr sensor) {
+
+    long int retval;
+
+    LOG("Retrieving number of readings for sensor " << sensor->str());
+    checkSensorTable();
+
+    std::ostringstream oss;
+    oss << "SELECT Count(*) FROM '" << sensor->uuid_string() << "' ";
+    std::string selectStmt = oss.str();
+    //std::cout << "Using SQL: " << selectStmt << std::endl;
+
+    char* zErrMsg = 0;
+    int rc = sqlite3_exec(db, selectStmt.c_str(), get_num_readings_callback, &retval, &zErrMsg);
+    if (rc != SQLITE_OK) { // sqlite3_step has finished, no further result lines available
+        std::ostringstream oss;
+        oss << "Can't execute reading select statement: " << zErrMsg << ", error code " << rc;
+        throw StoreException(oss.str());
+    }
     return retval;
 }
 
@@ -602,10 +579,9 @@ static int get_last_readings_callback(void *pair, int argc, char **argv, char **
     return 0;
 }
 
-std::pair<timestamp_t, double> SQLite3Store::get_last_reading(
-        klio::Sensor::Ptr sensor) {
+std::pair<timestamp_t, double> SQLite3Store::get_last_reading(klio::Sensor::Ptr sensor) {
+    
     std::pair<timestamp_t, double> retval;
-    int rc;
 
     LOG("Retrieving last readings of sensor " << sensor->str());
     checkSensorTable();
@@ -617,35 +593,7 @@ std::pair<timestamp_t, double> SQLite3Store::get_last_reading(
     //std::cout << "Using SQL: " << selectStmt << std::endl;
 
     char* zErrMsg = 0;
-    rc = sqlite3_exec(db, selectStmt.c_str(), get_last_readings_callback, &retval, &zErrMsg);
-    if (rc != SQLITE_OK) { // sqlite3_step has finished, no further result lines available
-        std::ostringstream oss;
-        oss << "Can't execute reading select statement: " << zErrMsg << ", error code " << rc;
-        throw StoreException(oss.str());
-    }
-    return retval;
-}
-
-static int get_num_readings_callback(void *num, int argc, char **argv, char **azColName) {
-    long int* numreadings = (long int*) num;
-    *numreadings = atol(argv[0]);
-    return 0;
-}
-
-unsigned long int SQLite3Store::get_num_readings(klio::Sensor::Ptr sensor) {
-    long int retval;
-    int rc;
-
-    LOG("Retrieving number of readings for sensor " << sensor->str());
-    checkSensorTable();
-
-    std::ostringstream oss;
-    oss << "SELECT Count(*) FROM '" << sensor->uuid_string() << "' ";
-    std::string selectStmt = oss.str();
-    //std::cout << "Using SQL: " << selectStmt << std::endl;
-
-    char* zErrMsg = 0;
-    rc = sqlite3_exec(db, selectStmt.c_str(), get_num_readings_callback, &retval, &zErrMsg);
+    int rc = sqlite3_exec(db, selectStmt.c_str(), get_last_readings_callback, &retval, &zErrMsg);
     if (rc != SQLITE_OK) { // sqlite3_step has finished, no further result lines available
         std::ostringstream oss;
         oss << "Can't execute reading select statement: " << zErrMsg << ", error code " << rc;
@@ -661,4 +609,45 @@ void SQLite3Store::sync_readings(klio::Sensor::Ptr sensor, klio::Store::Ptr stor
     klio::readings_t_Ptr readings = store->get_all_readings(sensor);
 
     update_readings(sensor, *readings);
+}
+
+void SQLite3Store::checkSensorTable() {
+
+    if (!has_table("sensors")) {
+        std::ostringstream oss;
+        oss << "table sensors is missing in " << str();
+        throw StoreException(oss.str());
+    }
+}
+
+bool SQLite3Store::has_table(std::string name) {
+
+    sqlite3_stmt* stmt;
+    const char* pzTail;
+    std::ostringstream oss;
+    oss << "select * from sqlite_master where name='" << name << "';";
+    std::string hasSensorTableStmt(oss.str());
+
+    int rc = sqlite3_prepare(
+            db, /* Database handle */
+            hasSensorTableStmt.c_str(), /* SQL statement, UTF-8 encoded */
+            -1, /* Maximum length of zSql in bytes - read complete string. */
+            &stmt, /* OUT: Statement handle */
+            &pzTail /* OUT: Pointer to unused portion of zSql */
+            );
+    if (rc != SQLITE_OK) {
+        std::ostringstream oss;
+        oss << "Can't create sensors query command: " << sqlite3_errmsg(db) << ", error code " << rc;
+        sqlite3_finalize(stmt);
+        throw StoreException(oss.str());
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_ROW) { // sqlite3_step has finished, there was no result row.
+        sqlite3_finalize(stmt);
+        return false;
+    } else { // there was a result row - the table exists.
+        sqlite3_finalize(stmt);
+        return true;
+    }
 }

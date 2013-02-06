@@ -1,13 +1,14 @@
 /**
  * This file is part of libklio.
  *
- * (c) Fraunhofer ITWM - Mathias Dalheimer <dalheimer@itwm.fhg.de>, 2010
+ * (c) Fraunhofer ITWM - Mathias Dalheimer <dalheimer@itwm.fhg.de>,    2010
+ *                       Ely de Oliveira   <ely.oliveira@itwm.fhg.de>, 2013
  *
  * libklio is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * libklio is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -56,7 +57,7 @@ BOOST_AUTO_TEST_CASE ( check_create_sensor_sqlite3 ) {
     klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
     bfs::path db(TEST_DB_FILE);
     bfs::remove(db);
-    klio::Store::Ptr store(factory->open_sqlite3_store(db));
+    klio::Store::Ptr store(factory->create_sqlite3_store(db));
     std::cout << "Created: " << store->str() << std::endl;
     try {
       store->initialize();
@@ -98,7 +99,7 @@ BOOST_AUTO_TEST_CASE ( check_add_sensor_description ) {
     klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
     bfs::path db(TEST_DB_FILE);
     bfs::remove(db);
-    klio::Store::Ptr store(factory->open_sqlite3_store(db));
+    klio::Store::Ptr store(factory->create_sqlite3_store(db));
     std::cout << "Created: " << store->str() << std::endl;
     try {
       store->initialize();
@@ -140,7 +141,7 @@ BOOST_AUTO_TEST_CASE ( check_retrieve_sensor_by_name ) {
     klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
     bfs::path db(TEST_DB_FILE);
     bfs::remove(db);
-    klio::Store::Ptr store(factory->open_sqlite3_store(db));
+    klio::Store::Ptr store(factory->create_sqlite3_store(db));
     std::cout << "Created: " << store->str() << std::endl;
     try {
       store->initialize();
@@ -188,7 +189,7 @@ BOOST_AUTO_TEST_CASE ( check_retrieve_sensor_uuids_sqlite3 ) {
     klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
     bfs::path db(TEST_DB_FILE);
     bfs::remove(db);
-    klio::Store::Ptr store(factory->open_sqlite3_store(db));
+    klio::Store::Ptr store(factory->create_sqlite3_store(db));
     std::cout << "Created: " << store->str() << std::endl;
     try {
       store->initialize();
@@ -230,7 +231,7 @@ BOOST_AUTO_TEST_CASE ( check_remove_sensor_sqlite3 ) {
     klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
     bfs::path db(TEST_DB_FILE);
     bfs::remove(db);
-    klio::Store::Ptr store(factory->open_sqlite3_store(db));
+    klio::Store::Ptr store(factory->create_sqlite3_store(db));
     std::cout << "Created: " << store->str() << std::endl;
     try {
       store->initialize();

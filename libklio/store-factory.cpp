@@ -5,16 +5,20 @@
 
 using namespace klio;
 
-Store::Ptr StoreFactory::open_sqlite3_store(const bfs::path& path) {
+Store::Ptr StoreFactory::create_sqlite3_store(const bfs::path& path) {
 
-    Store::Ptr retval(new SQLite3Store(path));
-    retval->open();
-    return retval;
+    Store::Ptr store(new SQLite3Store(path));
+    store->open();
+    return store;
 }
 
-Store::Ptr StoreFactory::open_msg_store(const std::string& url) {
+Store::Ptr StoreFactory::create_msg_store() {
+    return create_msg_store("http://api.mysmartgrid.de");
+}
 
-    Store::Ptr retval(new MSGStore(url));
-    retval->open();
-    return retval;
+Store::Ptr StoreFactory::create_msg_store(const std::string& url) {
+
+    Store::Ptr store(new MSGStore(url));
+    store->open();
+    return store;
 }

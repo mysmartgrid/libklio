@@ -39,10 +39,10 @@ void MSGStore::add_sensor(klio::Sensor::Ptr sensor) {
 void MSGStore::remove_sensor(const klio::Sensor::Ptr sensor) {
 }
 
-std::vector<klio::Sensor::uuid_t> MSGStore::get_sensor_uuids() {
+klio::Sensor::Ptr MSGStore::get_sensor(const klio::Sensor::uuid_t& uuid) {
 
-    std::vector<klio::Sensor::uuid_t> uuids;
-    return uuids;
+    klio::Sensor::Ptr sensor;
+    return sensor;
 }
 
 std::vector<klio::Sensor::Ptr> MSGStore::get_sensor_by_name(const std::string& name) {
@@ -51,42 +51,54 @@ std::vector<klio::Sensor::Ptr> MSGStore::get_sensor_by_name(const std::string& n
     return retval;
 }
 
-klio::Sensor::Ptr MSGStore::get_sensor(const klio::Sensor::uuid_t& uuid) {
+std::vector<klio::Sensor::uuid_t> MSGStore::get_sensor_uuids() {
 
-    klio::Sensor::Ptr retval;
-    return retval;
+    std::vector<klio::Sensor::uuid_t> uuids;
+    return uuids;
+}
+
+void MSGStore::add_description(klio::Sensor::Ptr sensor, const std::string& description) {
 }
 
 void MSGStore::add_reading(klio::Sensor::Ptr sensor, timestamp_t timestamp, double value) {
+
+    klio::reading_t reading(timestamp, value);
+    readings_t readings;
+    readings.insert(reading);
+    
+    add_readings(sensor, readings);
+}
+
+void MSGStore::add_readings(klio::Sensor::Ptr sensor, const readings_t& readings) {
 
     std::string url = "";
     url.append(_url);
     url.append("/sensor/");
     url.append(sensor->uuid_short().c_str());
 
-    struct json_object *json_tuple = json_object_new_array();
-
-    json_object_array_add(json_tuple, json_object_new_int(timestamp));
-    json_object_array_add(json_tuple, json_object_new_int(value));
-
     json_object *json_tuples = json_object_new_array();
-    json_object_array_add(json_tuples, json_tuple);
+
+    for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
+
+        klio::timestamp_t timestamp = (*it).first;
+        long value = (*it).second;
+
+        struct json_object *json_tuple = json_object_new_array();
+        json_object_array_add(json_tuple, json_object_new_int(timestamp));
+        json_object_array_add(json_tuple, json_object_new_int(value));
+
+        json_object_array_add(json_tuples, json_tuple);
+    }
 
     json_object *json_obj = json_object_new_object();
     json_object_object_add(json_obj, "measurements", json_tuples);
 
-    const char* json_str = json_object_to_json_string(json_obj);
-
-    perform_http_post(url, sensor->key().c_str(), json_str);
-}
-
-void MSGStore::add_description(klio::Sensor::Ptr sensor, const std::string& description) {
+    perform_http_post(url, sensor->key(), json_obj);
 }
 
 void MSGStore::update_readings(klio::Sensor::Ptr sensor, const readings_t& readings) {
-}
 
-void MSGStore::add_readings(klio::Sensor::Ptr sensor, const readings_t& readings) {
+    add_readings(sensor, readings);
 }
 
 readings_t_Ptr MSGStore::get_all_readings(klio::Sensor::Ptr sensor) {
@@ -94,10 +106,10 @@ readings_t_Ptr MSGStore::get_all_readings(klio::Sensor::Ptr sensor) {
     std::string url = "";
     url.append(_url);
     url.append("/sensor/");
-    url.append(sensor->uuid_short().c_str());
+    url.append(sensor->uuid_short());
     url.append("?interval=hour&unit=watt");
 
-    std::string response = perform_http_get(url, sensor->key().c_str());
+    std::string response = perform_http_get(url, sensor->key());
     struct json_object *parsed = json_tokener_parse(response.c_str());
 
     klio::TimeConverter::Ptr tc(new klio::TimeConverter());
@@ -122,6 +134,26 @@ readings_t_Ptr MSGStore::get_all_readings(klio::Sensor::Ptr sensor) {
     return readings;
 }
 
+unsigned long int MSGStore::get_num_readings(klio::Sensor::Ptr sensor) {
+
+    return 0;
+}
+
+std::pair<timestamp_t, double> MSGStore::get_last_reading(klio::Sensor::Ptr sensor) {
+
+    std::pair<timestamp_t, double> retval;
+    return retval;
+}
+
+void MSGStore::sync_readings(klio::Sensor::Ptr sensor, klio::Store::Ptr store) {
+
+    sensor = get_sensor(sensor->uuid());
+
+    klio::readings_t_Ptr readings = store->get_all_readings(sensor);
+
+    update_readings(sensor, *readings);
+}
+
 std::string MSGStore::perform_http_get(std::string url, std::string key) {
 
     std::string token_header = "X-Token: ";
@@ -135,8 +167,10 @@ std::string MSGStore::perform_http_get(std::string url, std::string key) {
     return perform_http_request(curl);
 }
 
-std::string MSGStore::perform_http_post(std::string url, std::string key, std::string body) {
+std::string MSGStore::perform_http_post(std::string url, std::string key, json_object *json_obj) {
 
+    const char* body = json_object_to_json_string(json_obj);
+    
     std::string digest = digest_message(body, key);
     std::string digest_header = "X-Digest: ";
     digest_header.append(digest);
@@ -145,7 +179,7 @@ std::string MSGStore::perform_http_post(std::string url, std::string key, std::s
     headers = curl_slist_append(headers, digest_header.c_str());
 
     CURL *curl = create_curl_handler(url, headers);
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body.c_str());
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body);
 
     return perform_http_request(curl);
 }
@@ -232,9 +266,8 @@ std::string MSGStore::perform_http_request(CURL *curl) {
         std::ostringstream oss;
         oss << "HTTPS request failed. " << curl_easy_strerror(curl_code);
         throw StoreException(oss.str());
-    }
 
-    if (http_code != 200) {
+    } else if (http_code != 200) {
         std::ostringstream oss;
         oss << "HTTPS request failed. HTTPS code: " << http_code;
         throw StoreException(oss.str());
@@ -261,24 +294,4 @@ size_t klio::curl_write_custom_callback(void *ptr, size_t size, size_t nmemb, vo
     response->data[response->size] = 0;
 
     return realsize;
-}
-
-std::pair<timestamp_t, double> MSGStore::get_last_reading(klio::Sensor::Ptr sensor) {
-
-    std::pair<timestamp_t, double> retval;
-    return retval;
-}
-
-unsigned long int MSGStore::get_num_readings(klio::Sensor::Ptr sensor) {
-
-    return 0;
-}
-
-void MSGStore::sync_readings(klio::Sensor::Ptr sensor, klio::Store::Ptr store) {
-
-    sensor = get_sensor(sensor->uuid());
-
-    klio::readings_t_Ptr readings = store->get_all_readings(sensor);
-
-    update_readings(sensor, *readings);
 }

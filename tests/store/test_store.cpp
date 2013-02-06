@@ -1,13 +1,14 @@
 /**
  * This file is part of libklio.
  *
- * (c) Fraunhofer ITWM - Mathias Dalheimer <dalheimer@itwm.fhg.de>, 2010
+ * (c) Fraunhofer ITWM - Mathias Dalheimer <dalheimer@itwm.fhg.de>,    2010
+ *                       Ely de Oliveira   <ely.oliveira@itwm.fhg.de>, 2013
  *
  * libklio is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * libklio is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -53,12 +54,12 @@ BOOST_AUTO_TEST_CASE(check_create_storage_sqlite3) {
     bfs::path db(TEST_DB_FILE);
     try {
         std::cout << "Attempting to create " << db << std::endl;
-        klio::Store::Ptr store(factory->open_sqlite3_store(db));
+        klio::Store::Ptr store(factory->create_sqlite3_store(db));
         std::cout << "Created database: " << store->str() << std::endl;
         store->initialize();
         store->close();
 
-        klio::Store::Ptr loaded(factory->open_sqlite3_store(db));
+        klio::Store::Ptr loaded(factory->create_sqlite3_store(db));
         std::cout << "Opened database: " << loaded->str() << std::endl;
     } catch (klio::StoreException const& ex) {
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
@@ -74,7 +75,7 @@ BOOST_AUTO_TEST_CASE(check_create_storage_msg) {
 
     try {
         std::cout << "Attempting to create MSG store " << url << std::endl;
-        klio::Store::Ptr store(factory->open_msg_store(url));
+        klio::Store::Ptr store(factory->create_msg_store(url));
         std::cout << "Created: " << store->str() << std::endl;
         store->open(); // Second call to open - should not break
         store->initialize();
@@ -94,7 +95,7 @@ BOOST_AUTO_TEST_CASE(check_get_all_readings_msg) {
     try {
         std::cout << "Attempting to create MSG store " << url << std::endl;
 
-        klio::Store::Ptr store(factory->open_msg_store(url));
+        klio::Store::Ptr store(factory->create_msg_store(url));
 
         std::cout << "Created: " << store->str() << std::endl;
         store->open(); // Second call to open - should not break

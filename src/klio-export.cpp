@@ -122,7 +122,7 @@ int main(int argc,char** argv) {
         return 2;
       }
       std::string sensor_id(vm["id"].as<std::string>());
-      klio::Store::Ptr store(factory->open_store(klio::SQLITE3, db));
+      klio::Store::Ptr store(factory->open_sqlite3_store(db));
       std::cout << "opened store: " << store->str() << std::endl;
       std::vector<klio::Sensor::uuid_t> uuids = store->get_sensor_uuids();
       std::vector<klio::Sensor::uuid_t>::iterator it;

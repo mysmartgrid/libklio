@@ -5,21 +5,6 @@
 
 using namespace klio;
 
-Store::Ptr StoreFactory::create_store(const STORETYPE& type, const bfs::path& path) {
-
-    return open_store(type, path);
-}
-
-Store::Ptr StoreFactory::open_store(const STORETYPE& type, const bfs::path& path) {
-
-    if (type == klio::SQLITE3) {
-        return open_sqlite3_store(path);
-
-    } else {
-        throw DataFormatException("Unknown storage type requested.");
-    }
-}
-
 Store::Ptr StoreFactory::open_sqlite3_store(const bfs::path& path) {
 
     Store::Ptr retval(new SQLite3Store(path));

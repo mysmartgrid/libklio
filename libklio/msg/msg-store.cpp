@@ -45,7 +45,7 @@ std::vector<klio::Sensor::uuid_t> MSGStore::get_sensor_uuids() {
     return uuids;
 }
 
-std::vector<klio::Sensor::Ptr> MSGStore::get_sensor_by_id(const std::string& sensor_id) {
+std::vector<klio::Sensor::Ptr> MSGStore::get_sensor_by_name(const std::string& name) {
 
     std::vector<klio::Sensor::Ptr> retval;
     return retval;

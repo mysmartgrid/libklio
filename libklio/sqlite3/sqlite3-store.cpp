@@ -19,18 +19,18 @@ const std::string insertSensorStmt(
         );
 //TODO: Change this to real prepared statement
 const std::string selectSensorStmt(
-        "SELECT uuid,name,description,unit,timezone FROM sensors where (uuid=?1)"
+        "SELECT uuid, name, description, unit, timezone FROM sensors WHERE uuid = ?1"
         );
 //TODO: Change this to real prepared statement
 const std::string selectSensorByNameStmt(
-        "SELECT uuid,name,description,unit,timezone FROM sensors where (name=?1)"
+        "SELECT uuid, name, description, unit, timezone FROM sensors WHERE name = ?1"
         );
 const std::string selectAllSensorUUIDsStmt(
         "SELECT uuid FROM sensors"
         );
 //TODO: Change this to real prepared statement
 const std::string remove_sensorStmt(
-        "DELETE FROM sensors WHERE (uuid=?1)"
+        "DELETE FROM sensors WHERE uuid = ?1"
         );
 
 // Opens a Database file.
@@ -310,14 +310,15 @@ std::vector<klio::Sensor::uuid_t> SQLite3Store::get_sensor_uuids() {
     return uuids;
 }
 
-std::vector<klio::Sensor::Ptr> SQLite3Store::get_sensor_by_id(const std::string& sensor_id) {
+std::vector<klio::Sensor::Ptr> SQLite3Store::get_sensor_by_name(const std::string& name) {
+
     std::vector<klio::Sensor::Ptr> retval;
     int rc;
     sqlite3_stmt* stmt;
     const char* pzTail;
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
 
-    LOG("Attempting to load sensor " << sensor_id);
+    LOG("Attempting to load sensor " << name);
     checkSensorTable();
 
     rc = sqlite3_prepare_v2(
@@ -334,7 +335,7 @@ std::vector<klio::Sensor::Ptr> SQLite3Store::get_sensor_by_id(const std::string&
         throw StoreException(oss.str());
     }
 
-    sqlite3_bind_text(stmt, 1, sensor_id.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 1, name.c_str(), -1, SQLITE_TRANSIENT);
 
     while (SQLITE_ROW == sqlite3_step(stmt)) {
         const unsigned char* select_uuid = sqlite3_column_text(stmt, 0);

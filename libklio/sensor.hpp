@@ -1,7 +1,8 @@
 /**
  * This file is part of libklio.
  *
- * (c) Fraunhofer ITWM - Mathias Dalheimer <dalheimer@itwm.fhg.de>, 2010
+ * (c) Fraunhofer ITWM - Mathias Dalheimer <dalheimer@itwm.fhg.de>,    2010
+ *                       Ely de Oliveira   <ely.oliveira@itwm.fhg.de>, 2013
  *
  * libklio is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -86,6 +87,7 @@ namespace klio {
     private:
         Sensor(const Sensor& original);
         Sensor& operator =(const Sensor& rhs);
+
         uuid_t _uuid;
         std::string _name;
         std::string _unit;

@@ -235,17 +235,9 @@ static int empty_callback(void *not_used, int argc, char **argv, char **az_col_n
 
 void SQLite3Store::add_reading(klio::Sensor::Ptr sensor, timestamp_t timestamp, double value) {
 
-    LOG("Adding to sensor: " << sensor->str() << " time=" << timestamp << " value=" << value);
-
-    klio::TimeConverter::Ptr tc(new klio::TimeConverter());
-
-    std::ostringstream oss;
-    oss << "INSERT INTO '" << sensor->uuid_string() << "' (timestamp, value) ";
-    oss << "VALUES (" << tc->convert_to_epoch(timestamp) << ", " << value << ");";
-
     Transaction transaction(db);
 
-    execute(oss.str(), empty_callback, NULL);
+    insert_reading_record(sensor, timestamp, value);
 
     transaction.commit();
 }
@@ -261,13 +253,22 @@ void SQLite3Store::add_readings(klio::Sensor::Ptr sensor, const readings_t& read
         klio::timestamp_t timestamp = (*it).first;
         double value = (*it).second;
 
-        std::ostringstream oss;
-        oss << "INSERT INTO '" << sensor->uuid_string() << "' (timestamp, value) ";
-        oss << "VALUES (" << tc->convert_to_epoch(timestamp) << ", " << value << ");";
-
-        execute(oss.str(), empty_callback, NULL);
+        insert_reading_record(sensor, timestamp, value);
     }
     transaction.commit();
+}
+
+void SQLite3Store::insert_reading_record(klio::Sensor::Ptr sensor, timestamp_t timestamp, double value) {
+
+    LOG("Adding to sensor: " << sensor->str() << " time=" << timestamp << " value=" << value);
+
+    klio::TimeConverter::Ptr tc(new klio::TimeConverter());
+
+    std::ostringstream oss;
+    oss << "INSERT INTO '" << sensor->uuid_string() << "' (timestamp, value) ";
+    oss << "VALUES (" << tc->convert_to_epoch(timestamp) << ", " << value << ");";
+
+    execute(oss.str(), empty_callback, NULL);
 }
 
 void SQLite3Store::update_readings(klio::Sensor::Ptr sensor, const readings_t& readings) {

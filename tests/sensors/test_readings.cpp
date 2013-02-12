@@ -29,7 +29,6 @@
 #include <libklio/sensor-factory.hpp>
 #include <testconfig.h>
 
-
 BOOST_AUTO_TEST_CASE(check_add_retrieve_reading) {
     try {
         std::cout << std::endl << "*** Adding & retrieving a reading to/from a sensor." << std::endl;
@@ -178,21 +177,27 @@ BOOST_AUTO_TEST_CASE(check_bulk_insert) {
 BOOST_AUTO_TEST_CASE(check_bulk_insert_duplicates) {
     try {
         std::cout << std::endl << "*** bulk-inserting readings with duplicates." << std::endl;
+
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
         klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", "Europe/Berlin"));
         std::cout << "Created " << sensor1->str() << std::endl;
+
         klio::StoreFactory::Ptr factory(new klio::StoreFactory());
         bfs::path db(TEST_DB_FILE);
+
         klio::Store::Ptr store(factory->create_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
+
         try {
             store->initialize();
             store->add_sensor(sensor1);
             std::cout << "added to store: " << sensor1->str() << std::endl;
-            // insert a reading.
+
+            // Insert some readings.
             klio::TimeConverter::Ptr tc(new klio::TimeConverter());
             klio::readings_t readings;
             size_t num_readings = 10;
+
             for (size_t i = 0; i < num_readings; i++) {
                 klio::timestamp_t timestamp = tc->get_timestamp() - i;
                 double reading = 23;
@@ -201,21 +206,26 @@ BOOST_AUTO_TEST_CASE(check_bulk_insert_duplicates) {
             }
             std::cout << "Inserting " << readings.size() << " readings." << std::endl;
             store->add_readings(sensor1, readings);
+
             // Now, generate some readings with overlapping timestamps.
-            // readings_t is an alias for a std::map - clear it.
             readings.clear();
+            int num_overlapping = num_readings / 2;
             for (size_t i = 0; i < num_readings; i++) {
-                klio::timestamp_t timestamp = tc->get_timestamp() - i + (num_readings / 2);
+                klio::timestamp_t timestamp = tc->get_timestamp() - i + num_overlapping;
                 double reading = 42;
                 klio::reading_t foo(timestamp, reading);
                 readings.insert(foo);
             }
-            std::cout << "Inserting " << readings.size()
-                    << " readings with overlapping timestamps." << std::endl;
+
+            std::cout << "Inserting " << readings.size() << " readings with "
+                    << num_overlapping << "overlapping timestamps." << std::endl;
+
             store->update_readings(sensor1, readings);
-            // now, retrieve it and check.
+
+            // Now, retrieve them and check.
             klio::readings_t_Ptr loaded_readings = store->get_all_readings(sensor1);
             std::cout << "Loaded " << loaded_readings->size() << " readings." << std::endl;
+            
             klio::readings_cit_t it;
             size_t ret_size = 0;
             for (it = loaded_readings->begin(); it != loaded_readings->end(); ++it) {
@@ -224,7 +234,8 @@ BOOST_AUTO_TEST_CASE(check_bulk_insert_duplicates) {
                 std::cout << "Got timestamp " << ts1 << " -> value " << val1 << std::endl;
                 ret_size++;
             }
-            BOOST_CHECK_EQUAL(num_readings + (num_readings / 2), ret_size);
+            BOOST_CHECK_EQUAL(num_readings + num_overlapping, ret_size);
+
             // cleanup
             store->remove_sensor(sensor1);
 
@@ -337,8 +348,9 @@ BOOST_AUTO_TEST_CASE(check_sync_readings) {
             storeA->add_readings(sensor1, readings);
             storeA->add_readings(sensor3, readings);
 
-            //Synchronize sensor1 readings
+            std::cout << "Synchronize sensor1 readings." << std::endl;
             storeB->sync_readings(sensor1, storeA);
+            std::cout << "Synchronized." << std::endl;
 
             klio::readings_t sync_readings = *storeB->get_all_readings(sensor1);
             BOOST_CHECK_EQUAL(readings.size(), sync_readings.size());

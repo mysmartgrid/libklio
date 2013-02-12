@@ -63,6 +63,9 @@ void MSGStore::add_sensor(klio::Sensor::Ptr sensor) {
 void MSGStore::remove_sensor(const klio::Sensor::Ptr sensor) {
 }
 
+void MSGStore::update_sensor(const klio::Sensor::Ptr sensor) {
+}
+
 klio::Sensor::Ptr MSGStore::get_sensor(const klio::Sensor::uuid_t& uuid) {
 
     klio::Sensor::Ptr sensor;
@@ -79,9 +82,6 @@ std::vector<klio::Sensor::uuid_t> MSGStore::get_sensor_uuids() {
 
     std::vector<klio::Sensor::uuid_t> uuids;
     return uuids;
-}
-
-void MSGStore::add_description(klio::Sensor::Ptr sensor, const std::string& description) {
 }
 
 void MSGStore::add_reading(klio::Sensor::Ptr sensor, timestamp_t timestamp, double value) {

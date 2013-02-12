@@ -112,16 +112,18 @@ int main(int argc,char** argv) {
       std::string sensor_id(vm["id"].as<std::string>());
       std::string sensor_unit(vm["unit"].as<std::string>());
       std::string sensor_timezone(vm["timezone"].as<std::string>());
+      if (vm.count("description") > 0) {
+        //FIXME: vm["description"].as<std::string>()
+      }
+
       klio::Sensor::Ptr new_sensor(sensor_factory->createSensor(
             sensor_id, sensor_unit, sensor_timezone)); 
       try {
         klio::Store::Ptr store(factory->create_sqlite3_store(db));
         std::cout << "opened store: " << store->str() << std::endl;
         store->add_sensor(new_sensor);
-        if (vm.count("description") > 0) {
-          store->add_description(new_sensor, vm["description"].as<std::string>());
-        }
         std::cout << "added: " << new_sensor->str() << std::endl;
+
       } catch (klio::StoreException const& ex) {
         std::cout << "Failed to create: " << ex.what() << std::endl;
       }
@@ -224,7 +226,7 @@ int main(int argc,char** argv) {
           return 2;
         }
         std::string sensor_id(vm["id"].as<std::string>());
-        std::string desc(vm["description"].as<std::string>());
+        std::string description(vm["description"].as<std::string>());
         klio::Store::Ptr store(factory->create_sqlite3_store(db));
         std::cout << "opened store: " << store->str() << std::endl;
         std::vector<klio::Sensor::uuid_t> uuids = store->get_sensor_uuids();
@@ -232,7 +234,8 @@ int main(int argc,char** argv) {
         for(  it = uuids.begin(); it < uuids.end(); it++) {
           klio::Sensor::Ptr loadedSensor(store->get_sensor(*it));
           if (boost::iequals(loadedSensor->name(), sensor_id)) {
-            store->add_description(loadedSensor, desc);
+            //FIXME: set description
+            store->update_sensor(loadedSensor);
           }
         }
       } catch (klio::StoreException const& ex) {

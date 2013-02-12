@@ -30,8 +30,8 @@ const std::string Sensor::uuid_string() const {
 
 const std::string Sensor::str() {
     std::ostringstream oss;
-    oss << _name << "(" << to_string(_uuid) << "), unit "
-            << _unit << ", tz=" << _timezone << ", description: " << _description;
+    oss << _name << "(" << to_string(_uuid) << "), unit: "
+            << _unit << ", tz: " << _timezone << ", description: " << _description;
     return oss.str();
 }
 

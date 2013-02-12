@@ -80,7 +80,7 @@ namespace klio {
         const std::string str();
         const std::string uuid_string() const;
         const std::string uuid_short() const;
-
+        
         bool operator ==(const Sensor& rhs);
         bool operator !=(const Sensor& rhs);
 

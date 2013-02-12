@@ -39,6 +39,16 @@ void MSGStore::add_sensor(klio::Sensor::Ptr sensor) {
 }
 
 void MSGStore::remove_sensor(const klio::Sensor::Ptr sensor) {
+    
+    std::ostringstream url1;
+    url1 << _url << "/sensor/" << sensor->uuid_short();
+
+    perform_http_delete(url1.str(), sensor->key());
+
+    std::ostringstream url2;
+    url2 << _url << "/device/" << sensor->uuid_short();
+
+    perform_http_delete(url2.str(), sensor->key());
 }
 
 void MSGStore::update_sensor(const klio::Sensor::Ptr sensor) {
@@ -198,6 +208,20 @@ struct json_object *MSGStore::perform_http_post(std::string url, std::string key
 
     CURL *curl = create_curl_handler(url, headers);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body);
+
+    return perform_http_request(curl);
+}
+
+void *MSGStore::perform_http_delete(std::string url, std::string key) {
+
+    curl_slist *headers = create_curl_headers();
+ 
+    std::ostringstream header;
+    header << "X-Digest: " << digest_message("", key);
+    headers = curl_slist_append(headers, header.str().c_str());
+
+    CURL *curl = create_curl_handler(url, headers);
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE"); 
 
     return perform_http_request(curl);
 }

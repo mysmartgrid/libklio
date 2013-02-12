@@ -74,6 +74,7 @@ namespace klio {
 
         struct json_object *perform_http_get(std::string url, std::string key);
         struct json_object *perform_http_post(std::string url, std::string key, json_object *jobject);
+        void *perform_http_delete(std::string url, std::string key);
         curl_slist *create_curl_headers();
         CURL *create_curl_handler(std::string url, curl_slist *headers);
         std::string digest_message(std::string data, std::string key);

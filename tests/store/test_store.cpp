@@ -146,7 +146,54 @@ BOOST_AUTO_TEST_CASE(check_add_msg_sensor) {
         store->add_sensor(sensor);
         
         //TODO: complete this test
+        
+        store->remove_sensor(sensor);
 
+    } catch (klio::StoreException const& ex) {
+        std::cout << "Caught invalid exception: " << ex.what() << std::endl;
+        BOOST_FAIL("Unexpected exception occurred for initialize request");
+    }
+}
+
+BOOST_AUTO_TEST_CASE(check_update_msg_sensor) {
+    
+    std::cout << "Testing update_sensor for MSG" << std::endl;
+    klio::StoreFactory::Ptr factory(new klio::StoreFactory());
+    std::string url = "https://dev3-api.mysmartgrid.de:8443";
+
+    try {
+        std::cout << "Attempting to create MSG store " << url << std::endl;
+        klio::Store::Ptr store(factory->create_msg_store(url));
+
+        std::cout << "Created: " << store->str() << std::endl;
+        store->open(); // Second call to open - should not break
+        store->initialize();
+        klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+
+        klio::Sensor::Ptr sensor(sensor_factory->createSensor(
+                std::string("89c18074-8bcf-240b-db7c-c1281038adcb"),
+                std::string("Test libklio"),
+                std::string("description"),
+                std::string("watt"),
+                std::string("Europe/Berlin"),
+                std::string("2dd8605907fa2c9d4ef8bb831d21030e")));
+
+        store->add_sensor(sensor);
+        
+        klio::Sensor::Ptr changed(sensor_factory->createSensor(
+                std::string("89c18074-8bcf-240b-db7c-c1281038adcb"),
+                std::string("Test libklio"),
+                std::string("changed description"),
+                std::string("watt"),
+                std::string("Europe/Berlin"),
+                std::string("2dd8605907fa2c9d4ef8bb831d21030e")));
+
+        store->update_sensor(changed);
+        
+        //TODO: complete this test
+
+        store->remove_sensor(changed);
+        
     } catch (klio::StoreException const& ex) {
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");

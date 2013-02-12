@@ -35,9 +35,19 @@ const std::string MSGStore::str() {
 
 void MSGStore::add_sensor(klio::Sensor::Ptr sensor) {
 
+    update_sensor(sensor);
+}
+
+void MSGStore::remove_sensor(const klio::Sensor::Ptr sensor) {
+}
+
+void MSGStore::update_sensor(const klio::Sensor::Ptr sensor) {
+
     json_object *jobject = json_object_new_object();
     json_object *jkey = json_object_new_string(sensor->key().c_str());
+    json_object *jdescription = json_object_new_string(sensor->description().c_str());
     json_object_object_add(jobject, "key", jkey);
+    json_object_object_add(jobject, "description", jdescription);
 
     std::ostringstream url1;
     url1 << _url << "/device/" << sensor->uuid_short();
@@ -58,12 +68,6 @@ void MSGStore::add_sensor(klio::Sensor::Ptr sensor) {
     url2 << _url << "/sensor/" << sensor->uuid_short();
 
     perform_http_post(url2.str(), sensor->key(), jobject);
-}
-
-void MSGStore::remove_sensor(const klio::Sensor::Ptr sensor) {
-}
-
-void MSGStore::update_sensor(const klio::Sensor::Ptr sensor) {
 }
 
 klio::Sensor::Ptr MSGStore::get_sensor(const klio::Sensor::uuid_t& uuid) {

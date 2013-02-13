@@ -27,5 +27,10 @@ do
   ${CTEST} -V -VV -S ${dir}/LibKlioContinuous.cmake,_git_branch=${branch}
   ${CTEST} -V -VV -S ${dir}/LibKlioCoverage.cmake,_git_branch=${branch}
   ${CTEST} -V -VV -S ${dir}/LibKlioCoverage.cmake,_git_branch=${branch},compiler=clang
+  for toolchain in `find ${HOME}/x-tools/ -name Toolchain-RaspberryPi.cmake`
+  do
+     echo "Compiling with toolchain ${toolchain}"
+     ${CTEST} -V -VV -S ${dir}/LibKlioNightly.cmake,_git_branch=${branch},_toolchain_file=${toolchain}
+  done
 done
 

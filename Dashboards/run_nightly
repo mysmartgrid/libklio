@@ -31,6 +31,7 @@ do
   do
      echo "Compiling with toolchain ${toolchain}"
      ${CTEST} -V -VV -S ${dir}/LibKlioNightly.cmake,_git_branch=${branch},_toolchain_file=${toolchain}
+     ${CTEST} -V -VV -S ${dir}/LibKlioCoverage.cmake,_git_branch=${branch},_toolchain_file=${toolchain}
   done
 done
 

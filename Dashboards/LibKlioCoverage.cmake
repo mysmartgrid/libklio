@@ -51,6 +51,12 @@ execute_process(
   )
 
 
+if( "${OS_NAME}-${OS_VERSION}" STREQUAL "Ubuntu-10.04" )
+  set(BOOST_ROOT /homes/krueger/external_software/ubuntu_100403/${CMAKE_SYSTEM_PROCESSOR}/boost/1.46)
+else( "${OS_NAME}-${OS_VERSION}" STREQUAL "Ubuntu-10.04" )
+  set(BOOST_ROOT "")
+endif( "${OS_NAME}-${OS_VERSION}" STREQUAL "Ubuntu-10.04" )
+
 set(ENABLE_CODECOVERAGE 1)
 set(CMAKE_BUILD_TYPE Profile)
 
@@ -62,7 +68,6 @@ if(CMAKE_TOOLCHAIN_FILE)
     CMAKE_BUILD_TYPE
     )
 else(CMAKE_TOOLCHAIN_FILE)
-  set(BOOST_ROOT /homes/krueger/external_software/ubuntu_100403/${CMAKE_SYSTEM_PROCESSOR}/boost/1.46)
   kde_ctest_write_initial_cache("${CTEST_BINARY_DIRECTORY}"
     BOOST_ROOT
     CMAKE_INSTALL_PREFIX
@@ -91,8 +96,10 @@ message(STATUS "===> ctest_coverage: res='${res}'")
 ctest_memcheck(BUILD "${CTEST_BINARY_DIRECTORY}" RETURN_VALUE res)
 message(STATUS "===> ctest_memcheck: res='${res}'")
 
-ctest_test(BUILD "${CTEST_BINARY_DIRECTORY}" RETURN_VALUE test_res)
-message("====> TESTS: ${test_res}")
+if( NOT CMAKE_TOOLCHAIN_FILE )
+  ctest_test(BUILD "${CTEST_BINARY_DIRECTORY}" RETURN_VALUE test_res)
+  message("====> TESTS: ${test_res}")
+endif( NOT CMAKE_TOOLCHAIN_FILE )
 
 ctest_submit(RETURN_VALUE res)
 

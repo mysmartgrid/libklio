@@ -42,13 +42,20 @@ if(NOT EXISTS "${CTEST_SOURCE_DIRECTORY}/.git/HEAD")
 endif(NOT EXISTS "${CTEST_SOURCE_DIRECTORY}/.git/HEAD")
 
 ctest_start(${_ctest_type})
-ctest_update(SOURCE ${CTEST_SOURCE_DIRECTORY})
+ctest_update(SOURCE ${CTEST_SOURCE_DIRECTORY} RETURN_VALUE update_res)
+message("===> Update returns: ${update_res}")
 ctest_submit(PARTS Update)
 
 execute_process(
   COMMAND ${CTEST_GIT_COMMAND} checkout  ${_git_branch}
   WORKING_DIRECTORY ${CTEST_SOURCE_DIRECTORY}
   )
+
+if( "${OS_NAME}-${OS_VERSION}" STREQUAL "Ubuntu-10.04" )
+  set(BOOST_ROOT /homes/krueger/external_software/ubuntu_100403/${CMAKE_SYSTEM_PROCESSOR}/boost/1.46)
+else( "${OS_NAME}-${OS_VERSION}" STREQUAL "Ubuntu-10.04" )
+  set(BOOST_ROOT "")
+endif( "${OS_NAME}-${OS_VERSION}" STREQUAL "Ubuntu-10.04" )
 
 if(CMAKE_TOOLCHAIN_FILE)
   kde_ctest_write_initial_cache("${CTEST_BINARY_DIRECTORY}"
@@ -59,7 +66,6 @@ if(CMAKE_TOOLCHAIN_FILE)
   set(OS_VERSION "10.03.1")
   set(CMAKE_SYSTEM_PROCESSOR ${openwrt_arch})
 else(CMAKE_TOOLCHAIN_FILE)
-  set(BOOST_ROOT /homes/krueger/external_software/ubuntu_100403/${CMAKE_SYSTEM_PROCESSOR}/boost/1.46)
   kde_ctest_write_initial_cache("${CTEST_BINARY_DIRECTORY}"
     BOOST_ROOT
     CMAKE_INSTALL_PREFIX
@@ -78,8 +84,10 @@ endif( STAGING_DIR)
 ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" RETURN_VALUE build_res)
 message("====> BUILD: ${build_res}")
 
-ctest_test(BUILD "${CTEST_BINARY_DIRECTORY}" RETURN_VALUE test_res)
-message("====> TESTS: ${test_res}")
+if( NOT CMAKE_TOOLCHAIN_FILE )
+  ctest_test(BUILD "${CTEST_BINARY_DIRECTORY}" RETURN_VALUE test_res)
+  message("====> TESTS: ${test_res}")
+endif( NOT CMAKE_TOOLCHAIN_FILE )
 
 ctest_submit(RETURN_VALUE res)
 
@@ -89,12 +97,18 @@ if( STAGING_DIR)
   set(ENV{PATH}            ${OPENWRT_STAGING_DIR}/host/bin:$ENV{PATH})
 endif( STAGING_DIR)
 
-if( NOT ${build_res})
+if( NOT ${build_res} AND NOT ${update_res})
+  # do the packaging
   execute_process(
     COMMAND cpack -G DEB
     WORKING_DIRECTORY ${CTEST_BINARY_DIRECTORY}
     )
-endif( NOT ${build_res})
+  # install for other packages
+  execute_process(
+    COMMAND make install
+    WORKING_DIRECTORY ${CTEST_BINARY_DIRECTORY}
+    )
+endif( NOT ${build_res} AND NOT ${update_res})
 
 # upload files
 if( NOT ${build_res} AND ${CTEST_PUSH_PACKAGES})

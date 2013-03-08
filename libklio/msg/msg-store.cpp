@@ -12,6 +12,7 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <curl/curl.h>
 #include <json/json.h>
+#include <libklio/sensor-factory.hpp>
 #include "msg-store.hpp"
 
 
@@ -39,16 +40,11 @@ void MSGStore::add_sensor(klio::Sensor::Ptr sensor) {
 }
 
 void MSGStore::remove_sensor(const klio::Sensor::Ptr sensor) {
-    
-    std::ostringstream url1;
-    url1 << _url << "/sensor/" << sensor->uuid_short();
 
-    perform_http_delete(url1.str(), sensor->key());
+    std::ostringstream url;
+    url << _url << "/device/" << sensor->uuid_short();
 
-    std::ostringstream url2;
-    url2 << _url << "/device/" << sensor->uuid_short();
-
-    perform_http_delete(url2.str(), sensor->key());
+    perform_http_delete(url.str(), sensor->key());
 }
 
 void MSGStore::update_sensor(const klio::Sensor::Ptr sensor) {
@@ -72,8 +68,8 @@ void MSGStore::update_sensor(const klio::Sensor::Ptr sensor) {
     json_object_object_add(jconfig, "function", jname);
 
     jobject = json_object_new_object();
-    json_object_object_add(jobject, "config", jconfig);    
-    
+    json_object_object_add(jobject, "config", jconfig);
+
     std::ostringstream url2;
     url2 << _url << "/sensor/" << sensor->uuid_short();
 
@@ -82,8 +78,40 @@ void MSGStore::update_sensor(const klio::Sensor::Ptr sensor) {
 
 klio::Sensor::Ptr MSGStore::get_sensor(const klio::Sensor::uuid_t& uuid) {
 
-    klio::Sensor::Ptr sensor;
-    return sensor;
+    //FIXME: remove this code later
+    std::string uuid_str = to_string(uuid);
+    std::stringstream oss;
+    for (size_t i = 0; i < uuid_str.length(); i++) {
+        if (uuid_str[i] != '-') {
+            oss << uuid_str[i];
+        }
+    }
+
+    //FIXME: 'key' should be a store property
+    std::string key("2dd8605907fa2c9d4ef8bb831d21030e");
+
+    std::ostringstream url;
+    url << _url << "/device/" << oss.str();
+    struct json_object *jobject = perform_http_get(url.str(), key);
+
+    json_object *jdescription = json_object_object_get(jobject, "description");
+    json_object *jsensors = json_object_object_get(jobject, "sensors");
+
+    json_object *jsensor = json_object_array_get_idx(jsensors, 0);
+    json_object *jname = json_object_object_get(jsensor, "function");
+
+    const char* description = json_object_get_string(jdescription);
+    const char* name = json_object_get_string(jname);
+
+    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+
+    return sensor_factory->createSensor(
+            uuid_str,
+            std::string(name),
+            std::string(description),
+            std::string("watt"),
+            std::string("Europe/Berlin"),
+            std::string(key));
 }
 
 std::vector<klio::Sensor::Ptr> MSGStore::get_sensors_by_name(const std::string& name) {
@@ -159,10 +187,12 @@ readings_t_Ptr MSGStore::get_all_readings(klio::Sensor::Ptr sensor) {
         timestamp_t timestamp = tc->convert_from_epoch(epoch);
         double value = json_object_get_double(jvalue);
 
-        readings->insert(std::pair<timestamp_t, double>(
-                timestamp,
-                value
-                ));
+        if (!isnan(value)) {
+            readings->insert(std::pair<timestamp_t, double>(
+                    timestamp,
+                    value
+                    ));
+        }
     }
     return readings;
 }
@@ -182,9 +212,13 @@ struct json_object *MSGStore::perform_http_get(std::string url, std::string key)
 
     curl_slist *headers = create_curl_headers();
 
-    std::ostringstream header;
-    header << "X-Token: " << key;
-    headers = curl_slist_append(headers, header.str().c_str());
+    std::ostringstream header1;
+    header1 << "X-Digest: " << digest_message("", key);
+    headers = curl_slist_append(headers, header1.str().c_str());
+
+    std::ostringstream header2;
+    header2 << "X-Token: " << key; //TODO: get rid of this header
+    headers = curl_slist_append(headers, header2.str().c_str());
 
     CURL *curl = create_curl_handler(url, headers);
 
@@ -215,13 +249,13 @@ struct json_object *MSGStore::perform_http_post(std::string url, std::string key
 void *MSGStore::perform_http_delete(std::string url, std::string key) {
 
     curl_slist *headers = create_curl_headers();
- 
+
     std::ostringstream header;
     header << "X-Digest: " << digest_message("", key);
     headers = curl_slist_append(headers, header.str().c_str());
 
     CURL *curl = create_curl_handler(url, headers);
-    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE"); 
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
 
     return perform_http_request(curl);
 }

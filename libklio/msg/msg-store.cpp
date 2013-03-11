@@ -216,9 +216,9 @@ struct json_object *MSGStore::perform_http_get(std::string url, std::string key)
     header1 << "X-Digest: " << digest_message("", key);
     headers = curl_slist_append(headers, header1.str().c_str());
 
-    std::ostringstream header2;
-    header2 << "X-Token: " << key; //TODO: get rid of this header
-    headers = curl_slist_append(headers, header2.str().c_str());
+    //std::ostringstream header2;
+    //header2 << "X-Token: " << key; //TODO: get rid of this header
+    //headers = curl_slist_append(headers, header2.str().c_str());
 
     CURL *curl = create_curl_handler(url, headers);
 

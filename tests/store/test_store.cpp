@@ -103,12 +103,12 @@ BOOST_AUTO_TEST_CASE(check_get_all_readings_msg) {
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
 
         klio::Sensor::Ptr sensor(sensor_factory->createSensor(
-                std::string("90c18074-8bcf-240b-db7c-c1281038adcb"),
+                std::string("77c15074-8bcf-240b-db7c-c1281037adcb"),
                 std::string("Test libklio"),
                 std::string("description"),
                 std::string("watt"),
                 std::string("Europe/Berlin"),
-                std::string("2dd8605907fa2c9d4ef8bb831d21030e")));
+                std::string("d271f4de36cdf3d300db3e96755d8736")));
 
         //FIXME
         //klio::readings_t_Ptr readings = store->get_all_readings(sensor);
@@ -254,7 +254,7 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor) {
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
 
         klio::Sensor::Ptr sensor(sensor_factory->createSensor(
-        std::string("90c18074-8bcf-240b-db7c-c1281038adcb"),
+        std::string("89c18074-8bcf-890b-db7c-c1281038adcb"),
         std::string("GetTest"),
         std::string("GetDescription"),
         std::string("watt"),
@@ -265,11 +265,11 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor) {
 
         klio::Sensor::Ptr retrieved = store->get_sensor(sensor->uuid());
 
+        store->remove_sensor(sensor);
+
         BOOST_CHECK_EQUAL(sensor->uuid(), retrieved->uuid());
         BOOST_CHECK_EQUAL(sensor->name(), retrieved->name());
         BOOST_CHECK_EQUAL(sensor->description(), retrieved->description());
-
-        store->remove_sensor(sensor);
 
     } catch (klio::StoreException const& ex) {
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;

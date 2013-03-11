@@ -440,7 +440,7 @@ BOOST_AUTO_TEST_CASE(check_add_reading_msg) {
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
 
         klio::Sensor::Ptr sensor(sensor_factory->createSensor(
-                std::string("4d89c370-d6b3-ae02-0c9b-d04e235b3558"),
+                std::string("3d89c370-d6b3-ae02-0c9b-d04e235b3558"),
                 std::string("Test"),
                 std::string("description"),
                 std::string("watt"),

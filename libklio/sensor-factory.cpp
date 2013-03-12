@@ -32,7 +32,15 @@ klio::Sensor::Ptr SensorFactory::createSensor(
         const std::string& unit,
         const std::string& timezone
         ) {
-    return createSensor(uuid_string, name, description, unit, timezone, "");
+    
+    std::stringstream key;
+    for (size_t i = 0; i < uuid_string.length(); i++) {
+        if (uuid_string[i] != '-') {
+            key << uuid_string[i];
+        }
+    }
+    
+    return createSensor(uuid_string, name, description, unit, timezone, key.str());
 }
 
 klio::Sensor::Ptr SensorFactory::createSensor(

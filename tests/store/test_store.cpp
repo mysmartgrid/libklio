@@ -87,42 +87,6 @@ BOOST_AUTO_TEST_CASE(check_create_storage_msg) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_get_all_readings_msg) {
-
-    std::cout << "Testing get_all_readings for MSG" << std::endl;
-    klio::StoreFactory::Ptr factory(new klio::StoreFactory());
-    std::string url = "https://dev3-api.mysmartgrid.de:8443";
-
-    try {
-        std::cout << "Attempting to create MSG store " << url << std::endl;
-        klio::Store::Ptr store(factory->create_msg_store(url));
-
-        std::cout << "Created: " << store->str() << std::endl;
-        store->open();
-        store->initialize();
-        klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-
-        klio::Sensor::Ptr sensor(sensor_factory->createSensor(
-                std::string("77c15074-8bcf-240b-db7c-c1281037adcb"),
-                std::string("Test libklio"),
-                std::string("description"),
-                std::string("watt"),
-                std::string("Europe/Berlin"),
-                std::string("d271f4de36cdf3d300db3e96755d8736")));
-
-        //FIXME
-        //klio::readings_t_Ptr readings = store->get_all_readings(sensor);
-
-        //TODO: complete this test
-        //FIXME
-        //BOOST_CHECK(readings->size() > 0);
-
-    } catch (klio::StoreException const& ex) {
-        std::cout << "Caught invalid exception: " << ex.what() << std::endl;
-        BOOST_FAIL("Unexpected exception occurred for initialize request");
-    }
-}
-
 BOOST_AUTO_TEST_CASE(check_add_msg_sensor) {
 
     std::cout << "Testing add_sensor for MSG" << std::endl;
@@ -143,8 +107,7 @@ BOOST_AUTO_TEST_CASE(check_add_msg_sensor) {
                 std::string("Test libklio"),
                 std::string("description"),
                 std::string("watt"),
-                std::string("Europe/Berlin"),
-                std::string("2dd8605907fa2c9d4ef8bb831d21030e")));
+                std::string("Europe/Berlin")));
 
         store->add_sensor(sensor);
 
@@ -178,8 +141,7 @@ BOOST_AUTO_TEST_CASE(check_update_msg_sensor) {
                 std::string("Test libklio"),
                 std::string("description"),
                 std::string("watt"),
-                std::string("Europe/Berlin"),
-                std::string("2dd8605907fa2c9d4ef8bb831d21030e")));
+                std::string("Europe/Berlin")));
 
         store->add_sensor(sensor);
 
@@ -188,8 +150,7 @@ BOOST_AUTO_TEST_CASE(check_update_msg_sensor) {
                 std::string("Test libklio"),
                 std::string("changed description"),
                 std::string("watt"),
-                std::string("Europe/Berlin"),
-                std::string("2dd8605907fa2c9d4ef8bb831d21030e")));
+                std::string("Europe/Berlin")));
 
         store->update_sensor(changed);
 
@@ -223,8 +184,7 @@ BOOST_AUTO_TEST_CASE(check_remove_msg_sensor) {
                 std::string("Test libklio"),
                 std::string("description"),
                 std::string("watt"),
-                std::string("Europe/Berlin"),
-                std::string("2dd8605907fa2c9d4ef8bb831d21030e")));
+                std::string("Europe/Berlin")));
 
         store->add_sensor(sensor);
 
@@ -258,8 +218,7 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor) {
         std::string("GetTest"),
         std::string("GetDescription"),
         std::string("watt"),
-        std::string("Europe/Berlin"),
-        std::string("2dd8605907fa2c9d4ef8bb831d21030e")));
+        std::string("Europe/Berlin")));
 
         store->add_sensor(sensor);
 

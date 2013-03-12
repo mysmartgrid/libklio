@@ -86,14 +86,14 @@ klio::Sensor::Ptr MSGStore::get_sensor(const klio::Sensor::uuid_t& uuid) {
             oss << uuid_str[i];
         }
     }
-
-    //FIXME: 'key' should be a store property
-    std::string key("2dd8605907fa2c9d4ef8bb831d21030e");
-
+    std::string short_uuid = oss.str();
+    
     std::ostringstream url;
-    url << _url << "/device/" << oss.str();
-    struct json_object *jobject = perform_http_get(url.str(), key);
+    url << _url << "/device/" << short_uuid;
 
+    //FIXME: retrieve sensor key from a local file
+    struct json_object *jobject = perform_http_get(url.str(), short_uuid);
+    
     json_object *jdescription = json_object_object_get(jobject, "description");
     json_object *jsensors = json_object_object_get(jobject, "sensors");
 
@@ -110,8 +110,7 @@ klio::Sensor::Ptr MSGStore::get_sensor(const klio::Sensor::uuid_t& uuid) {
             std::string(name),
             std::string(description),
             std::string("watt"),
-            std::string("Europe/Berlin"),
-            std::string(key));
+            std::string("Europe/Berlin"));
 }
 
 std::vector<klio::Sensor::Ptr> MSGStore::get_sensors_by_name(const std::string& name) {

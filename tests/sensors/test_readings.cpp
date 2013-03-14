@@ -238,7 +238,7 @@ BOOST_AUTO_TEST_CASE(check_bulk_insert_duplicates) {
             // Now, retrieve them and check.
             klio::readings_t_Ptr loaded_readings = store->get_all_readings(sensor1);
             std::cout << "Loaded " << loaded_readings->size() << " readings." << std::endl;
-            
+
             // cleanup
             store->remove_sensor(sensor1);
 
@@ -298,7 +298,7 @@ BOOST_AUTO_TEST_CASE(check_num_readings) {
 
             // cleanup
             store->remove_sensor(sensor1);
-            
+
             BOOST_CHECK_EQUAL(num_readings, savedreadings);
 
         } catch (klio::StoreException const& ex) {
@@ -406,11 +406,8 @@ BOOST_AUTO_TEST_CASE(check_sync_readings) {
             }
 
             // cleanup
-            storeA->remove_sensor(sensor1);
-            storeA->remove_sensor(sensor2);
-            storeA->remove_sensor(sensor3);
-            storeB->remove_sensor(sensor1);
-            storeB->remove_sensor(sensor2);
+            storeA->dispose();
+            storeB->dispose();
 
         } catch (klio::StoreException const& ex) {
             std::cout << "Caught invalid exception: " << ex.what() << std::endl;
@@ -432,7 +429,7 @@ BOOST_AUTO_TEST_CASE(check_add_reading_msg) {
     try {
         std::cout << "Attempting to create MSG store " << url << std::endl;
 
-        klio::Store::Ptr store(factory->create_msg_store(url));
+        klio::Store::Ptr store(factory->create_msg_store(url, "3d89c370d6b3ae020c9bd04e235b3558", "d271f4de36cdf3d300db3e96755d8736"));
 
         std::cout << "Created: " << store->str() << std::endl;
         store->open(); // Second call to open - should not break
@@ -444,8 +441,7 @@ BOOST_AUTO_TEST_CASE(check_add_reading_msg) {
                 std::string("Test"),
                 std::string("description"),
                 std::string("watt"),
-                std::string("Europe/Berlin"),
-                std::string("d271f4de36cdf3d300db3e96755d8736")));
+                std::string("Europe/Berlin")));
 
         store->add_sensor(sensor);
 
@@ -457,7 +453,7 @@ BOOST_AUTO_TEST_CASE(check_add_reading_msg) {
         }
 
         klio::readings_t readings = *store->get_all_readings(sensor);
-        store->remove_sensor(sensor);
+        store->dispose();
 
         BOOST_CHECK_EQUAL(11, readings.size());
 

@@ -43,6 +43,7 @@ namespace klio {
         virtual void open() = 0;
         virtual void close() = 0;
         virtual void initialize() = 0;
+        virtual void dispose() = 0;
         virtual const std::string str() = 0;
 
         virtual void add_sensor(klio::Sensor::Ptr sensor) = 0;

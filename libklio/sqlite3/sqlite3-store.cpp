@@ -51,6 +51,11 @@ void SQLite3Store::open() {
     }
 }
 
+void SQLite3Store::close() {
+
+    sqlite3_close(db);
+}
+
 void SQLite3Store::initialize() {
 
     //Create table sensors if it does not exist
@@ -59,10 +64,11 @@ void SQLite3Store::initialize() {
     finalize(stmt);
 }
 
-void SQLite3Store::close() {
-
-    sqlite3_close(db);
+void SQLite3Store::dispose() {
+    //TODO: complete this method
+    close();
 }
+
 
 const std::string SQLite3Store::str() {
 

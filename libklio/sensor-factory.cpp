@@ -13,7 +13,7 @@ klio::Sensor::Ptr SensorFactory::createSensor(
         const std::string& timezone
         ) {
     boost::uuids::uuid u = _gen();
-    return createSensor(u, name, klio::DEFAULT_SENSOR_DESCRIPTION, unit, timezone, "");
+    return createSensor(u, name, klio::DEFAULT_SENSOR_DESCRIPTION, unit, timezone);
 }
 
 klio::Sensor::Ptr SensorFactory::createSensor(
@@ -33,31 +33,13 @@ klio::Sensor::Ptr SensorFactory::createSensor(
         const std::string& timezone
         ) {
     
-    std::stringstream key;
-    for (size_t i = 0; i < uuid_string.length(); i++) {
-        if (uuid_string[i] != '-') {
-            key << uuid_string[i];
-        }
-    }
-    
-    return createSensor(uuid_string, name, description, unit, timezone, key.str());
-}
-
-klio::Sensor::Ptr SensorFactory::createSensor(
-        const std::string& uuid_string,
-        const std::string& name,
-        const std::string& description,
-        const std::string& unit,
-        const std::string& timezone,
-        const std::string& key
-        ) {
     // type conversion: uuid_string to real uuid type
     boost::uuids::uuid u;
     std::stringstream ss;
     ss << uuid_string;
     ss >> u;
 
-    return createSensor(u, name, description, unit, timezone, key);
+    return createSensor(u, name, description, unit, timezone);
 }
 
 klio::Sensor::Ptr SensorFactory::createSensor(
@@ -65,8 +47,7 @@ klio::Sensor::Ptr SensorFactory::createSensor(
         const std::string& name,
         const std::string& description,
         const std::string& unit,
-        const std::string& timezone,
-        const std::string& key
+        const std::string& timezone
         ) {
     klio::LocalTime::Ptr lt(new klio::LocalTime("../.."));
 
@@ -80,5 +61,5 @@ klio::Sensor::Ptr SensorFactory::createSensor(
 
         throw klio::DataFormatException(oss.str());
     }
-    return Sensor::Ptr(new Sensor(uuid, name, description, unit, timezone, key));
+    return Sensor::Ptr(new Sensor(uuid, name, description, unit, timezone));
 }

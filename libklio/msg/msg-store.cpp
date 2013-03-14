@@ -22,9 +22,28 @@ void MSGStore::open() {
 }
 
 void MSGStore::initialize() {
+
+    json_object *jobject = json_object_new_object();
+    json_object *jkey = json_object_new_string(_key.c_str());
+    json_object *jdescription = json_object_new_string("libklio MSG Store");
+    json_object_object_add(jobject, "key", jkey);
+    json_object_object_add(jobject, "description", jdescription);
+
+    std::ostringstream url;
+    url << _url << "/device/" << _id;
+
+    perform_http_post(url.str(), _key, jobject);
 }
 
 void MSGStore::close() {
+}
+
+void MSGStore::dispose() {
+
+    std::ostringstream url;
+    url << _url << "/device/" << _id;
+
+    perform_http_delete(url.str(), _key);
 }
 
 const std::string MSGStore::str() {
@@ -42,38 +61,27 @@ void MSGStore::add_sensor(klio::Sensor::Ptr sensor) {
 void MSGStore::remove_sensor(const klio::Sensor::Ptr sensor) {
 
     std::ostringstream url;
-    url << _url << "/device/" << sensor->uuid_short();
+    url << _url << "/sensor/" << _id;
 
-    perform_http_delete(url.str(), sensor->key());
+    perform_http_delete(url.str(), _key);
 }
 
 void MSGStore::update_sensor(const klio::Sensor::Ptr sensor) {
 
-    json_object *jobject = json_object_new_object();
-    json_object *jkey = json_object_new_string(sensor->key().c_str());
-    json_object *jdescription = json_object_new_string(sensor->description().c_str());
-    json_object_object_add(jobject, "key", jkey);
-    json_object_object_add(jobject, "description", jdescription);
-
-    std::ostringstream url1;
-    url1 << _url << "/device/" << sensor->uuid_short();
-
-    perform_http_post(url1.str(), sensor->key(), jobject);
-
-    json_object *jdevice = json_object_new_string(sensor->uuid_short().c_str());
+    json_object *jdevice = json_object_new_string(_id.c_str());
     json_object *jname = json_object_new_string(sensor->name().c_str());
 
     json_object *jconfig = json_object_new_object();
     json_object_object_add(jconfig, "device", jdevice);
     json_object_object_add(jconfig, "function", jname);
 
-    jobject = json_object_new_object();
+    json_object *jobject = json_object_new_object();
     json_object_object_add(jobject, "config", jconfig);
 
-    std::ostringstream url2;
-    url2 << _url << "/sensor/" << sensor->uuid_short();
+    std::ostringstream url;
+    url << _url << "/sensor/" << sensor->uuid_short();
 
-    perform_http_post(url2.str(), sensor->key(), jobject);
+    perform_http_post(url.str(), _key, jobject);
 }
 
 klio::Sensor::Ptr MSGStore::get_sensor(const klio::Sensor::uuid_t& uuid) {
@@ -87,41 +95,103 @@ klio::Sensor::Ptr MSGStore::get_sensor(const klio::Sensor::uuid_t& uuid) {
         }
     }
     std::string short_uuid = oss.str();
-    
-    std::ostringstream url;
-    url << _url << "/device/" << short_uuid;
-
-    //FIXME: retrieve sensor key from a local file
-    struct json_object *jobject = perform_http_get(url.str(), short_uuid);
-    
-    json_object *jdescription = json_object_object_get(jobject, "description");
-    json_object *jsensors = json_object_object_get(jobject, "sensors");
-
-    json_object *jsensor = json_object_array_get_idx(jsensors, 0);
-    json_object *jname = json_object_object_get(jsensor, "function");
-
-    const char* description = json_object_get_string(jdescription);
-    const char* name = json_object_get_string(jname);
 
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+    json_object *jsensors = get_json_sensors();
 
-    return sensor_factory->createSensor(
-            uuid_str,
-            std::string(name),
-            std::string(description),
-            std::string("watt"),
-            std::string("Europe/Berlin"));
+    for (int i = 0; i < json_object_array_length(jsensors); i++) {
+
+        json_object *jsensor = json_object_array_get_idx(jsensors, i);
+        json_object *jmeter = json_object_object_get(jsensor, "meter");
+        const char* meter = json_object_get_string(jmeter);
+
+        if (meter == short_uuid) {
+
+            //TODO: implement sensor description
+            const char* description = "";
+            json_object *jname = json_object_object_get(jsensor, "function");
+            const char* name = json_object_get_string(jname);
+
+            return sensor_factory->createSensor(
+                    uuid_str,
+                    std::string(name),
+                    std::string(description),
+                    std::string("watt"),
+                    std::string("Europe/Berlin"));
+        }
+    }
+    std::ostringstream err;
+    err << "Sensor " << to_string(uuid) << " could not be found.";
+    throw StoreException(err.str());
 }
 
 std::vector<klio::Sensor::Ptr> MSGStore::get_sensors_by_name(const std::string& name) {
 
     std::vector<klio::Sensor::Ptr> sensors;
+    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+
+    json_object *jsensors = get_json_sensors();
+
+    for (int i = 0; i < json_object_array_length(jsensors); i++) {
+
+        json_object *jsensor = json_object_array_get_idx(jsensors, i);
+        json_object *jfunction = json_object_object_get(jsensor, "function");
+        const char* function = json_object_get_string(jfunction);
+
+        if (name == function) {
+
+            //TODO: implement sensor description
+            json_object *jmeter = json_object_object_get(jsensor, "meter");
+            std::string meter = std::string(json_object_get_string(jmeter));
+            const char* description = "";
+
+            //TODO: find another location for this code
+            std::stringstream oss;
+            for (size_t i = 0; i < meter.length(); i++) {
+                if (i == 8 || i == 12 || i == 16 || i == 20) {
+                    oss << '-';
+                }
+                oss << meter[i];
+            }
+
+            sensors.push_back(
+                    sensor_factory->createSensor(
+                    oss.str(),
+                    std::string(name),
+                    std::string(description),
+                    std::string("watt"),
+                    std::string("Europe/Berlin"))
+                    );
+        }
+    }
     return sensors;
 }
 
 std::vector<klio::Sensor::uuid_t> MSGStore::get_sensor_uuids() {
 
     std::vector<klio::Sensor::uuid_t> uuids;
+
+    json_object *jsensors = get_json_sensors();
+
+    for (int i = 0; i < json_object_array_length(jsensors); i++) {
+
+        json_object *jsensor = json_object_array_get_idx(jsensors, i);
+        json_object *jmeter = json_object_object_get(jsensor, "meter");
+        std::string meter = std::string(json_object_get_string(jmeter));
+
+        //TODO: find another location for this code
+        boost::uuids::uuid u;
+        std::stringstream ss;
+        for (size_t i = 0; i < meter.length(); i++) {
+            if (i == 8 || i == 12 || i == 16 || i == 20) {
+                ss << '-';
+            }
+            ss << meter[i];
+        }
+        ss >> u;
+
+        uuids.push_back(u);
+    }
     return uuids;
 }
 
@@ -156,7 +226,7 @@ void MSGStore::add_readings(klio::Sensor::Ptr sensor, const readings_t& readings
     std::ostringstream url;
     url << _url << "/sensor/" << sensor->uuid_short();
 
-    perform_http_post(url.str(), sensor->key(), jobject);
+    perform_http_post(url.str(), _key, jobject);
 }
 
 void MSGStore::update_readings(klio::Sensor::Ptr sensor, const readings_t& readings) {
@@ -166,11 +236,7 @@ void MSGStore::update_readings(klio::Sensor::Ptr sensor, const readings_t& readi
 
 readings_t_Ptr MSGStore::get_all_readings(klio::Sensor::Ptr sensor) {
 
-    std::ostringstream url;
-    url << _url << "/sensor/" << sensor->uuid_short();
-    url << "?interval=hour&unit=" << sensor->unit();
-
-    struct json_object *jobject = perform_http_get(url.str(), sensor->key());
+    struct json_object *jobject = get_json_readings(sensor);
     int length = json_object_array_length(jobject);
 
     klio::TimeConverter::Ptr tc(new klio::TimeConverter());
@@ -198,26 +264,59 @@ readings_t_Ptr MSGStore::get_all_readings(klio::Sensor::Ptr sensor) {
 
 unsigned long int MSGStore::get_num_readings(klio::Sensor::Ptr sensor) {
 
-    return 0;
+    json_object *jreadings = get_json_readings(sensor);
+    return json_object_array_length(jreadings);
 }
 
 std::pair<timestamp_t, double> MSGStore::get_last_reading(klio::Sensor::Ptr sensor) {
 
-    std::pair<timestamp_t, double> reading;
-    return reading;
+    json_object *jreadings = get_json_readings(sensor);
+    int i = json_object_array_length(jreadings) - 1;
+
+    if (i >= 0) {
+        json_object *jpair = json_object_array_get_idx(jreadings, i);
+        json_object *jtimestamp = json_object_array_get_idx(jpair, 0);
+        json_object *jvalue = json_object_array_get_idx(jpair, 1);
+
+        long epoch = json_object_get_int(jtimestamp);
+        klio::TimeConverter::Ptr tc(new klio::TimeConverter());
+        timestamp_t timestamp = tc->convert_from_epoch(epoch);
+        double value = json_object_get_double(jvalue);
+
+        if (!isnan(value)) {
+            return std::pair<timestamp_t, double>(timestamp, value);
+        }
+    }
+    std::ostringstream err;
+    err << "No reading found for sensor " << sensor->uuid_short() << ".";
+    throw StoreException(err.str());
+}
+
+struct json_object *MSGStore::get_json_sensors() {
+
+    std::ostringstream url;
+    url << _url << "/device/" << _id;
+
+    struct json_object *jobject = perform_http_get(url.str(), _key);
+    return json_object_object_get(jobject, "sensors");
+}
+
+struct json_object *MSGStore::get_json_readings(klio::Sensor::Ptr sensor) {
+
+    std::ostringstream url;
+    url << _url << "/sensor/" << sensor->uuid_short();
+    url << "?interval=hour&unit=" << sensor->unit();
+
+    return perform_http_get(url.str(), _key);
 }
 
 struct json_object *MSGStore::perform_http_get(std::string url, std::string key) {
 
     curl_slist *headers = create_curl_headers();
 
-    std::ostringstream header1;
-    header1 << "X-Digest: " << digest_message("", key);
-    headers = curl_slist_append(headers, header1.str().c_str());
-
-    //std::ostringstream header2;
-    //header2 << "X-Token: " << key; //TODO: get rid of this header
-    //headers = curl_slist_append(headers, header2.str().c_str());
+    std::ostringstream header;
+    header << "X-Digest: " << digest_message("", key);
+    headers = curl_slist_append(headers, header.str().c_str());
 
     CURL *curl = create_curl_handler(url, headers);
 

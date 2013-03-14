@@ -40,8 +40,10 @@ namespace klio {
     public:
         typedef std::tr1::shared_ptr<MSGStore> Ptr;
 
-        MSGStore(const std::string& url) :
-        _url(url) {
+        MSGStore(const std::string& url, const std::string& id, const std::string& key) :
+        _url(url),
+        _id(id),
+        _key(key) {
         };
 
         virtual ~MSGStore() {
@@ -49,8 +51,9 @@ namespace klio {
         };
 
         void open();
-        void initialize();
         void close();
+        void initialize();
+        void dispose();
         const std::string str();
 
         virtual void add_sensor(klio::Sensor::Ptr sensor);
@@ -71,7 +74,13 @@ namespace klio {
         MSGStore(const MSGStore& original);
         MSGStore& operator =(const MSGStore& rhs);
         std::string _url;
+        std::string _id;
+        std::string _key;
 
+        struct json_object *get_json_sensors();
+        struct json_object *get_json_readings(klio::Sensor::Ptr sensor);
+
+        //TODO: move these functions to another API to be shared with VZLogger
         struct json_object *perform_http_get(std::string url, std::string key);
         struct json_object *perform_http_post(std::string url, std::string key, json_object *jobject);
         void *perform_http_delete(std::string url, std::string key);

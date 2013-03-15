@@ -113,9 +113,15 @@ BOOST_AUTO_TEST_CASE(check_add_msg_sensor) {
 
         store->add_sensor(sensor);
 
-        //TODO: complete this test
+        klio::Sensor::Ptr retrieved = store->get_sensor(sensor->uuid());
 
         store->dispose();
+
+        BOOST_CHECK_EQUAL(sensor->uuid(), retrieved->uuid());
+        BOOST_CHECK_EQUAL(sensor->name(), retrieved->name());
+
+        //TODO:
+        //BOOST_CHECK_EQUAL(sensor->description(), retrieved->description());
 
     } catch (klio::StoreException const& ex) {
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;

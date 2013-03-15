@@ -337,7 +337,7 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor_uuids) {
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
 
         klio::Sensor::Ptr sensor1(sensor_factory->createSensor(
-                std::string("98c18074-8bcf-890b-db7c-c1281038adcb"),
+                std::string("88c18074-890b-8bcf-db7c-c1281038adcb"),
                 std::string("Test"),
                 std::string("Description1"),
                 std::string("watt"),
@@ -346,7 +346,7 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor_uuids) {
         store->add_sensor(sensor1);
 
         klio::Sensor::Ptr sensor2(sensor_factory->createSensor(
-                std::string("88c18074-890b-8bcf-db7c-c1281038adcb"),
+                std::string("98c18074-8bcf-890b-db7c-c1281038adcb"),
                 std::string("Test"),
                 std::string("Description2"),
                 std::string("watt"),
@@ -360,6 +360,7 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor_uuids) {
         BOOST_CHECK_EQUAL(2, uuids.size());
 
         std::vector<klio::Sensor::uuid_t>::iterator it = uuids.begin();
+        klio::Sensor::uuid_t uuid2 = (*it++);
         klio::Sensor::uuid_t uuid1 = (*it);
 
         BOOST_CHECK_EQUAL(uuid1, sensor1->uuid());

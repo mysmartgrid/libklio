@@ -359,6 +359,12 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor_uuids) {
 
         BOOST_CHECK_EQUAL(2, uuids.size());
 
+        std::vector<klio::Sensor::uuid_t>::iterator it = uuids.begin();
+        klio::Sensor::uuid_t uuid1 = (*it);
+
+        BOOST_CHECK_EQUAL(uuid1, sensor1->uuid());
+        BOOST_CHECK_EQUAL(uuid2, sensor2->uuid());
+
     } catch (klio::StoreException const& ex) {
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");

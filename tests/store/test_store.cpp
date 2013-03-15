@@ -197,8 +197,14 @@ BOOST_AUTO_TEST_CASE(check_remove_msg_sensor) {
 
         store->remove_sensor(sensor);
 
-        //TODO: complete this test
+        try {
+            klio::Sensor::Ptr retrieved = store->get_sensor(sensor->uuid());
 
+            BOOST_FAIL("An exception must be raised if the sensor is not found.");
+
+        } catch (klio::StoreException const& ok) {
+            //This exception is expected
+        }
         store->dispose();
 
     } catch (klio::StoreException const& ex) {
@@ -223,11 +229,11 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor) {
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
 
         klio::Sensor::Ptr sensor(sensor_factory->createSensor(
-        std::string("98c18074-8bcf-890b-db7c-c1281038adcb"),
-        std::string("GetTest"),
-        std::string("GetDescription"),
-        std::string("watt"),
-        std::string("Europe/Berlin")));
+                std::string("98c18074-8bcf-890b-db7c-c1281038adcb"),
+                std::string("GetTest"),
+                std::string("GetDescription"),
+                std::string("watt"),
+                std::string("Europe/Berlin")));
 
         store->add_sensor(sensor);
 
@@ -265,29 +271,29 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor_by_name) {
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
 
         klio::Sensor::Ptr sensor1(sensor_factory->createSensor(
-        std::string("98c18074-8bcf-890b-db7c-c1281038adcb"),
-        std::string("Unique"),
-        std::string("Unique Description"),
-        std::string("watt"),
-        std::string("Europe/Berlin")));
+                std::string("98c18074-8bcf-890b-db7c-c1281038adcb"),
+                std::string("Unique"),
+                std::string("Unique Description"),
+                std::string("watt"),
+                std::string("Europe/Berlin")));
 
         store->add_sensor(sensor1);
 
         klio::Sensor::Ptr sensor2(sensor_factory->createSensor(
-        std::string("88c18074-890b-8bcf-db7c-c1281038adcb"),
-        std::string("Duplicated"),
-        std::string("Duplicated"),
-        std::string("watt"),
-        std::string("Europe/Berlin")));
+                std::string("88c18074-890b-8bcf-db7c-c1281038adcb"),
+                std::string("Duplicated"),
+                std::string("Duplicated"),
+                std::string("watt"),
+                std::string("Europe/Berlin")));
 
         store->add_sensor(sensor2);
 
         klio::Sensor::Ptr sensor3(sensor_factory->createSensor(
-        std::string("99c18074-890b-8bcf-db7c-c1281038adcb"),
-        std::string("Duplicated"),
-        std::string("Duplicated"),
-        std::string("watt"),
-        std::string("Europe/Berlin")));
+                std::string("99c18074-890b-8bcf-db7c-c1281038adcb"),
+                std::string("Duplicated"),
+                std::string("Duplicated"),
+                std::string("watt"),
+                std::string("Europe/Berlin")));
 
         store->add_sensor(sensor3);
 
@@ -331,20 +337,20 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor_uuids) {
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
 
         klio::Sensor::Ptr sensor1(sensor_factory->createSensor(
-        std::string("98c18074-8bcf-890b-db7c-c1281038adcb"),
-        std::string("Test"),
-        std::string("Description1"),
-        std::string("watt"),
-        std::string("Europe/Berlin")));
+                std::string("98c18074-8bcf-890b-db7c-c1281038adcb"),
+                std::string("Test"),
+                std::string("Description1"),
+                std::string("watt"),
+                std::string("Europe/Berlin")));
 
         store->add_sensor(sensor1);
 
         klio::Sensor::Ptr sensor2(sensor_factory->createSensor(
-        std::string("88c18074-890b-8bcf-db7c-c1281038adcb"),
-        std::string("Test"),
-        std::string("Description2"),
-        std::string("watt"),
-        std::string("Europe/Berlin")));
+                std::string("88c18074-890b-8bcf-db7c-c1281038adcb"),
+                std::string("Test"),
+                std::string("Description2"),
+                std::string("watt"),
+                std::string("Europe/Berlin")));
 
         store->add_sensor(sensor2);
 

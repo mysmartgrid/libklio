@@ -61,7 +61,7 @@ void MSGStore::add_sensor(klio::Sensor::Ptr sensor) {
 void MSGStore::remove_sensor(const klio::Sensor::Ptr sensor) {
 
     std::ostringstream url;
-    url << _url << "/sensor/" << _id;
+    url << _url << "/sensor/" << sensor->uuid_short();
 
     perform_http_delete(url.str(), _key);
 }

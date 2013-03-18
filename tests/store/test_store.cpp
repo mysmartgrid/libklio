@@ -62,6 +62,7 @@ BOOST_AUTO_TEST_CASE(check_create_storage_sqlite3) {
 
         klio::Store::Ptr loaded(factory->create_sqlite3_store(db));
         std::cout << "Opened database: " << loaded->str() << std::endl;
+
     } catch (klio::StoreException const& ex) {
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
@@ -73,7 +74,9 @@ BOOST_AUTO_TEST_CASE(check_create_storage_msg) {
     std::cout << "Testing create storage utility for MSG" << std::endl;
     klio::StoreFactory::Ptr factory(new klio::StoreFactory());
     std::string url = "https://dev3-api.mysmartgrid.de:8443";
-
+    
+    klio::Store::Ptr store;
+        
     try {
         std::cout << "Attempting to create MSG store " << url << std::endl;
         klio::Store::Ptr store(factory->create_msg_store(url, "d271f4de36cdf3d300db3e96755d8736", "d271f4de36cdf3d300db3e96755d8736"));
@@ -84,6 +87,7 @@ BOOST_AUTO_TEST_CASE(check_create_storage_msg) {
         store->dispose();
 
     } catch (klio::StoreException const& ex) {
+        store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
     }
@@ -95,11 +99,11 @@ BOOST_AUTO_TEST_CASE(check_add_msg_sensor) {
     klio::StoreFactory::Ptr factory(new klio::StoreFactory());
     std::string url = "https://dev3-api.mysmartgrid.de:8443";
 
+    std::cout << "Attempting to create MSG store " << url << std::endl;
+    klio::Store::Ptr store(factory->create_msg_store(url, "89c180748bcf240bdb7cc1281038adcb", "89c180748bcf240bdb7cc1281038adcb"));
+    std::cout << "Created: " << store->str() << std::endl;
+    
     try {
-        std::cout << "Attempting to create MSG store " << url << std::endl;
-        klio::Store::Ptr store(factory->create_msg_store(url, "89c180748bcf240bdb7cc1281038adcb", "89c180748bcf240bdb7cc1281038adcb"));
-
-        std::cout << "Created: " << store->str() << std::endl;
         store->open();
         store->initialize();
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
@@ -115,13 +119,14 @@ BOOST_AUTO_TEST_CASE(check_add_msg_sensor) {
 
         klio::Sensor::Ptr retrieved = store->get_sensor(sensor->uuid());
 
-        store->dispose();
-
         BOOST_CHECK_EQUAL(sensor->uuid(), retrieved->uuid());
         BOOST_CHECK_EQUAL(sensor->name(), retrieved->name());
         BOOST_CHECK_EQUAL(sensor->description(), retrieved->description());
 
+        store->dispose();
+        
     } catch (klio::StoreException const& ex) {
+        store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
     }
@@ -133,11 +138,11 @@ BOOST_AUTO_TEST_CASE(check_update_msg_sensor) {
     klio::StoreFactory::Ptr factory(new klio::StoreFactory());
     std::string url = "https://dev3-api.mysmartgrid.de:8443";
 
+    std::cout << "Attempting to create MSG store " << url << std::endl;
+    klio::Store::Ptr store(factory->create_msg_store(url, "89c180748bcf240bdb7cc1281038adcb", "89c180748bcf240bdb7cc1281038adcb"));
+    std::cout << "Created: " << store->str() << std::endl;
+    
     try {
-        std::cout << "Attempting to create MSG store " << url << std::endl;
-        klio::Store::Ptr store(factory->create_msg_store(url, "89c180748bcf240bdb7cc1281038adcb", "89c180748bcf240bdb7cc1281038adcb"));
-
-        std::cout << "Created: " << store->str() << std::endl;
         store->open();
         store->initialize();
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
@@ -160,14 +165,15 @@ BOOST_AUTO_TEST_CASE(check_update_msg_sensor) {
 
         store->update_sensor(changed);
 
-
         klio::Sensor::Ptr retrieved = store->get_sensor(changed->uuid());
-        store->dispose();
 
         BOOST_CHECK_EQUAL(changed->name(), retrieved->name());
         BOOST_CHECK_EQUAL(changed->description(), retrieved->description());
 
+        store->dispose();
+        
     } catch (klio::StoreException const& ex) {
+        store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
     }
@@ -179,11 +185,11 @@ BOOST_AUTO_TEST_CASE(check_remove_msg_sensor) {
     klio::StoreFactory::Ptr factory(new klio::StoreFactory());
     std::string url = "https://dev3-api.mysmartgrid.de:8443";
 
+    std::cout << "Attempting to create MSG store " << url << std::endl;
+    klio::Store::Ptr store(factory->create_msg_store(url, "d271f4de36cdf3d300db3e96755d8736", "d271f4de36cdf3d300db3e96755d8736"));
+    std::cout << "Created: " << store->str() << std::endl;
+    
     try {
-        std::cout << "Attempting to create MSG store " << url << std::endl;
-        klio::Store::Ptr store(factory->create_msg_store(url, "d271f4de36cdf3d300db3e96755d8736", "d271f4de36cdf3d300db3e96755d8736"));
-
-        std::cout << "Created: " << store->str() << std::endl;
         store->open();
         store->initialize();
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
@@ -210,6 +216,7 @@ BOOST_AUTO_TEST_CASE(check_remove_msg_sensor) {
         store->dispose();
 
     } catch (klio::StoreException const& ex) {
+        store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
     }
@@ -221,11 +228,11 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor) {
     klio::StoreFactory::Ptr factory(new klio::StoreFactory());
     std::string url = "https://dev3-api.mysmartgrid.de:8443";
 
-    try {
-        std::cout << "Attempting to create MSG store " << url << std::endl;
-        klio::Store::Ptr store(factory->create_msg_store(url, "98c180748bcf890bdb7cc1281038adcb", "98c180748bcf890bdb7cc1281038adcb"));
+    std::cout << "Attempting to create MSG store " << url << std::endl;
+    klio::Store::Ptr store(factory->create_msg_store(url, "98c180748bcf890bdb7cc1281038adcb", "98c180748bcf890bdb7cc1281038adcb"));
+    std::cout << "Created: " << store->str() << std::endl;
 
-        std::cout << "Created: " << store->str() << std::endl;
+    try {
         store->open();
         store->initialize();
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
@@ -272,11 +279,11 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor_by_name) {
     klio::StoreFactory::Ptr factory(new klio::StoreFactory());
     std::string url = "https://dev3-api.mysmartgrid.de:8443";
 
+    std::cout << "Attempting to create MSG store " << url << std::endl;
+    klio::Store::Ptr store(factory->create_msg_store(url, "98c180748bcf890bdb7cc1281038adcb", "98c180748bcf890bdb7cc1281038adcb"));
+    std::cout << "Created: " << store->str() << std::endl;
+    
     try {
-        std::cout << "Attempting to create MSG store " << url << std::endl;
-        klio::Store::Ptr store(factory->create_msg_store(url, "98c180748bcf890bdb7cc1281038adcb", "98c180748bcf890bdb7cc1281038adcb"));
-
-        std::cout << "Created: " << store->str() << std::endl;
         store->open();
         store->initialize();
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
@@ -310,7 +317,6 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor_by_name) {
 
         std::vector<klio::Sensor::Ptr> duplicated = store->get_sensors_by_name("Duplicated");
         std::vector<klio::Sensor::Ptr> unique = store->get_sensors_by_name("Unique");
-        store->dispose();
 
         BOOST_CHECK_EQUAL(2, duplicated.size());
         BOOST_CHECK_EQUAL(1, unique.size());
@@ -324,7 +330,10 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor_by_name) {
         BOOST_CHECK_EQUAL(sensor1->timezone(), retrieved->timezone());
         BOOST_CHECK_EQUAL(sensor1->description(), retrieved->description());
 
+        store->dispose();
+        
     } catch (klio::StoreException const& ex) {
+        store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
     }
@@ -336,11 +345,11 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor_uuids) {
     klio::StoreFactory::Ptr factory(new klio::StoreFactory());
     std::string url = "https://dev3-api.mysmartgrid.de:8443";
 
+    std::cout << "Attempting to create MSG store " << url << std::endl;
+    klio::Store::Ptr store(factory->create_msg_store(url, "22c180748bcf890bdb7cc1281038adcb", "98c180748bcf890bdb7cc1281038adcb"));
+    std::cout << "Created: " << store->str() << std::endl;
+    
     try {
-        std::cout << "Attempting to create MSG store " << url << std::endl;
-        klio::Store::Ptr store(factory->create_msg_store(url, "22c180748bcf890bdb7cc1281038adcb", "98c180748bcf890bdb7cc1281038adcb"));
-
-        std::cout << "Created: " << store->str() << std::endl;
         store->open();
         store->initialize();
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
@@ -365,18 +374,20 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor_uuids) {
 
         std::vector<klio::Sensor::uuid_t> uuids = store->get_sensor_uuids();
 
-        store->dispose();
-
         BOOST_CHECK_EQUAL(2, uuids.size());
 
         std::vector<klio::Sensor::uuid_t>::iterator it = uuids.begin();
         klio::Sensor::uuid_t uuid2 = (*it++);
         klio::Sensor::uuid_t uuid1 = (*it);
 
-        BOOST_CHECK_EQUAL(uuid1, sensor1->uuid());
-        BOOST_CHECK_EQUAL(uuid2, sensor2->uuid());
+        BOOST_CHECK(uuid1 != uuid2);
+        BOOST_CHECK(uuid1 == sensor1->uuid() || uuid1 == sensor2->uuid());
+        BOOST_CHECK(uuid2 == sensor2->uuid() || uuid2 == sensor1->uuid());
 
+        store->dispose();
+        
     } catch (klio::StoreException const& ex) {
+        store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
     }

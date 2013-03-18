@@ -70,10 +70,12 @@ void MSGStore::update_sensor(const klio::Sensor::Ptr sensor) {
 
     json_object *jdevice = json_object_new_string(_id.c_str());
     json_object *jname = json_object_new_string(sensor->name().c_str());
+    json_object *jdescription = json_object_new_string(sensor->description().c_str());
 
     json_object *jconfig = json_object_new_object();
     json_object_object_add(jconfig, "device", jdevice);
     json_object_object_add(jconfig, "function", jname);
+    json_object_object_add(jconfig, "description", jdescription);
 
     json_object *jobject = json_object_new_object();
     json_object_object_add(jobject, "config", jconfig);
@@ -107,8 +109,9 @@ klio::Sensor::Ptr MSGStore::get_sensor(const klio::Sensor::uuid_t& uuid) {
 
         if (meter == short_uuid) {
 
-            //TODO: implement sensor description
-            const char* description = "";
+            json_object *jdescription = json_object_object_get(jsensor, "description");
+            const char* description = json_object_get_string(jdescription);
+
             json_object *jname = json_object_object_get(jsensor, "function");
             const char* name = json_object_get_string(jname);
 
@@ -140,10 +143,11 @@ std::vector<klio::Sensor::Ptr> MSGStore::get_sensors_by_name(const std::string& 
 
         if (name == function) {
 
-            //TODO: implement sensor description
             json_object *jmeter = json_object_object_get(jsensor, "meter");
             std::string meter = std::string(json_object_get_string(jmeter));
-            const char* description = "";
+
+            json_object *jdescription = json_object_object_get(jsensor, "description");
+            const char* description = json_object_get_string(jdescription);
 
             //TODO: find another location for this code
             std::stringstream oss;
@@ -160,8 +164,7 @@ std::vector<klio::Sensor::Ptr> MSGStore::get_sensors_by_name(const std::string& 
                     std::string(name),
                     std::string(description),
                     std::string("watt"),
-                    std::string("Europe/Berlin"))
-                    );
+                    std::string("Europe/Berlin")));
         }
     }
     return sensors;

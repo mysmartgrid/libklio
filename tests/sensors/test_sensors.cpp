@@ -79,6 +79,7 @@ BOOST_AUTO_TEST_CASE(check_create_sensor_sqlite3) {
             } else {
                 std::cout << "WIN! sensor restored successfully." << std::endl;
             }
+
         } catch (klio::StoreException const& ex) {
             std::cout << "Caught invalid exception: " << ex.what() << std::endl;
             BOOST_FAIL("Unexpected store exception occurred during sensor test");

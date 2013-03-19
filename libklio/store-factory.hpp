@@ -22,6 +22,7 @@
 #define LIBKLIO_STORE_FACTORY_HPP 1
 
 #include <boost/filesystem.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 #include <libklio/common.hpp>
 #include <libklio/types.hpp>
 #include <libklio/store.hpp>
@@ -34,19 +35,22 @@ namespace klio {
     class StoreFactory {
     public:
         typedef std::tr1::shared_ptr<StoreFactory> Ptr;
+        typedef boost::uuids::uuid uuid_t;
 
-        StoreFactory() {
+        StoreFactory() : _gen() {
         };
 
         virtual ~StoreFactory() {
         };
 
         Store::Ptr create_sqlite3_store(const bfs::path& path);
+        Store::Ptr create_msg_store();
         Store::Ptr create_msg_store(const std::string& url, const std::string& id, const std::string& key);
 
     private:
         StoreFactory(const StoreFactory& original);
         StoreFactory& operator =(const StoreFactory& rhs);
+        boost::uuids::random_generator _gen;
     };
 };
 

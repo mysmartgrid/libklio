@@ -10,6 +10,7 @@
 #include <openssl/evp.h>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/algorithm/string/erase.hpp>
 #include <curl/curl.h>
 #include <json/json.h>
 #include <libklio/sensor-factory.hpp>
@@ -88,15 +89,8 @@ void MSGStore::update_sensor(const klio::Sensor::Ptr sensor) {
 
 klio::Sensor::Ptr MSGStore::get_sensor(const klio::Sensor::uuid_t& uuid) {
 
-    //FIXME: remove this code later
     std::string uuid_str = to_string(uuid);
-    std::stringstream oss;
-    for (size_t i = 0; i < uuid_str.length(); i++) {
-        if (uuid_str[i] != '-') {
-            oss << uuid_str[i];
-        }
-    }
-    std::string short_uuid = oss.str();
+    std::string short_uuid = boost::algorithm::erase_all_copy(uuid_str, "-");
 
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
     json_object *jsensors = get_json_sensors();

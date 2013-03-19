@@ -19,6 +19,7 @@
 
 #include <sstream>
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/algorithm/string/erase.hpp>
 #include "sensor.hpp"
 
 
@@ -37,14 +38,7 @@ const std::string Sensor::str() {
 
 const std::string Sensor::uuid_short() const {
 
-    std::string uuid = uuid_string();
-    std::stringstream oss;
-    for (size_t i = 0; i < uuid.length(); i++) {
-        if (uuid[i] != '-') {
-            oss << uuid[i];
-        }
-    }
-    return oss.str();
+    return boost::algorithm::erase_all_copy(uuid_string(), "-");
 }
 
 bool Sensor::operator ==(const Sensor& rhs) {

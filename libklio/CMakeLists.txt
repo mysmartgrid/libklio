@@ -21,11 +21,11 @@ file(GLOB klio_algorithm_src algorithm/*.cpp algorithm/*.hpp)
 ADD_LIBRARY(klio STATIC ${klio_src} ${klio_sqlite3_src} ${klio_msg_src} ${klio_algorithm_src})
 
 target_link_libraries(klio
+  ${GNUTLS_LIBRARIES}
   ${SQLITE3_LIBRARIES}
   ${Boost_LIBRARIES}
-  ${CURL_SHARED_LIBRARIES}
-  ${CURL_LIBRARIES}
-  ${GNUTLS_LIBRARIES} lber pthread json crypto
+  ${CURL_SHARED_LIBRARY}
+  dl pthread json crypto
 )
 
 #if(BUILD_SHARED_LIBS)

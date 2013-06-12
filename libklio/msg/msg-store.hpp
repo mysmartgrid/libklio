@@ -49,7 +49,7 @@ namespace klio {
         virtual ~MSGStore() {
             close();
         };
-
+        
         void open();
         void close();
         void initialize();

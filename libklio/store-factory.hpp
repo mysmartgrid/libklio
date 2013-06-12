@@ -45,6 +45,7 @@ namespace klio {
 
         Store::Ptr create_sqlite3_store(const bfs::path& path);
         Store::Ptr create_msg_store();
+        Store::Ptr create_msg_store(const std::string& id, const std::string& key);
         Store::Ptr create_msg_store(const std::string& url, const std::string& id, const std::string& key);
 
     private:

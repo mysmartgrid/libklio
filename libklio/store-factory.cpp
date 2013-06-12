@@ -18,10 +18,12 @@ Store::Ptr StoreFactory::create_sqlite3_store(const bfs::path& path) {
 
 Store::Ptr StoreFactory::create_msg_store() {
 
-    const std::string id = to_string(_gen());
-    const std::string key = to_string(_gen());
+    return create_msg_store(to_string(_gen()), to_string(_gen()));
+}
 
-    return create_msg_store("https://www.mysmartgrid.de:8443", id, key);
+Store::Ptr StoreFactory::create_msg_store(const std::string& id, const std::string& key) {
+
+    return create_msg_store("https://api.mysmartgrid.de:8443", id, key);
 }
 
 Store::Ptr StoreFactory::create_msg_store(const std::string& url, const std::string& id, const std::string& key) {

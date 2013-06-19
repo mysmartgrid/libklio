@@ -10,6 +10,14 @@ using namespace boost::gregorian;
 using namespace boost::local_time;
 using namespace boost::posix_time;
 
+/**
+ * CHANGES
+ * 
+ * Ely: This file has been renamed. Some file names of the library used the dash
+ * char '-' as separator. Others used the underline '_' char. After talking with
+ * Mathias, I standardized the dash one.
+ */
+
 LocalTime::LocalTime(const char* cmd)
 : _tz_db() {
     try {

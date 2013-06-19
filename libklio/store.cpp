@@ -22,6 +22,13 @@
 
 using namespace klio;
 
+
+/**
+ * CHANGES
+ * 
+ * Ely: This class is a super class of all stores.
+ */
+
 void Store::sync_readings(klio::Sensor::Ptr sensor, klio::Store::Ptr store) {
 
     sensor = get_sensor(sensor->uuid());

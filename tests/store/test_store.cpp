@@ -55,12 +55,12 @@ BOOST_AUTO_TEST_CASE(check_create_storage_sqlite3) {
     bfs::path db(TEST_DB_FILE);
     try {
         std::cout << "Attempting to create " << db << std::endl;
-        klio::Store::Ptr store(factory->create_sqlite3_store(db));
+        klio::Store::Ptr store(factory->open_sqlite3_store(db));
         std::cout << "Created database: " << store->str() << std::endl;
         store->initialize();
         store->close();
 
-        klio::Store::Ptr loaded(factory->create_sqlite3_store(db));
+        klio::Store::Ptr loaded(factory->open_sqlite3_store(db));
         std::cout << "Opened database: " << loaded->str() << std::endl;
 
     } catch (klio::StoreException const& ex) {

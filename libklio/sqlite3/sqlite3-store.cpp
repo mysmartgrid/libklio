@@ -10,6 +10,19 @@
 
 using namespace klio;
 
+
+/**
+ * CHANGES
+ *
+ * Ely: This class has been refactored. It is 33% smaller now.
+ * 
+ * Some method names adopted the cammel format, like addSensor, while others adopted
+ * the C default format, like add_reading. After talking with Mathias,
+ * I standardized the C one.
+ * 
+ * I don't know if this format should be adopted in the whole library.
+ */
+
 // database statements //TODO: Change these constants to real prepared statements
 const std::string create_sensors_table_stmt(
         "CREATE TABLE IF NOT EXISTS sensors(uuid VARCHAR(16) PRIMARY KEY, name VARCHAR(100), description VARCHAR(255), unit VARCHAR(20), timezone INTEGER);"
@@ -171,6 +184,12 @@ klio::Sensor::Ptr SQLite3Store::get_sensor(const klio::Sensor::uuid_t& uuid) {
     return sensor;
 }
 
+/**
+ * CHANGES
+ * 
+ * Ely: This method has been renamed. 
+ * It was called getSensorById. Actually, it selects sensors by name.
+ */
 std::vector<klio::Sensor::Ptr> SQLite3Store::get_sensors_by_name(const std::string& name) {
 
     LOG("Attempting to load sensor " << name);

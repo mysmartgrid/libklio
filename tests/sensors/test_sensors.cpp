@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_CASE(check_create_sensor_sqlite3) {
         klio::StoreFactory::Ptr factory(new klio::StoreFactory());
         bfs::path db(TEST_DB_FILE);
         bfs::remove(db);
-        klio::Store::Ptr store(factory->create_sqlite3_store(db));
+        klio::Store::Ptr store(factory->open_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
 
         try {
@@ -110,7 +110,7 @@ BOOST_AUTO_TEST_CASE(check_update_sensor) {
         klio::StoreFactory::Ptr factory(new klio::StoreFactory());
         bfs::path db(TEST_DB_FILE);
         bfs::remove(db);
-        klio::Store::Ptr store(factory->create_sqlite3_store(db));
+        klio::Store::Ptr store(factory->open_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
 
         try {
@@ -159,7 +159,7 @@ BOOST_AUTO_TEST_CASE(check_retrieve_sensor_by_uuid) {
         klio::StoreFactory::Ptr factory(new klio::StoreFactory());
         bfs::path db(TEST_DB_FILE);
         bfs::remove(db);
-        klio::Store::Ptr store(factory->create_sqlite3_store(db));
+        klio::Store::Ptr store(factory->open_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
 
         try {
@@ -199,7 +199,7 @@ BOOST_AUTO_TEST_CASE(check_retrieve_sensor_by_name) {
         klio::StoreFactory::Ptr factory(new klio::StoreFactory());
         bfs::path db(TEST_DB_FILE);
         bfs::remove(db);
-        klio::Store::Ptr store(factory->create_sqlite3_store(db));
+        klio::Store::Ptr store(factory->open_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
 
         try {
@@ -251,7 +251,7 @@ BOOST_AUTO_TEST_CASE(check_retrieve_sensor_uuids_sqlite3) {
         klio::StoreFactory::Ptr factory(new klio::StoreFactory());
         bfs::path db(TEST_DB_FILE);
         bfs::remove(db);
-        klio::Store::Ptr store(factory->create_sqlite3_store(db));
+        klio::Store::Ptr store(factory->open_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
 
         try {
@@ -298,7 +298,7 @@ BOOST_AUTO_TEST_CASE(check_remove_sensor_sqlite3) {
         klio::StoreFactory::Ptr factory(new klio::StoreFactory());
         bfs::path db(TEST_DB_FILE);
         bfs::remove(db);
-        klio::Store::Ptr store(factory->create_sqlite3_store(db));
+        klio::Store::Ptr store(factory->open_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
 
         try {

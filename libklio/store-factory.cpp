@@ -14,7 +14,9 @@ using namespace klio;
  * CHANGES
  * 
  * Ely: The master branch implementation of this class has two methods:
+ * 
  *    createStore(const STORETYPE& type, const bfs::path& path)
+ * 
  *    openStore(const STORETYPE& type, const bfs::path& path)
  * 
  * Although they have different names, they currently have the same implementation.

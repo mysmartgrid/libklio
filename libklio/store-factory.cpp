@@ -11,7 +11,7 @@ using namespace boost::algorithm;
 using namespace klio;
 
 /**
- * CHANGES
+ * COMMENTS
  * 
  * Ely: The master branch implementation of this class has two methods:
  * 

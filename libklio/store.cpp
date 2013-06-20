@@ -24,7 +24,7 @@ using namespace klio;
 
 
 /**
- * CHANGES
+ * COMMENTS
  * 
  * Ely: This class is a super class of all stores.
  */

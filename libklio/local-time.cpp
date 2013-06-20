@@ -11,7 +11,7 @@ using namespace boost::local_time;
 using namespace boost::posix_time;
 
 /**
- * CHANGES
+ * COMMENTS
  * 
  * Ely: This file has been renamed. Some file names of the library used the dash
  * char '-' as separator. Others used the underline '_' char. After talking with

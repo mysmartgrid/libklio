@@ -8,7 +8,7 @@
 using namespace klio;
 
 /**
- * CHANGES
+ * COMMENTS
  * 
  * Ely: should these methods be renamed to create_sensor?
  */

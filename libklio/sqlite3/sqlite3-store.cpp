@@ -12,7 +12,7 @@ using namespace klio;
 
 
 /**
- * CHANGES
+ * COMMENTS
  *
  * Ely: This class has been refactored. It is 33% smaller now.
  * 
@@ -185,7 +185,7 @@ klio::Sensor::Ptr SQLite3Store::get_sensor(const klio::Sensor::uuid_t& uuid) {
 }
 
 /**
- * CHANGES
+ * COMMENTS
  * 
  * Ely: This method has been renamed. 
  * It was called getSensorById. Actually, it selects sensors by name.

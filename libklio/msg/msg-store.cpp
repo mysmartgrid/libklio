@@ -21,7 +21,7 @@ using namespace klio;
 
 
 /**
- * CHANGES
+ * COMMENTS
  * 
  * Ely: This class has been created to represent a mySmartGrid store.
  */

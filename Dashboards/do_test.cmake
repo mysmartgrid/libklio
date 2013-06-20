@@ -2,6 +2,9 @@
 # bernd.loerwald@itwm.fraunhofer.de
 # update by kai.krueger@itwm.fraunhofer.de
 
+include(Tools.cmake)
+FindOS(OS_NAME OS_VERSION)
+
 # cdash / ctest information ########################################################
 
 set(CTEST_PROJECT_NAME "libklio")
@@ -37,7 +40,7 @@ if (NOT GIT_BRANCH)
 endif()
 
 if (NOT BOOST_VERSION)
-  set (BOOST_VERSION "1.49")
+#  set (BOOST_VERSION "1.49")
 endif()
 
 if (NOT COMPILER)
@@ -60,8 +63,15 @@ if (${COMPILER} STREQUAL "gcc")
   set (CMAKE_C_COMPILER "gcc")
   set (CMAKE_CXX_COMPILER "g++")
 elseif( ${COMPILER} STREQUAL "clang" )
-  set (CMAKE_C_COMPILER "clang")
-  set (CMAKE_CXX_COMPILER "clang++")
+  # check if compiler exists
+  find_program( CLANG_CC clang )
+  find_program( CLANG_CXX clang++ )
+  if( ${CLANG_CC} STREQUAL "CLANG_CC-NOTFOUND" OR ${CLANG_CXX} STREQUAL "CLANG_CC-NOTFOUND")
+    message(FATAL_ERROR "clang compiler not found. stopping here.")
+  else()
+    set (CMAKE_C_COMPILER "clang")
+    set (CMAKE_CXX_COMPILER "clang++")
+  endif()
 elseif (${COMPILER} STREQUAL "intel")
   set (CMAKE_C_COMPILER "icc")
   set (CMAKE_CXX_COMPILER "icpc")
@@ -82,10 +92,11 @@ endif()
 # variables / configuration based on test configuration ############################
 set(_projectNameDir "${CTEST_PROJECT_NAME}")
 
-set (CTEST_BUILD_NAME "${CMAKE_SYSTEM_PROCESSOR}-${COMPILER}-boost${BOOST_VERSION}-${GIT_BRANCH}")
+# set (CTEST_BUILD_NAME "${CMAKE_SYSTEM_PROCESSOR}-${COMPILER}-boost${BOOST_VERSION}-${GIT_BRANCH}")
+set (CTEST_BUILD_NAME "${CMAKE_SYSTEM_PROCESSOR}-${COMPILER}-${GIT_BRANCH}")
 
-set (CTEST_BASE_DIRECTORY   "${BUILD_TMP_DIR}/krueger/${CTEST_PROJECT_NAME}/${TESTING_MODEL}")
-set (CTEST_SOURCE_DIRECTORY "${CTEST_BASE_DIRECTORY}/src-${GIT_BRANCH}" )
+set (CTEST_BASE_DIRECTORY   "${BUILD_TMP_DIR}/$ENV{USER}/${CTEST_PROJECT_NAME}/${TESTING_MODEL}")
+set (CTEST_SOURCE_DIRECTORY "${CTEST_BASE_DIRECTORY}/src-${GIT_BRANCH}-${CMAKE_SYSTEM_PROCESSORTARGET}" )
 set (CTEST_BINARY_DIRECTORY "${CTEST_BASE_DIRECTORY}/build-${CTEST_BUILD_NAME}")
 set (CTEST_INSTALL_DIRECTORY "${CTEST_BASE_DIRECTORY}/install-${CTEST_BUILD_NAME}")
 
@@ -191,15 +202,15 @@ endif()
 
 # do testing #######################################################################
 
-set (LAST_RETURN_VALUE 0)
+set (UPDATE_RETURN_VALUE 0)
 
 ctest_start (${TESTING_MODEL})
 
-ctest_update (RETURN_VALUE LAST_RETURN_VALUE)
-message("Update returned: ${LAST_RETURN_VALUE}")
+ctest_update (RETURN_VALUE UPDATE_RETURN_VALUE)
+message("Update returned: ${UPDATE_RETURN_VALUE}")
 
 if ("${TESTING_MODEL}" STREQUAL "Continuous" AND first_checkout EQUAL 0)
-  if (LAST_RETURN_VALUE EQUAL 0)
+  if (UPDATE_RETURN_VALUE EQUAL 0)
     return()
   endif ()
 endif ()
@@ -237,6 +248,52 @@ endif()
 # todo: create package, upload to distribution server
 
 ctest_submit (RETURN_VALUE ${LAST_RETURN_VALUE})
+
+# do the packing only if switch is on and
+if( (${UPDATE_RETURN_VALUE} GREATER 0 AND PROPERLY_BUILT_AND_INSTALLED) OR ${first_checkout})
+  include(${CTEST_BINARY_DIRECTORY}/CPackConfig.cmake)
+  if( STAGING_DIR)
+    set(ENV{PATH}            ${OPENWRT_STAGING_DIR}/host/bin:$ENV{PATH})
+  endif( STAGING_DIR)
+  # do the packaging
+  execute_process(
+    COMMAND cpack -G DEB
+    WORKING_DIRECTORY ${CTEST_BINARY_DIRECTORY}
+    )
+  # install for other packages
+  #execute_process(
+  #  COMMAND make install
+  #  WORKING_DIRECTORY ${CTEST_BINARY_DIRECTORY}
+  #  )
+
+  # upload files
+  if( ${CTEST_PUSH_PACKAGES})
+    message( "OS_NAME .....: ${OS_NAME}")
+    message( "OS_VERSION ..: ${OS_VERSION}")
+    message( "CMAKE_SYSTEM_PROCESSOR ..: ${CMAKE_SYSTEM_PROCESSOR}")
+
+    if(CPACK_ARCHITECTUR)
+      set(OPKG_FILE_NAME "${CPACK_PACKAGE_NAME}_${CPACK_PACKAGE_VERSION}_${CPACK_ARCHITECTUR}")
+      set(_package_file "${OPKG_FILE_NAME}.ipk")
+    else(CPACK_ARCHITECTUR)
+      set(_package_file "${CPACK_PACKAGE_FILE_NAME}.deb")
+    endif(CPACK_ARCHITECTUR)
+    message("==> Upload packages - ${_package_file}")
+    set(_export_host ${CTEST_PACKAGE_SITE})
+    set(_remote_dir "packages/${OS_NAME}/${OS_VERSION}/${CMAKE_SYSTEM_PROCESSOR}")
+    if( NOT ${GIT_BRANCH} STREQUAL "master")
+      set(_remote_dir "packages/${OS_NAME}/${OS_VERSION}/${CMAKE_SYSTEM_PROCESSOR}/${GIT_BRANCH}")
+    endif()
+    execute_process(
+      COMMAND ssh ${_export_host} mkdir -p ${_remote_dir}
+      )
+    execute_process(
+      COMMAND scp -p ${_package_file} ${_export_host}:${_remote_dir}/${_package_file}
+      WORKING_DIRECTORY ${CTEST_BINARY_DIRECTORY}/${subproject}
+      )
+  endif()
+
+endif()
 
 #file (REMOVE_RECURSE "${CTEST_INSTALL_DIRECTORY}")
 #if (NOT "${TESTING_MODEL}" STREQUAL "Continuous")

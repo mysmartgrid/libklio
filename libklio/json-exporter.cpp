@@ -3,13 +3,6 @@
 
 using namespace klio;
 
-/**
- * COMMENTS
- * 
- * Ely: This file has been renamed. Some file names of the library used the dash
- * char '-' as separator. Others used the underline '_' char. After talking with
- * Mathias, I standardized the dash one.
- */
 
 void JSONExporter::process(klio::readings_t_Ptr readings,
         const std::string& name, const std::string& description) {

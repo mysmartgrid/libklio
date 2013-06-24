@@ -7,11 +7,6 @@
 
 using namespace klio;
 
-/**
- * COMMENTS
- * 
- * Ely: should these methods be renamed to create_sensor?
- */
 
 klio::Sensor::Ptr SensorFactory::createSensor(
         const std::string& name,

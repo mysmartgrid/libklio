@@ -10,32 +10,6 @@
 using namespace boost::algorithm;
 using namespace klio;
 
-/**
- * COMMENTS
- * 
- * Ely: The master branch implementation of this class has two methods:
- * 
- *    createStore(const STORETYPE& type, const bfs::path& path)
- * 
- *    openStore(const STORETYPE& type, const bfs::path& path)
- * 
- * Although they have different names, they currently have the same implementation.
- * 
- * I assume that openStore is meant to both create and open a store, while
- * createStore is meant for creation only.
- * 
- * These methods have the same list of arguments and this creates a problem,
- * because different types of store tend to have different properties, possibly
- * using different data types. I think that limiting all of them to use a single
- * string argument called 'path' is too restrictive.
- * 
- * I think we should use different method names for different store types.
- * Some methods could be overloaded for cases when the user wants to create a
- * store using the default argument values.
- * 
- * I think this simplifies the API, makes the client code cleaner, and 
- * eliminates the need for 'ifs' and exception throwing.
- */
 
 Store::Ptr StoreFactory::create_sqlite3_store(const bfs::path& path) {
 

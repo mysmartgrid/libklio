@@ -8,13 +8,6 @@ using namespace klio;
 static const uint32_t SECONDS_PER_DAY = 60 * 60 * 24;
 static const uint32_t MINUTES_PER_DAY = 60 * 24;
 
-/**
- * COMMENTS
- * 
- * Ely: This file has been renamed. Some file names of the library used the dash
- * char '-' as separator. Others used the underline '_' char. After talking with
- * Mathias, I standardized the dash one.
- */
 
 void OctaveExporter::write_lead_in(const std::string& name,
         const std::string& description) {

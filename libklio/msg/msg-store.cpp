@@ -20,12 +20,6 @@
 using namespace klio;
 
 
-/**
- * COMMENTS
- * 
- * Ely: This class has been created to represent a mySmartGrid store.
- */
-
 void MSGStore::open() {
 }
 

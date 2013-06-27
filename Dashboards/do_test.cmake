@@ -92,8 +92,18 @@ endif()
 # variables / configuration based on test configuration ############################
 set(_projectNameDir "${CTEST_PROJECT_NAME}")
 
-# set (CTEST_BUILD_NAME "${CMAKE_SYSTEM_PROCESSOR}-${COMPILER}-boost${BOOST_VERSION}-${GIT_BRANCH}")
-set (CTEST_BUILD_NAME "${CMAKE_SYSTEM_PROCESSOR}-${COMPILER}-${GIT_BRANCH}")
+if(BOOST_VERSION)
+  set(_boost_str "-boost${BOOST_VERSION}")
+else()
+  set(_boost_str "")
+endif()
+if(CMAKE_COMPILER_VERSION)
+  set(_compiler_str "${COMPILER}${CMAKE_COMPILER_VERSION}")
+else()
+  set(_compiler_str "${COMPILER}")
+endif()
+
+set (CTEST_BUILD_NAME "${CMAKE_SYSTEM_PROCESSOR}-${_compiler_str}${_boost_str}-${GIT_BRANCH}")
 
 set (CTEST_BASE_DIRECTORY   "${BUILD_TMP_DIR}/$ENV{USER}/${CTEST_PROJECT_NAME}/${TESTING_MODEL}")
 set (CTEST_SOURCE_DIRECTORY "${CTEST_BASE_DIRECTORY}/src-${GIT_BRANCH}-${CMAKE_SYSTEM_PROCESSORTARGET}" )
@@ -138,7 +148,7 @@ if( NOT CMAKE_TOOLCHAIN_FILE )
   set_if_exists (BOOST_ROOT ${EXTERNAL_SOFTWARE}/boost/${BOOST_VERSION}/${ADDITIONAL_SUFFIX})
   set_if_exists (GRAPHVIZ_HOME ${EXTERNAL_SOFTWARE}/graphviz/2.24)
 else()
-  set_if_exists (EXTERNAL_SOFTWARE "/home/projects/msgrid/x-tools/arm-unknown-linux-gnueabihf/opt")
+  set_if_exists (EXTERNAL_SOFTWARE "${_baseDir}/opt")
   set_if_exists (BOOST_ROOT ${EXTERNAL_SOFTWARE}/boost/${BOOST_VERSION})
 endif()
 # LIBKLIO_HOME
@@ -247,7 +257,9 @@ endif()
 
 # todo: create package, upload to distribution server
 
-ctest_submit (RETURN_VALUE ${LAST_RETURN_VALUE})
+if(doSubmit)
+  ctest_submit (RETURN_VALUE ${LAST_RETURN_VALUE})
+endif()
 
 # do the packing only if switch is on and
 if( (${UPDATE_RETURN_VALUE} GREATER 0 AND PROPERLY_BUILT_AND_INSTALLED) OR ${first_checkout})

@@ -31,6 +31,12 @@ foreach (ARGUMENT ${SCRIPT_ARGUMENTS})
   endif()
 endforeach()
 
+if (NOT DEBUG)
+  set(doSubmit 1)
+else()
+  set(doSubmit 0)
+endif()
+
 if (NOT TESTING_MODEL)
   message (FATAL_ERROR "No TESTING_MODEL given (available: Nightly, Coverage)")
 endif()

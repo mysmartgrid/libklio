@@ -32,7 +32,7 @@ set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} ${CMAKE_ADDITIONAL_PATH}/include)
 set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ${CMAKE_ADDITIONAL_PATH}/lib)
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/modules ${CMAKE_MODULE_PATH})
 
-set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wno-non-virtual-dtor -g -fomit-frame-pointer")
+set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wno-non-virtual-dtor -g -fomit-frame-pointer -Werror")
 
 set(CMAKE_CXX_FLAGS_EXPERIMENTAL "-O0 -g -ggdb -Wall -Werror -W -Wshadow")
 set(CMAKE_CXX_FLAGS_EXPERIMENTAL "${CMAKE_CXX_FLAGS_EXPERIMENTAL} -Wunused-variable")
@@ -52,10 +52,12 @@ set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_PROFILE} -Wno-non-virtual-dtor -p
 set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_PROFILE} -ftest-coverage")
 
 # Releases are made with the release build. Optimize code and strip binaries.
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -s -Wno-non-virtual-dtor -Werror")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -s -Wno-non-virtual-dtor")
 
 # always set these flags
-set(CMAKE_CXX_FLAGS "-Wall ")
+set(CMAKE_CXX_FLAGS "-Wall -pthread")
+# ignore warning from boost for time being
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-but-set-variable -Wno-unused-variable")
 
 FIND_PACKAGE(Sqlite)
 # We depend on boost >= 1.46.1 because of the updated filesystem

@@ -109,7 +109,7 @@ BOOST_AUTO_TEST_CASE ( check_add_sensor_description ) {
       store->add_description(sensor1, desc);
       // Test unique sensor id retrieval
       std::vector<klio::Sensor::Ptr> sensors = store->getSensorById(sensor1_id);
-      BOOST_CHECK_EQUAL (sensors.size(), 1);
+      BOOST_CHECK_EQUAL (sensors.size(), 1U);
       std::vector<klio::Sensor::Ptr>::iterator it;
       for(  it = sensors.begin(); it < sensors.end(); it++) {
         klio::Sensor::Ptr sensor=(*it);
@@ -150,7 +150,7 @@ BOOST_AUTO_TEST_CASE ( check_retrieve_sensor_by_name ) {
       store->addSensor(sensor2b);
       // Test unique sensor id retrieval
       std::vector<klio::Sensor::Ptr> sensors = store->getSensorById(sensor1_id);
-      BOOST_CHECK_EQUAL (sensors.size(), 1);
+      BOOST_CHECK_EQUAL (sensors.size(), 1U);
       std::vector<klio::Sensor::Ptr>::iterator it;
       for(  it = sensors.begin(); it < sensors.end(); it++) {
         klio::Sensor::Ptr sensor=(*it);
@@ -160,7 +160,7 @@ BOOST_AUTO_TEST_CASE ( check_retrieve_sensor_by_name ) {
       }
       // Test duplicate sensor id retrieval
       sensors = store->getSensorById(sensor2_id);
-      BOOST_CHECK_EQUAL (sensors.size(), 2);
+      BOOST_CHECK_EQUAL (sensors.size(), 2U);
       for(  it = sensors.begin(); it < sensors.end(); it++) {
         klio::Sensor::Ptr sensor=(*it);
         std::cout << "Found Sensor: " << sensor->name() << std::endl;

@@ -2,6 +2,7 @@
 
 set(ENV{https_proxy} "http://squid.itwm.fhg.de:3128/")
 include(Tools.cmake)
+my_ctest_setup()
 include(CTestConfigLibKlio.cmake)
 # set(_ctest_type "Nightly")
 # set(_ctest_type "Continuous")
@@ -9,7 +10,6 @@ set(_ctest_type "Coverage")
 
 set(URL "https://github.com/mysmartgrid/libklio.git")
 
-set(KDE_CTEST_DASHBOARD_DIR "/tmp/msgrid")
 set(CTEST_BASE_DIRECTORY "${KDE_CTEST_DASHBOARD_DIR}/${_projectNameDir}/${_ctest_type}")
 set(CTEST_SOURCE_DIRECTORY "${CTEST_BASE_DIRECTORY}/${_srcDir}-${_git_branch}" )
 set(CTEST_BINARY_DIRECTORY "${CTEST_BASE_DIRECTORY}/${_buildDir}-${CTEST_BUILD_NAME}")
@@ -22,18 +22,16 @@ set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
 #set(CTEST_BUILD_CONFIGURATION "Profiling")
 
 configure_ctest_config(${KDE_CTEST_VCS_REPOSITORY} "CTestConfigLibKlio.cmake")
-
-# generic support code, provides the kde_ctest_setup() macro, which sets up everything required:
-get_filename_component(_currentDir "${CMAKE_CURRENT_LIST_FILE}" PATH)
-include( "${_currentDir}/KDECTestNightly.cmake")
 kde_ctest_setup()
 
 FindOS(OS_NAME OS_VERSION)
 
-set(ctest_config ${CTEST_SOURCE_DIRECTORY}/CTestConfig.cmake)
+set(ctest_config ${CTEST_BASE_DIRECTORY}/CTestConfig.cmake)
 #######################################################################
 ctest_empty_binary_directory(${CTEST_BINARY_DIRECTORY})
 
+message("_git_branch ..: '${_git_branch}'")
+message("compiler    ..: '${COMPILER_ID}'")
 
 find_program(CTEST_GIT_COMMAND NAMES git)
 set(CTEST_UPDATE_TYPE git)
@@ -43,9 +41,8 @@ if(NOT EXISTS "${CTEST_SOURCE_DIRECTORY}/.git/HEAD")
   set(CTEST_CHECKOUT_COMMAND "${CTEST_GIT_COMMAND} clone ${URL} ${CTEST_SOURCE_DIRECTORY}")
 endif(NOT EXISTS "${CTEST_SOURCE_DIRECTORY}/.git/HEAD")
 
-ctest_empty_binary_directory("${CTEST_BINARY_DIRECTORY}")
 ctest_start(${_ctest_type})
-ctest_update(SOURCE "${CTEST_SOURCE_DIRECTORY}")
+ctest_update(SOURCE ${CTEST_SOURCE_DIRECTORY})
 ctest_submit(PARTS Update)
 
 execute_process(
@@ -53,6 +50,12 @@ execute_process(
   WORKING_DIRECTORY ${CTEST_SOURCE_DIRECTORY}
   )
 
+
+if( "${OS_NAME}-${OS_VERSION}" STREQUAL "Ubuntu-10.04" )
+  set(BOOST_ROOT /homes/krueger/external_software/ubuntu_100403/${CMAKE_SYSTEM_PROCESSOR}/boost/1.46)
+else( "${OS_NAME}-${OS_VERSION}" STREQUAL "Ubuntu-10.04" )
+  set(BOOST_ROOT "")
+endif( "${OS_NAME}-${OS_VERSION}" STREQUAL "Ubuntu-10.04" )
 
 set(ENABLE_CODECOVERAGE 1)
 set(CMAKE_BUILD_TYPE Profile)
@@ -65,7 +68,6 @@ if(CMAKE_TOOLCHAIN_FILE)
     CMAKE_BUILD_TYPE
     )
 else(CMAKE_TOOLCHAIN_FILE)
-  set(BOOST_ROOT /homes/krueger/external_software/ubuntu_100403/${CMAKE_SYSTEM_PROCESSOR}/boost/1.46)
   kde_ctest_write_initial_cache("${CTEST_BINARY_DIRECTORY}"
     BOOST_ROOT
     CMAKE_INSTALL_PREFIX
@@ -86,8 +88,18 @@ endif( STAGING_DIR)
 ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" RETURN_VALUE build_res)
 message("====> BUILD: ${build_res}")
 
-ctest_test(BUILD "${CTEST_BINARY_DIRECTORY}" RETURN_VALUE test_res)
-message("====> TESTS: ${test_res}")
+# do codecoverage now
+ctest_coverage(BUILD "${CTEST_BINARY_DIRECTORY}" RETURN_VALUE res)
+message(STATUS "===> ctest_coverage: res='${res}'")
+
+# do codecoverage now
+ctest_memcheck(BUILD "${CTEST_BINARY_DIRECTORY}" RETURN_VALUE res)
+message(STATUS "===> ctest_memcheck: res='${res}'")
+
+if( NOT CMAKE_TOOLCHAIN_FILE )
+  ctest_test(BUILD "${CTEST_BINARY_DIRECTORY}" RETURN_VALUE test_res)
+  message("====> TESTS: ${test_res}")
+endif( NOT CMAKE_TOOLCHAIN_FILE )
 
 ctest_submit(RETURN_VALUE res)
 

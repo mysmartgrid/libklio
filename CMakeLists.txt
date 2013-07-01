@@ -93,6 +93,7 @@ else(WIN32)
   include(FindCurl)
   include(FindGnutls)
 endif(WIN32)
+find_package(OpenSSL)
 
 include_directories(${CMAKE_BINARY_DIR})
 

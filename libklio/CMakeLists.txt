@@ -27,7 +27,8 @@ target_link_libraries(klio
   ${SQLITE3_LIBRARIES}
   ${Boost_LIBRARIES}
   ${CURL_SHARED_LIBRARY}
-  dl pthread json crypto
+  ${JSON_LIBRARY}
+  ${OPENSSL_CRYPTO_LIBRARY}
 )
 
 #if(BUILD_SHARED_LIBS)

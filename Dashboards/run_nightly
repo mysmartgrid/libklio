@@ -59,6 +59,7 @@ do
   for toolchain in `find ${HOME}/x-tools/ -name Toolchain-RaspberryPi.cmake`
   do
      echo "Compiling with toolchain ${toolchain}"
+     ${CTEST} -V -VV -S ${TEST_SCRIPT},COMPILER=gcc,GIT_BRANCH=${branch},BOOST_VERSION=1.49,CMAKE_TOOLCHAIN_FILE=${toolchain}
      ${CTEST} -V -VV -S ${TEST_SCRIPT},COMPILER=gcc,GIT_BRANCH=${branch},BOOST_VERSION=1.53,CMAKE_TOOLCHAIN_FILE=${toolchain}
      #${CTEST} -V -VV -S ${dir}/LibKlioNightly.cmake,_git_branch=${branch},_toolchain_file=${toolchain}
      #${CTEST} -V -VV -S ${dir}/LibKlioCoverage.cmake,_git_branch=${branch},_toolchain_file=${toolchain}

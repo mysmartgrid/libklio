@@ -62,6 +62,10 @@ namespace klio {
             return _key;
         };
 
+        const std::string activation_code() const {
+            return _id.substr(0, 10);
+        };
+
         void open();
         void close();
         void initialize();

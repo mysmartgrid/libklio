@@ -26,7 +26,8 @@
 #include <libklio/common.hpp>
 #include <libklio/types.hpp>
 #include <libklio/store.hpp>
-
+#include <libklio/sqlite3/sqlite3-store.hpp>
+#include <libklio/msg/msg-store.hpp>
 
 namespace bfs = boost::filesystem;
 
@@ -43,11 +44,11 @@ namespace klio {
         virtual ~StoreFactory() {
         };
 
-        Store::Ptr create_sqlite3_store(const bfs::path& path);
-        Store::Ptr open_sqlite3_store(const bfs::path& path);
-        Store::Ptr create_msg_store();
-        Store::Ptr create_msg_store(const std::string& id, const std::string& key);
-        Store::Ptr create_msg_store(const std::string& url, const std::string& id, const std::string& key);
+        SQLite3Store::Ptr create_sqlite3_store(const bfs::path& path);
+        SQLite3Store::Ptr open_sqlite3_store(const bfs::path& path);
+        MSGStore::Ptr create_msg_store();
+        MSGStore::Ptr create_msg_store(const std::string& id, const std::string& key);
+        MSGStore::Ptr create_msg_store(const std::string& url, const std::string& id, const std::string& key);
 
     private:
         StoreFactory(const StoreFactory& original);

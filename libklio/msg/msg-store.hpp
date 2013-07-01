@@ -49,7 +49,19 @@ namespace klio {
         virtual ~MSGStore() {
             close();
         };
-        
+
+        const std::string url() const {
+            return _url;
+        };
+
+        const std::string id() const {
+            return _id;
+        };
+
+        const std::string key() const {
+            return _key;
+        };
+
         void open();
         void close();
         void initialize();

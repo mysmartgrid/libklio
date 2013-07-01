@@ -73,16 +73,23 @@ BOOST_AUTO_TEST_CASE(check_create_storage_msg) {
 
     std::cout << "Testing create storage utility for MSG" << std::endl;
     klio::StoreFactory::Ptr factory(new klio::StoreFactory());
-    std::string url = "https://dev3-api.mysmartgrid.de:8443";
+    std::string url = std::string("https://dev3-api.mysmartgrid.de:8443");
 
-    klio::Store::Ptr store;
+    klio::MSGStore::Ptr store;
 
     try {
         std::cout << "Attempting to create MSG store " << url << std::endl;
-        klio::Store::Ptr store(factory->create_msg_store(url, "d271f4de-36cd-f3d3-00db-3e96755d8736", "d271f4de-36cd-f3d3-00db-3e96755d8736"));
+        klio::MSGStore::Ptr store(factory->create_msg_store(url, 
+                std::string("d271f4de-36cd-f3d3-00db-3e96755d8736"), 
+                std::string("d221f4de-36cd-f3d3-00db-3e96755d8733")));
+
         std::cout << "Created: " << store->str() << std::endl;
         store->open();
         store->initialize();
+
+        BOOST_CHECK_EQUAL(store->url(), url);
+        BOOST_CHECK_EQUAL(store->id(), "d271f4de36cdf3d300db3e96755d8736");
+        BOOST_CHECK_EQUAL(store->key(), "d221f4de36cdf3d300db3e96755d8733");
 
         store->dispose();
 

@@ -51,8 +51,7 @@ void MSGStore::dispose() {
 const std::string MSGStore::str() {
 
     std::ostringstream str;
-    str << "MSG store " << _url << "/device/" << _id <<
-            " (activation code: " << _id.substr(0, 10) << ")";
+    str << "MSG store " << _url << "/device/" << _id;
     return str.str();
 };
 

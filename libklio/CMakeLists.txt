@@ -6,6 +6,8 @@ file(GLOB klio_sqlite3_hdrs sqlite3/*.h sqlite3/*.hpp)
 install(FILES ${klio_sqlite3_hdrs} DESTINATION include/libklio/sqlite3)
 file(GLOB klio_algorithm_hdrs algorithm/*.h algorithm/*.hpp)
 install(FILES ${klio_algorithm_hdrs} DESTINATION include/libklio/algorithm)
+file(GLOB klio_msg_hdrs msg/*.h msg/*.hpp)
+install(FILES ${klio_msg_hdrs} DESTINATION include/libklio/msg)
 
 configure_file(config.h.in ${CMAKE_BINARY_DIR}/libklio/config.h)
 install(FILES ${CMAKE_BINARY_DIR}/libklio/config.h DESTINATION include/libklio)

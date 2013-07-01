@@ -90,6 +90,7 @@ BOOST_AUTO_TEST_CASE(check_create_storage_msg) {
         BOOST_CHECK_EQUAL(store->url(), url);
         BOOST_CHECK_EQUAL(store->id(), "d271f4de36cdf3d300db3e96755d8736");
         BOOST_CHECK_EQUAL(store->key(), "d221f4de36cdf3d300db3e96755d8733");
+        BOOST_CHECK_EQUAL(store->activation_code(), "d271f4de36");
 
         store->dispose();
 

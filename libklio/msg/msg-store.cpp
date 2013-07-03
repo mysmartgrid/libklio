@@ -40,7 +40,7 @@ void MSGStore::close() {
 
 void MSGStore::dispose() {
 
-    std::string url = compose_url("device", _id);    
+    std::string url = compose_url("device", _id);
     perform_http_delete(url, _key);
 }
 
@@ -58,7 +58,7 @@ void MSGStore::add_sensor(klio::Sensor::Ptr sensor) {
 
 void MSGStore::remove_sensor(const klio::Sensor::Ptr sensor) {
 
-    std::string url = compose_url("sensor", sensor->uuid_short());  
+    std::string url = compose_url("sensor", sensor->uuid_short());
     perform_http_delete(url, _key);
 }
 
@@ -78,7 +78,7 @@ void MSGStore::update_sensor(const klio::Sensor::Ptr sensor) {
     json_object *jobject = json_object_new_object();
     json_object_object_add(jobject, "config", jconfig);
 
-    std::string url = compose_url("sensor", sensor->uuid_short()); 
+    std::string url = compose_url("sensor", sensor->uuid_short());
     perform_http_post(url, _key, jobject);
 }
 
@@ -177,7 +177,7 @@ void MSGStore::add_readings(klio::Sensor::Ptr sensor, const readings_t& readings
     json_object *jobject = json_object_new_object();
     json_object_object_add(jobject, "measurements", jtuples);
 
-    std::string url = compose_url("sensor", sensor->uuid_short()); 
+    std::string url = compose_url("sensor", sensor->uuid_short());
     perform_http_post(url, _key, jobject);
 }
 
@@ -246,7 +246,7 @@ std::pair<timestamp_t, double> MSGStore::get_last_reading(klio::Sensor::Ptr sens
 
 struct json_object *MSGStore::get_json_sensors() {
 
-    std::string url = compose_url("device", _id); 
+    std::string url = compose_url("device", _id);
     struct json_object *jobject = perform_http_get(url, _key);
 
     return json_object_object_get(jobject, "sensors");
@@ -257,7 +257,7 @@ struct json_object *MSGStore::get_json_readings(klio::Sensor::Ptr sensor) {
     std::ostringstream id;
     id << sensor->uuid_short() << "?interval=hour&unit=" << sensor->unit();
 
-    std::string url = compose_url("sensor", id.str());     
+    std::string url = compose_url("sensor", id.str());
     return perform_http_get(url, _key);
 }
 
@@ -371,7 +371,7 @@ CURL *MSGStore::create_curl_handler(std::string url, curl_slist *headers) {
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
-        // signal-handling in libcurl is NOT thread-safe.
+        // signal-handling in libklio is NOT thread-safe.
         curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
 
         //Required if next router has an ip-change.

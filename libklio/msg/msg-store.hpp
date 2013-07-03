@@ -98,7 +98,7 @@ namespace klio {
         klio::Sensor::Ptr create_sensor(std::string uuid_str, json_object *jsensor);
         std::string format_uuid_string(std::string meter);
         std::string compose_url(std::string object, std::string id);
-        
+
         //TODO: move these functions to another API to be shared with VZLogger
         struct json_object *perform_http_get(std::string url, std::string key);
         struct json_object *perform_http_post(std::string url, std::string key, json_object *jobject);

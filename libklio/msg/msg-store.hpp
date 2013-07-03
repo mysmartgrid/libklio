@@ -96,6 +96,7 @@ namespace klio {
         struct json_object *get_json_sensors();
         struct json_object *get_json_readings(klio::Sensor::Ptr sensor);
         klio::Sensor::Ptr create_sensor(std::string uuid_str, json_object *jsensor);
+        std::pair<timestamp_t, double > create_reading_pair(json_object *jpair);
         std::string format_uuid_string(std::string meter);
         std::string compose_url(std::string object, std::string id);
 

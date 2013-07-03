@@ -17,7 +17,6 @@
 #include "msg-store.hpp"
 
 
-using namespace boost::uuids;
 using namespace klio;
 
 void MSGStore::open() {
@@ -84,7 +83,7 @@ void MSGStore::update_sensor(const klio::Sensor::Ptr sensor) {
 
 klio::Sensor::Ptr MSGStore::get_sensor(const klio::Sensor::uuid_t& uuid) {
 
-    std::string uuid_str = to_string(uuid);
+    std::string uuid_str = boost::uuids::to_string(uuid);
     json_object *jsensors = get_json_sensors();
 
     for (int i = 0; i < json_object_array_length(jsensors); i++) {
@@ -99,7 +98,7 @@ klio::Sensor::Ptr MSGStore::get_sensor(const klio::Sensor::uuid_t& uuid) {
         }
     }
     std::ostringstream err;
-    err << "Sensor " << to_string(uuid) << " could not be found.";
+    err << "Sensor " << uuid_str << " could not be found.";
     throw StoreException(err.str());
 }
 
@@ -190,25 +189,15 @@ readings_t_Ptr MSGStore::get_all_readings(klio::Sensor::Ptr sensor) {
 
     struct json_object *jobject = get_json_readings(sensor);
     int length = json_object_array_length(jobject);
-
-    klio::TimeConverter::Ptr tc(new klio::TimeConverter());
     readings_t_Ptr readings(new readings_t());
 
     for (int i = 0; i < length; i++) {
 
         json_object *jpair = json_object_array_get_idx(jobject, i);
-        json_object *jtimestamp = json_object_array_get_idx(jpair, 0);
-        json_object *jvalue = json_object_array_get_idx(jpair, 1);
+        std::pair<timestamp_t, double > reading = create_reading_pair(jpair);
 
-        long epoch = json_object_get_int(jtimestamp);
-        timestamp_t timestamp = tc->convert_from_epoch(epoch);
-        double value = json_object_get_double(jvalue);
-
-        if (!isnan(value)) {
-            readings->insert(std::pair<timestamp_t, double>(
-                    timestamp,
-                    value
-                    ));
+        if (reading.first > 0) {
+            readings->insert(reading);
         }
     }
     return readings;
@@ -227,16 +216,10 @@ std::pair<timestamp_t, double> MSGStore::get_last_reading(klio::Sensor::Ptr sens
 
     if (i >= 0) {
         json_object *jpair = json_object_array_get_idx(jreadings, i);
-        json_object *jtimestamp = json_object_array_get_idx(jpair, 0);
-        json_object *jvalue = json_object_array_get_idx(jpair, 1);
+        std::pair<timestamp_t, double > reading = create_reading_pair(jpair);
 
-        long epoch = json_object_get_int(jtimestamp);
-        klio::TimeConverter::Ptr tc(new klio::TimeConverter());
-        timestamp_t timestamp = tc->convert_from_epoch(epoch);
-        double value = json_object_get_double(jvalue);
-
-        if (!isnan(value)) {
-            return std::pair<timestamp_t, double>(timestamp, value);
+        if (reading.first > 0) {
+            return reading;
         }
     }
     std::ostringstream err;
@@ -280,6 +263,25 @@ klio::Sensor::Ptr MSGStore::create_sensor(std::string uuid_str, json_object *jse
             std::string(description),
             std::string(unit),
             std::string("Europe/Berlin"));
+}
+
+std::pair<timestamp_t, double > MSGStore::create_reading_pair(json_object *jpair) {
+
+    json_object *jvalue = json_object_array_get_idx(jpair, 1);
+    double value = json_object_get_double(jvalue);
+
+    if (isnan(value)) {
+        return std::pair<timestamp_t, double>(0, 0);
+
+    } else {
+        json_object *jtimestamp = json_object_array_get_idx(jpair, 0);
+        long epoch = json_object_get_int(jtimestamp);
+
+        klio::TimeConverter::Ptr tc(new klio::TimeConverter());
+        timestamp_t timestamp = tc->convert_from_epoch(epoch);
+
+        return std::pair<timestamp_t, double>(timestamp, value);
+    }
 }
 
 std::string MSGStore::format_uuid_string(std::string meter) {

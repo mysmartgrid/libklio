@@ -112,6 +112,11 @@ builds the package with release settings (i.e. full optimization, no
 debug symbols) and places the created packages in the 'build'
 subdirectory.
 
+Alternativ way to build libklio:
+    $ mkdir build
+    $ (cd build && cmake <libklio_source_dir> && make)
+    
+
 ## BUGS 
 The library was developed with great care, but we cannot guarantee that
 no bugs are in the library. Please submit any issues using the issue

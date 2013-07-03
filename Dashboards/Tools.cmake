@@ -2,7 +2,7 @@
 
 # generic support code, provides the kde_ctest_setup() macro, which sets up everything required:
 get_filename_component(_currentDir "${CMAKE_CURRENT_LIST_FILE}" PATH)
-include( "${_currentDir}/KDECTestNightly.cmake")
+#include( "${_currentDir}/KDECTestNightly.cmake")
 
 macro(my_ctest_setup)
   set(_git_default_branch "development")
@@ -124,7 +124,7 @@ function(FindOS OS_NAME OS_VERSION)
       if( ${releasefile} MATCHES "redhat-release" )
 	ReadRelease_redhat(${_data})# OS_NAME OS_VERSION)
       elseif( ${releasefile} MATCHES "SuSE-release" )
-	ReadRelease_SuSE(${_data})# OS_NAME OS_VERSION)
+	ReadRelease_SuSE(${_data} OS_NAME OS_VERSION)
       elseif( ${releasefile} MATCHES "lsb-release" )
 	ReadRelease_lsb(${_data})# OS_NAME OS_VERSION)
       endif( ${releasefile} MATCHES "redhat-release" )

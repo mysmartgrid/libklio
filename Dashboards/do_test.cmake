@@ -116,7 +116,7 @@ endif()
 set (CTEST_BUILD_NAME "${CMAKE_SYSTEM_PROCESSOR}-${_compiler_str}${_boost_str}-${GIT_BRANCH}")
 
 set (CTEST_BASE_DIRECTORY   "${BUILD_TMP_DIR}/$ENV{USER}/${CTEST_PROJECT_NAME}/${TESTING_MODEL}")
-set (CTEST_SOURCE_DIRECTORY "${CTEST_BASE_DIRECTORY}/src-${GIT_BRANCH}-${CMAKE_SYSTEM_PROCESSORTARGET}" )
+set (CTEST_SOURCE_DIRECTORY "${CTEST_BASE_DIRECTORY}/src-${GIT_BRANCH}-${CMAKE_SYSTEM_PROCESSOR}" )
 set (CTEST_BINARY_DIRECTORY "${CTEST_BASE_DIRECTORY}/build-${CTEST_BUILD_NAME}")
 set (CTEST_INSTALL_DIRECTORY "${CTEST_BASE_DIRECTORY}/install-${CTEST_BUILD_NAME}")
 
@@ -149,13 +149,16 @@ macro (set_if_exists NAME PATH)
   if (EXISTS ${PATH})
     set (${NAME} ${PATH})
     set ($ENV{Name} ${PATH})
+    message("====> Path ${NAME}=${PATH} found.")
+  else()
+    message("====> Path ${PATH} does not exists.")
   endif()
 endmacro()
 
 
 if( NOT CMAKE_TOOLCHAIN_FILE )
   set (EXTERNAL_SOFTWARE "$ENV{HOME}/external_software")
-  set_if_exists (BOOST_ROOT ${EXTERNAL_SOFTWARE}/boost/${BOOST_VERSION}/${ADDITIONAL_SUFFIX})
+  set_if_exists (BOOST_ROOT ${EXTERNAL_SOFTWARE}/boost/${BOOST_VERSION})
   set_if_exists (GRAPHVIZ_HOME ${EXTERNAL_SOFTWARE}/graphviz/2.24)
 else()
   set_if_exists (EXTERNAL_SOFTWARE "${_baseDir}/opt")
@@ -218,6 +221,9 @@ if (NOT EXISTS ${CTEST_SOURCE_DIRECTORY}/.git)
   set (first_checkout 1)
 else()
   set (first_checkout 0)
+endif()
+if(FORCE_CONTINUOUS)
+  set (first_checkout 1)
 endif()
 
 # do testing #######################################################################
@@ -306,15 +312,18 @@ if( (${UPDATE_RETURN_VALUE} GREATER 0 AND PROPERLY_BUILT_AND_INSTALLED) OR ${fir
     if( NOT ${GIT_BRANCH} STREQUAL "master")
       set(_remote_dir "packages/${OS_NAME}/${OS_VERSION}/${CMAKE_SYSTEM_PROCESSOR}/${GIT_BRANCH}")
     endif()
+    message("Execute: ssh ${_export_host} mkdir -p ${_remote_dir}")
     execute_process(
       COMMAND ssh ${_export_host} mkdir -p ${_remote_dir}
       )
+    message("Execute scp -p ${_package_file} ${_export_host}:${_remote_dir}/${_package_file}")
     execute_process(
       COMMAND scp -p ${_package_file} ${_export_host}:${_remote_dir}/${_package_file}
       WORKING_DIRECTORY ${CTEST_BINARY_DIRECTORY}/${subproject}
       )
   endif()
-
+else()
+  message("Do not push the packages.")
 endif()
 
 #file (REMOVE_RECURSE "${CTEST_INSTALL_DIRECTORY}")

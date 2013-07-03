@@ -12,18 +12,19 @@ OPTION(ENABLE_LOGGING
 # have the full monty in makefiles
 set(CMAKE_VERBOSE_MAKEFILE true)
 
-# use ctest
-include(CTest)
-enable_testing()
-
 set(V_MAJOR 0)
 set(V_MINOR 2)
 set(V_PATCH 0)
 
+# use ctest
+include(CTest)
+enable_testing()
+
 # add a path where some libraries might be stored
 set(CMAKE_ADDITIONAL_PATH "$ENV{CMAKE_ADDITIONAL_PATH}" CACHE PATH "Path where many locally installed libraries can be found")
 
-###################################################################################################
+################################################################
+  ###################################
 # No user settings below
 ###################################################################################################
 
@@ -32,6 +33,10 @@ set(CMAKE_ADDITIONAL_PATH "$ENV{CMAKE_ADDITIONAL_PATH}" CACHE PATH "Path where m
 set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} ${CMAKE_ADDITIONAL_PATH}/include)
 set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ${CMAKE_ADDITIONAL_PATH}/lib)
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/modules ${CMAKE_MODULE_PATH})
+
+include (CheckCompiler)
+info_compiler()
+
 include (UseCodeCoverage)
 
 set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wno-non-virtual-dtor -g -fomit-frame-pointer")

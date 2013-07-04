@@ -12,17 +12,19 @@ OPTION(ENABLE_LOGGING
 # have the full monty in makefiles
 set(CMAKE_VERBOSE_MAKEFILE true)
 
-# use ctest
-ENABLE_TESTING()
-
 set(V_MAJOR 0)
 set(V_MINOR 2)
 set(V_PATCH 0)
 
+# use ctest
+include(CTest)
+enable_testing()
+
 # add a path where some libraries might be stored
 set(CMAKE_ADDITIONAL_PATH "$ENV{CMAKE_ADDITIONAL_PATH}" CACHE PATH "Path where many locally installed libraries can be found")
 
-###################################################################################################
+################################################################
+  ###################################
 # No user settings below
 ###################################################################################################
 
@@ -32,7 +34,12 @@ set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} ${CMAKE_ADDITIONAL_PATH}/include)
 set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ${CMAKE_ADDITIONAL_PATH}/lib)
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/modules ${CMAKE_MODULE_PATH})
 
-set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wno-non-virtual-dtor -g -fomit-frame-pointer -Werror")
+include (CheckCompiler)
+info_compiler()
+
+include (UseCodeCoverage)
+
+set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wno-non-virtual-dtor -g -fomit-frame-pointer")
 
 set(CMAKE_CXX_FLAGS_EXPERIMENTAL "-O0 -g -ggdb -Wall -Werror -W -Wshadow")
 set(CMAKE_CXX_FLAGS_EXPERIMENTAL "${CMAKE_CXX_FLAGS_EXPERIMENTAL} -Wunused-variable")
@@ -53,11 +60,15 @@ set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_PROFILE} -ftest-coverage")
 
 # Releases are made with the release build. Optimize code and strip binaries.
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -s -Wno-non-virtual-dtor")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wno-unused-but-set-variable")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wno-unused-variable")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wno-sign-compare")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wno-uninitialized")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wno-attributes")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Werror")
 
 # always set these flags
-set(CMAKE_CXX_FLAGS "-Wall -pthread")
-# ignore warning from boost for time being
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-but-set-variable -Wno-unused-variable")
+set(CMAKE_CXX_FLAGS "-Wall ")
 
 FIND_PACKAGE(Sqlite)
 # We depend on boost >= 1.46.1 because of the updated filesystem
@@ -66,6 +77,7 @@ FIND_PACKAGE(Sqlite)
 # , section " The mess that is Boost_ADDITIONAL_VERSIONS (sorry?)"
 SET(Boost_ADDITIONAL_VERSIONS "1.46.1" "1.47" "1.47.1" "1.48.0" "1.48"
   "1.49.0" "1.49" "1.50.0" "1.50")
+set (Boost_USE_STATIC_LIBS ON)
 SET(Boost_DETAILED_FAILURE_MSG true)
 FIND_PACKAGE(Boost 1.46.1 
   COMPONENTS test_exec_monitor program_options filesystem system date_time)
@@ -90,29 +102,27 @@ INSTALL(FILES share/libklio/date_time_zonespec.csv
 
 # CPACK packaging
 INCLUDE(InstallRequiredSystemLibraries)
-SET(CPACK_GENERATOR "STGZ;TGZ;DEB")
-
+SET(CPACK_GENERATOR "DEB" "STGZ" "TGZ" "TBZ2")
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "klio library")
+SET(CPACK_PACKAGE_VENDOR "Fraunhofer ITWM")
+set(CPACK_PACKAGE_CONTACT "Fraunhofer ITWM <support@mysmartgrid.de>")
+SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
 set(CPACK_PACKAGE_NAME "libklio")
 SET(CPACK_PACKAGE_VERSION_MAJOR ${V_MAJOR})
 SET(CPACK_PACKAGE_VERSION_MINOR ${V_MINOR})
 SET(CPACK_PACKAGE_VERSION_PATCH ${V_PATCH})
-SET(CPACK_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
-set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_${CPACK_PACKAGE_VERSION}-1_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
-SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "klio library")
-SET(CPACK_PACKAGE_VENDOR "Fraunhofer ITWM")
-SET(CPACK_PACKAGE_CONTACT "dalheimer@itwm.fhg.de")
-SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
+include(CPackTools)
 
-set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "armhf")
 set(CPACK_DEBIAN_PACKAGE_DEPENDS "libstdc++6 (>= 4.6.0), libc6 (>= 2.15)")
 
-SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
-SET(CPACK_STRIP_FILES "bin/klio-sensor;bin/klio-store")
-SET(CPACK_SOURCE_STRIP_FILES TRUE)
-SET(CPACK_PACKAGE_INSTALL_DIRECTORY "CMake ${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
+#SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.txt")
+#SET(CPACK_PACKAGE_INSTALL_DIRECTORY "CMake ${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
 SET(CPACK_PACKAGE_EXECUTABLES "klio-sensor" "Functions for handling sensors")
 SET(CPACK_PACKAGE_EXECUTABLES "klio-store" "Tool for dealing with sensor data stores")
-INCLUDE(CPack)
+set(CPACK_STRIP_FILES "usr/bin/klio-export;usr/bin/klio-sensor;usr/bin/klio-store")
+SET(CPACK_SOURCE_STRIP_FILES "")
+SET(CPACK_SOURCE_STRIP_FILES TRUE)
+set(CPACK_SECTION "net")
 
 
 ### print some output for the user

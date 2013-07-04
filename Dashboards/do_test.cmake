@@ -18,7 +18,7 @@ set(CTEST_USE_LAUNCHERS   0)
 set(CTEST_TEST_TIMEOUT   180)
 set(KDE_CTEST_DASHBOARD_DIR "/tmp/$ENV{USER}")
 
-set(CTEST_PACKAGE_SITE "packages.mysmartgrid.de")
+set(CTEST_PACKAGE_SITE "msgrid@packages.mysmartgrid.de")
 
 site_name(CTEST_SITE)
 
@@ -179,8 +179,8 @@ set (CTEST_CMAKE_GENERATOR "Unix Makefiles")
 
 if (NOT "${TESTING_MODEL}" STREQUAL "Continuous")
   file (REMOVE_RECURSE "${CTEST_INSTALL_DIRECTORY}")
-  ctest_empty_binary_directory ("${CTEST_BINARY_DIRECTORY}")
 endif()
+ctest_empty_binary_directory ("${CTEST_BINARY_DIRECTORY}")
 
 if (NOT EXISTS "${CTEST_BINARY_DIRECTORY}")
   file (MAKE_DIRECTORY "${CTEST_BINARY_DIRECTORY}")

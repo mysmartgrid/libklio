@@ -59,7 +59,7 @@ set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_PROFILE} -Wno-non-virtual-dtor -p
 set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_PROFILE} -ftest-coverage")
 
 # Releases are made with the release build. Optimize code and strip binaries.
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -s -Wno-non-virtual-dtor")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wno-non-virtual-dtor")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wno-unused-but-set-variable")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wno-unused-variable")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wno-sign-compare")
@@ -111,7 +111,6 @@ set(CPACK_PACKAGE_NAME "libklio")
 SET(CPACK_PACKAGE_VERSION_MAJOR ${V_MAJOR})
 SET(CPACK_PACKAGE_VERSION_MINOR ${V_MINOR})
 SET(CPACK_PACKAGE_VERSION_PATCH ${V_PATCH})
-include(CPackTools)
 
 set(CPACK_DEBIAN_PACKAGE_DEPENDS "libstdc++6 (>= 4.6.0), libc6 (>= 2.15)")
 
@@ -123,6 +122,7 @@ set(CPACK_STRIP_FILES "usr/bin/klio-export;usr/bin/klio-sensor;usr/bin/klio-stor
 SET(CPACK_SOURCE_STRIP_FILES "")
 SET(CPACK_SOURCE_STRIP_FILES TRUE)
 set(CPACK_SECTION "net")
+include(CPackTools)
 
 
 ### print some output for the user

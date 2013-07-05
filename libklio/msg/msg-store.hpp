@@ -72,19 +72,19 @@ namespace klio {
         void dispose();
         const std::string str();
 
-        virtual void add_sensor(klio::Sensor::Ptr sensor);
+        virtual void add_sensor(const klio::Sensor::Ptr sensor);
         virtual void remove_sensor(const klio::Sensor::Ptr sensor);
         virtual void update_sensor(const klio::Sensor::Ptr sensor);
         virtual klio::Sensor::Ptr get_sensor(const klio::Sensor::uuid_t& uuid);
         virtual std::vector<klio::Sensor::Ptr> get_sensors_by_name(const std::string& name);
         virtual std::vector<klio::Sensor::uuid_t> get_sensor_uuids();
 
-        virtual void add_reading(klio::Sensor::Ptr sensor, timestamp_t timestamp, double value);
-        virtual void add_readings(klio::Sensor::Ptr sensor, const readings_t& readings);
-        virtual void update_readings(klio::Sensor::Ptr sensor, const readings_t& readings);
-        virtual readings_t_Ptr get_all_readings(klio::Sensor::Ptr sensor);
-        virtual unsigned long int get_num_readings(klio::Sensor::Ptr sensor);
-        virtual std::pair<timestamp_t, double> get_last_reading(klio::Sensor::Ptr sensor);
+        virtual void add_reading(const klio::Sensor::Ptr sensor, timestamp_t timestamp, double value);
+        virtual void add_readings(const klio::Sensor::Ptr sensor, const readings_t& readings);
+        virtual void update_readings(const klio::Sensor::Ptr sensor, const readings_t& readings);
+        virtual readings_t_Ptr get_all_readings(const klio::Sensor::Ptr sensor);
+        virtual unsigned long int get_num_readings(const klio::Sensor::Ptr sensor);
+        virtual std::pair<timestamp_t, double> get_last_reading(const klio::Sensor::Ptr sensor);
 
     private:
         MSGStore(const MSGStore& original);
@@ -94,19 +94,22 @@ namespace klio {
         std::string _key;
 
         struct json_object *get_json_sensors();
-        struct json_object *get_json_readings(klio::Sensor::Ptr sensor);
-        klio::Sensor::Ptr create_sensor(std::string uuid_str, json_object *jsensor);
+        struct json_object *get_json_readings(const klio::Sensor::Ptr sensor);
+        klio::Sensor::Ptr create_sensor(const std::string& uuid_str, json_object *jsensor);
         std::pair<timestamp_t, double > create_reading_pair(json_object *jpair);
-        std::string format_uuid_string(std::string meter);
-        std::string compose_url(std::string object, std::string id);
+        const std::string format_uuid_string(const std::string& meter);
+        const std::string compose_device_url();
+        const std::string compose_sensor_url(const klio::Sensor::Ptr sensor);
+        const std::string compose_sensor_url(const klio::Sensor::Ptr sensor, const std::string& query);
+        const std::string compose_url(const std::string& object, const std::string& id);
 
         //TODO: move these functions to another API to be shared with VZLogger
-        struct json_object *perform_http_get(std::string url, std::string key);
-        struct json_object *perform_http_post(std::string url, std::string key, json_object *jobject);
-        void *perform_http_delete(std::string url, std::string key);
+        struct json_object *perform_http_get(const std::string& url, const std::string& key);
+        struct json_object *perform_http_post(const std::string& url, const std::string& key, json_object *jobject);
+        void *perform_http_delete(const std::string& url, const std::string& key);
         curl_slist *create_curl_headers();
-        CURL *create_curl_handler(std::string url, curl_slist *headers);
-        std::string digest_message(std::string data, std::string key);
+        CURL *create_curl_handler(const std::string& url, curl_slist *headers);
+        std::string digest_message(const std::string& data, const std::string& key);
         struct json_object *perform_http_request(CURL *curl);
     };
 };

@@ -120,7 +120,7 @@ BOOST_AUTO_TEST_CASE(check_add_msg_sensor) {
                 std::string("89c18074-8bcf-240b-db7c-c1281038adcb"),
                 std::string("Test libklio"),
                 std::string("this is a sensor description"),
-                std::string("kWh"),
+                std::string("kwh"),
                 std::string("Europe/Berlin")));
 
         store->add_sensor(sensor);

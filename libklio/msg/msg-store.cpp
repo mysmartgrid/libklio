@@ -30,7 +30,7 @@ void MSGStore::initialize() {
     json_object_object_add(jobject, "key", jkey);
     json_object_object_add(jobject, "description", jdescription);
 
-    std::string url = compose_url("device", _id);
+    std::string url = compose_device_url();
     perform_http_post(url, _key, jobject);
 }
 
@@ -39,25 +39,25 @@ void MSGStore::close() {
 
 void MSGStore::dispose() {
 
-    std::string url = compose_url("device", _id);
+    std::string url = compose_device_url();
     perform_http_delete(url, _key);
 }
 
 const std::string MSGStore::str() {
 
     std::ostringstream str;
-    str << "MSG store " << compose_url("device", _id);
+    str << "MSG store " << compose_device_url();
     return str.str();
 };
 
-void MSGStore::add_sensor(klio::Sensor::Ptr sensor) {
+void MSGStore::add_sensor(const klio::Sensor::Ptr sensor) {
 
     update_sensor(sensor);
 }
 
 void MSGStore::remove_sensor(const klio::Sensor::Ptr sensor) {
 
-    std::string url = compose_url("sensor", sensor->uuid_short());
+    std::string url = compose_sensor_url(sensor);
     perform_http_delete(url, _key);
 }
 
@@ -77,7 +77,7 @@ void MSGStore::update_sensor(const klio::Sensor::Ptr sensor) {
     json_object *jobject = json_object_new_object();
     json_object_object_add(jobject, "config", jconfig);
 
-    std::string url = compose_url("sensor", sensor->uuid_short());
+    std::string url = compose_sensor_url(sensor);
     perform_http_post(url, _key, jobject);
 }
 
@@ -148,7 +148,7 @@ std::vector<klio::Sensor::uuid_t> MSGStore::get_sensor_uuids() {
     return uuids;
 }
 
-void MSGStore::add_reading(klio::Sensor::Ptr sensor, timestamp_t timestamp, double value) {
+void MSGStore::add_reading(const klio::Sensor::Ptr sensor, timestamp_t timestamp, double value) {
 
     klio::reading_t reading(timestamp, value);
     readings_t readings;
@@ -157,7 +157,7 @@ void MSGStore::add_reading(klio::Sensor::Ptr sensor, timestamp_t timestamp, doub
     add_readings(sensor, readings);
 }
 
-void MSGStore::add_readings(klio::Sensor::Ptr sensor, const readings_t& readings) {
+void MSGStore::add_readings(const klio::Sensor::Ptr sensor, const readings_t& readings) {
 
     json_object *jtuples = json_object_new_array();
 
@@ -176,16 +176,16 @@ void MSGStore::add_readings(klio::Sensor::Ptr sensor, const readings_t& readings
     json_object *jobject = json_object_new_object();
     json_object_object_add(jobject, "measurements", jtuples);
 
-    std::string url = compose_url("sensor", sensor->uuid_short());
+    std::string url = compose_sensor_url(sensor);
     perform_http_post(url, _key, jobject);
 }
 
-void MSGStore::update_readings(klio::Sensor::Ptr sensor, const readings_t& readings) {
+void MSGStore::update_readings(const klio::Sensor::Ptr sensor, const readings_t& readings) {
 
     add_readings(sensor, readings);
 }
 
-readings_t_Ptr MSGStore::get_all_readings(klio::Sensor::Ptr sensor) {
+readings_t_Ptr MSGStore::get_all_readings(const klio::Sensor::Ptr sensor) {
 
     struct json_object *jobject = get_json_readings(sensor);
     int length = json_object_array_length(jobject);
@@ -203,13 +203,13 @@ readings_t_Ptr MSGStore::get_all_readings(klio::Sensor::Ptr sensor) {
     return readings;
 }
 
-unsigned long int MSGStore::get_num_readings(klio::Sensor::Ptr sensor) {
+unsigned long int MSGStore::get_num_readings(const klio::Sensor::Ptr sensor) {
 
     json_object *jreadings = get_json_readings(sensor);
     return json_object_array_length(jreadings);
 }
 
-std::pair<timestamp_t, double> MSGStore::get_last_reading(klio::Sensor::Ptr sensor) {
+std::pair<timestamp_t, double> MSGStore::get_last_reading(const klio::Sensor::Ptr sensor) {
 
     json_object *jreadings = get_json_readings(sensor);
     int i = json_object_array_length(jreadings) - 1;
@@ -229,22 +229,22 @@ std::pair<timestamp_t, double> MSGStore::get_last_reading(klio::Sensor::Ptr sens
 
 struct json_object *MSGStore::get_json_sensors() {
 
-    std::string url = compose_url("device", _id);
+    std::string url = compose_device_url();
     struct json_object *jobject = perform_http_get(url, _key);
 
     return json_object_object_get(jobject, "sensors");
 }
 
-struct json_object *MSGStore::get_json_readings(klio::Sensor::Ptr sensor) {
+struct json_object *MSGStore::get_json_readings(const klio::Sensor::Ptr sensor) {
 
-    std::ostringstream id;
-    id << sensor->uuid_short() << "?interval=hour&unit=" << sensor->unit();
+    std::ostringstream query;
+    query << "interval=hour&unit=" << sensor->unit();
 
-    std::string url = compose_url("sensor", id.str());
+    std::string url = compose_sensor_url(sensor, query.str());
     return perform_http_get(url, _key);
 }
 
-klio::Sensor::Ptr MSGStore::create_sensor(std::string uuid_str, json_object *jsensor) {
+klio::Sensor::Ptr MSGStore::create_sensor(const std::string& uuid_str, json_object *jsensor) {
 
     json_object *jdescription = json_object_object_get(jsensor, "description");
     const char* description = json_object_get_string(jdescription);
@@ -284,7 +284,7 @@ std::pair<timestamp_t, double > MSGStore::create_reading_pair(json_object *jpair
     }
 }
 
-std::string MSGStore::format_uuid_string(std::string meter) {
+const std::string MSGStore::format_uuid_string(const std::string& meter) {
 
     std::stringstream oss;
     for (size_t i = 0; i < meter.length(); i++) {
@@ -296,19 +296,36 @@ std::string MSGStore::format_uuid_string(std::string meter) {
     return oss.str();
 }
 
-std::string MSGStore::compose_url(std::string object, std::string id) {
+const std::string MSGStore::compose_device_url() {
+
+    return compose_url(std::string("device"), _id);
+}
+
+const std::string MSGStore::compose_sensor_url(const klio::Sensor::Ptr sensor) {
+
+    return compose_url(std::string("sensor"), sensor->uuid_short());
+}
+
+const std::string MSGStore::compose_sensor_url(const klio::Sensor::Ptr sensor, const std::string& query) {
+
+    std::ostringstream oss;
+    oss << compose_sensor_url(sensor) << "?" << query;
+    return oss.str();
+}
+
+const std::string MSGStore::compose_url(const std::string& object, const std::string& id) {
 
     std::ostringstream oss;
     oss << _url << "/" << object << "/" << id;
     return oss.str();
 }
 
-struct json_object *MSGStore::perform_http_get(std::string url, std::string key) {
+struct json_object *MSGStore::perform_http_get(const std::string& url, const std::string& key) {
 
     curl_slist *headers = create_curl_headers();
 
     std::ostringstream header;
-    header << "X-Digest: " << digest_message("", key);
+    header << "X-Digest: " << digest_message("", key);//TODO: replace ""
     headers = curl_slist_append(headers, header.str().c_str());
 
     CURL *curl = create_curl_handler(url, headers);
@@ -316,7 +333,7 @@ struct json_object *MSGStore::perform_http_get(std::string url, std::string key)
     return perform_http_request(curl);
 }
 
-struct json_object *MSGStore::perform_http_post(std::string url, std::string key, json_object *jobject) {
+struct json_object *MSGStore::perform_http_post(const std::string& url, const std::string& key, json_object *jobject) {
 
     const char* body = json_object_to_json_string(jobject);
 
@@ -337,7 +354,7 @@ struct json_object *MSGStore::perform_http_post(std::string url, std::string key
     return perform_http_request(curl);
 }
 
-void *MSGStore::perform_http_delete(std::string url, std::string key) {
+void *MSGStore::perform_http_delete(const std::string& url, const std::string& key) {
 
     curl_slist *headers = create_curl_headers();
 
@@ -361,7 +378,7 @@ curl_slist *MSGStore::create_curl_headers() {
     return headers;
 }
 
-CURL *MSGStore::create_curl_handler(std::string url, curl_slist *headers) {
+CURL *MSGStore::create_curl_handler(const std::string& url, curl_slist *headers) {
 
     curl_global_init(CURL_GLOBAL_DEFAULT);
     CURL *curl = curl_easy_init();
@@ -388,7 +405,7 @@ CURL *MSGStore::create_curl_handler(std::string url, curl_slist *headers) {
     }
 }
 
-std::string MSGStore::digest_message(std::string data, std::string key) {
+std::string MSGStore::digest_message(const std::string& data, const std::string& key) {
 
     HMAC_CTX hmacContext;
     HMAC_Init(&hmacContext, key.c_str(), key.length(), EVP_sha1());

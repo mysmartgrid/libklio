@@ -170,7 +170,7 @@ endif()
 
 # cmake options ####################################################################
 
-set (CMAKE_INSTALL_PREFIX ${CTEST_INSTALL_DIRECTORY})
+set (CMAKE_INSTALL_PREFIX "/usr/")
 set (CTEST_BUILD_FLAGS "-k -j ${PARALLEL_JOBS}")
 set (CTEST_CMAKE_GENERATOR "Unix Makefiles")
 
@@ -249,10 +249,18 @@ if( STAGING_DIR)
 endif( STAGING_DIR)
 
 if (${LAST_RETURN_VALUE} EQUAL 0)
-  ctest_build (TARGET install NUMBER_ERRORS BUILD_ERRORS
+  ctest_build (NUMBER_ERRORS BUILD_ERRORS
     RETURN_VALUE LAST_RETURN_VALUE)
 
-  if (${BUILD_ERRORS} EQUAL 0)
+  message("======> run Install:  <===")
+  execute_process(
+    COMMAND cmake -DCMAKE_INSTALL_PREFIX=${CTEST_INSTALL_DIRECTORY} -P cmake_install.cmake
+    WORKING_DIRECTORY ${CTEST_BINARY_DIRECTORY}
+    RESULT_VARIABLE INSTALL_ERRORS
+    )
+  message("======> Install: ${INSTALL_ERRORS} <===")
+
+  if (${BUILD_ERRORS} EQUAL 0 AND ${INSTALL_ERRORS} EQUAL 0)
     set (PROPERLY_BUILT_AND_INSTALLED TRUE)
   endif()
 

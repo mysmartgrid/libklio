@@ -21,7 +21,7 @@ install: $(BUILDDIR)
 	@cd $(BUILDDIR) && $(MAKE) $(MFLAGS) install
 
 $(BUILDDIR):
-	@mkdir $(BUILDDIR)
+	@mkdir -p $(BUILDDIR)
 
 clean:
 	@cd $(BUILDDIR) && $(MAKE) $(MFLAGS) clean

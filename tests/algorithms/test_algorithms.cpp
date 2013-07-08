@@ -1,13 +1,14 @@
 /**
  * This file is part of libklio.
  *
- * (c) Fraunhofer ITWM - Mathias Dalheimer <dalheimer@itwm.fhg.de>, 2011
+ * (c) Fraunhofer ITWM - Mathias Dalheimer <dalheimer@itwm.fhg.de>,    2010
+ *                       Ely de Oliveira   <ely.oliveira@itwm.fhg.de>, 2013
  *
  * libklio is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * libklio is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -15,15 +16,14 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with libklio. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
-#include <boost/test/unit_test.hpp>
 #include <iostream>
+#include <boost/test/unit_test.hpp>
 #include <libklio/algorithm/collate.hpp>
 #include <libklio/types.hpp>
 #include <libklio/sensor.hpp>
-#include <libklio/sensorfactory.hpp>
+#include <libklio/sensor-factory.hpp>
 #include <libklio/store.hpp>
 #include <libklio/store-factory.hpp>
 #include <testconfig.h>
@@ -33,7 +33,7 @@ klio::Store::Ptr generate_store() {
   klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
   bfs::path db(TEST_DB_FILE);
   std::cout << "Attempting to create " << db << std::endl;
-  klio::Store::Ptr store(factory->createStore(klio::SQLITE3, db));
+  klio::Store::Ptr store(factory->open_sqlite3_store(db));
   std::cout << "Created: " << store->str() << std::endl;
   store->open(); // Second call to open - should not break
   store->initialize();
@@ -62,13 +62,13 @@ BOOST_AUTO_TEST_CASE ( check_collate ) {
     klio::Store::Ptr store(generate_store());
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
     klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", "Europe/Berlin")); 
-    store->addSensor(sensor1);
+    store->add_sensor(sensor1);
     std::cout << "Created: " << sensor1->str() << std::endl;
     klio::Sensor::Ptr sensor2(sensor_factory->createSensor("sensor2", "Watt", "Europe/Berlin")); 
-    store->addSensor(sensor2);
+    store->add_sensor(sensor2);
     std::cout << "Created: " << sensor2->str() << std::endl;
     klio::Sensor::Ptr sensor3(sensor_factory->createSensor("sensor3", "Watt", "Europe/Berlin")); 
-    store->addSensor(sensor3);
+    store->add_sensor(sensor3);
     std::cout << "Created: " << sensor3->str() << std::endl;
 
     klio::sensors_t sensors;
@@ -103,4 +103,3 @@ BOOST_AUTO_TEST_CASE ( check_collate ) {
 
   //BOOST_CHECK_EQUAL (timestamp, reversed_ts);
 }
-

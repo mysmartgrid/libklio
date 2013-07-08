@@ -254,7 +254,7 @@ if (${LAST_RETURN_VALUE} EQUAL 0)
 
   message("======> run Install:  <===")
   execute_process(
-    COMMAND cmake -DCMAKE_INSTALL_PREFIX=${CTEST_INSTALL_DIRECTORY} -P cmake_install.cmake
+    COMMAND ${CMAKE_COMMAND} -DCMAKE_INSTALL_PREFIX=${CTEST_INSTALL_DIRECTORY} -P cmake_install.cmake
     WORKING_DIRECTORY ${CTEST_BINARY_DIRECTORY}
     RESULT_VARIABLE INSTALL_ERRORS
     )

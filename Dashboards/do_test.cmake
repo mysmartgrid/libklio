@@ -50,7 +50,7 @@ if (NOT GIT_BRANCH)
 endif()
 
 if (NOT BOOST_VERSION)
-#  set (BOOST_VERSION "1.49")
+  set (BOOST_VERSION "1.49")
 endif()
 
 if (NOT COMPILER)

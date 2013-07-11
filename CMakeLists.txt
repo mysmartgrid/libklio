@@ -118,6 +118,9 @@ INSTALL(FILES README.md LICENSE
 INSTALL(FILES share/libklio/date_time_zonespec.csv 
     DESTINATION share/libklio
   )
+configure_file(share/libklio/date_time_zonespec.csv 
+  ${CMAKE_BINARY_DIR}/
+  )
 
 # CPACK packaging
 INCLUDE(InstallRequiredSystemLibraries)

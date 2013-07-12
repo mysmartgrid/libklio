@@ -1,5 +1,5 @@
 /**
- * This file is part of libklio.
+ * This class represents an abstract Klio store.
  *
  * (c) Fraunhofer ITWM - Mathias Dalheimer <dalheimer@itwm.fhg.de>,    2010
  *                       Ely de Oliveira   <ely.oliveira@itwm.fhg.de>, 2013

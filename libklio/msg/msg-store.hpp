@@ -1,5 +1,5 @@
 /**
- * This file is part of libklio.
+ * This class represents a remote store located at the mySmartGrid server.
  *
  * (c) Fraunhofer ITWM - Mathias Dalheimer <dalheimer@itwm.fhg.de>,    2010
  *                       Ely de Oliveira   <ely.oliveira@itwm.fhg.de>, 2013

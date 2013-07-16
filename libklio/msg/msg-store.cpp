@@ -24,11 +24,14 @@ void MSGStore::open() {
 
 void MSGStore::initialize() {
 
-    json_object *jobject = json_object_new_object();
     json_object *jkey = json_object_new_string(_key.c_str());
     json_object *jdescription = json_object_new_string("libklio MSG Store");
+    json_object *jtype = json_object_new_string("libklio");
+
+    json_object *jobject = json_object_new_object();
     json_object_object_add(jobject, "key", jkey);
     json_object_object_add(jobject, "description", jdescription);
+    json_object_object_add(jobject, "type", jtype);
 
     std::string url = compose_device_url();
     perform_http_post(url, _key, jobject);
@@ -410,16 +413,14 @@ static size_t curl_write_custom_callback(void *ptr, size_t size, size_t nmemb, v
 
 struct json_object *MSGStore::perform_http_request(const std::string& method, const std::string& url, const std::string& key, json_object *jbody) {
 
-    std::ostringstream oss;
-    json_object *jobject = NULL;
-
     curl_global_init(CURL_GLOBAL_DEFAULT);
-    CURL *curl = curl_easy_init();
 
+    CURL *curl = curl_easy_init();
     if (!curl) {
         curl_global_cleanup();
         throw StoreException("CURL could not be initiated.");
     }
+
     CURLresponse response;
     response.data = NULL;
     response.size = 0;
@@ -444,6 +445,7 @@ struct json_object *MSGStore::perform_http_request(const std::string& method, co
     headers = curl_slist_append(headers, "Accept: application/json,text/html");
 
     const char* body = jbody == NULL ? "" : json_object_to_json_string(jbody);
+    std::ostringstream oss;
     oss << "X-Digest: " << digest_message(body, key);
     headers = curl_slist_append(headers, oss.str().c_str());
 
@@ -463,6 +465,8 @@ struct json_object *MSGStore::perform_http_request(const std::string& method, co
 
     long int http_code;
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+
+    json_object *jobject = NULL;
 
     if (curl_code == CURLE_OK && http_code == 200) {
 

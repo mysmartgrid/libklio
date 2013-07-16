@@ -20,44 +20,46 @@
 #include "time.hpp"
 #include <sstream>
 
+
 using namespace klio;
 
-TimeConverter::TimeConverter () {
+TimeConverter::TimeConverter() {
 };
 
-TimeConverter::~TimeConverter() {};
+TimeConverter::~TimeConverter() {
+};
 
 timestamp_t TimeConverter::get_timestamp() {
-  std::time_t rawtime;
-  std::time ( &rawtime );
-  return rawtime;
+    std::time_t rawtime;
+    std::time(&rawtime);
+    return rawtime;
 }
 
 long TimeConverter::convert_to_epoch(timestamp_t time) {
-  return time;
+    return time;
 }
 
 timestamp_t TimeConverter::convert_from_epoch(long epoch) {
 
-  return epoch;
-  //return reinterpret_cast<timestamp_t> (epoch);
-  //return std::time(&epoch); 
+    return epoch;
+    //return reinterpret_cast<timestamp_t> (epoch);
+    //return std::time(&epoch); 
 }
 
 std::string TimeConverter::str_local(timestamp_t time) {
-  struct tm * timeinfo;
-  //std::time ( &time );
-  timeinfo = localtime ( &time );
-  std::ostringstream oss;
-  oss << asctime(timeinfo);
-  return oss.str();
+    struct tm * timeinfo;
+    //std::time ( &time );
+    timeinfo = localtime(&time);
+    std::ostringstream oss;
+    oss << asctime(timeinfo);
+    return oss.str();
 }
 
 std::string TimeConverter::str_utc(timestamp_t time) {
-  struct tm * timeinfo;
-  //std::time ( &time );
-  timeinfo = gmtime ( &time );
-  std::ostringstream oss;
-  oss << asctime(timeinfo);
-  return oss.str();
+    struct tm * timeinfo;
+    //std::time ( &time );
+    timeinfo = gmtime(&time);
+    std::ostringstream oss;
+    oss << asctime(timeinfo);
+    return oss.str();
 }

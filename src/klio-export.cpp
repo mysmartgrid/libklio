@@ -24,15 +24,19 @@
 #include <libklio/store.hpp>
 #include <libklio/store-factory.hpp>
 #include <libklio/sensor.hpp>
-#include <libklio/sensorfactory.hpp>
+#include <libklio/sensor-factory.hpp>
 #include <libklio/exporter.hpp>
-#include <libklio/octave_exporter.hpp>
-#include <libklio/json_exporter.hpp>
+#include <libklio/octave-exporter.hpp>
+#include <libklio/json-exporter.hpp>
+#include <libklio/local-time.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/program_options.hpp>
 #include <boost/program_options/positional_options.hpp>
+#include <boost/date_time/gregorian/gregorian.hpp>
+
 namespace po = boost::program_options;
+using namespace boost::gregorian;
 
 int main(int argc,char** argv) {
 
@@ -43,7 +47,7 @@ int main(int argc,char** argv) {
     desc.add_options()
       ("help,h", "produce help message")
       ("version,v", "print libklio version and exit")
-      ("action,a", po::value<std::string>(), "Valid actions: table, plaintable, octave, json")
+      ("action,a", po::value<std::string>(), "Valid actions: table, plaintable, octave, json, csv")
       ("storefile,s", po::value<std::string>(), "the data store to use")
       ("outputfile,o", po::value<std::string>(), "the output file to use")
       ("id,i", po::value<std::string>(), "the id of the sensor")
@@ -118,13 +122,15 @@ int main(int argc,char** argv) {
         return 2;
       }
       std::string sensor_id(vm["id"].as<std::string>());
-      klio::Store::Ptr store(factory->openStore(klio::SQLITE3, db));
+      klio::Store::Ptr store(factory->open_sqlite3_store(db));
       std::cout << "opened store: " << store->str() << std::endl;
-      std::vector<klio::Sensor::uuid_t> uuids = store->getSensorUUIDs();
+      std::vector<klio::Sensor::uuid_t> uuids = store->get_sensor_uuids();
       std::vector<klio::Sensor::uuid_t>::iterator it;
+      bool found_sensor=false;
       for(  it = uuids.begin(); it < uuids.end(); it++) {
-        klio::Sensor::Ptr loadedSensor(store->getSensor(*it));
+        klio::Sensor::Ptr loadedSensor(store->get_sensor(*it));
         if (boost::iequals(loadedSensor->name(), sensor_id)) {
+          found_sensor=true;
           klio::readings_t_Ptr readings = store->get_all_readings(loadedSensor);
 
 
@@ -144,6 +150,28 @@ int main(int argc,char** argv) {
             }
           }
 
+          /**
+           * Dump sensor reading command
+           */
+          else if (boost::iequals(action, std::string("CSV"))) {
+            klio::readings_it_t it;
+            *outputstream << "date;time;reading" << std::endl;
+            klio::LocalTime::Ptr lt(new klio::LocalTime("."));
+            boost::local_time::local_time_facet* output_facet
+              = new boost::local_time::local_time_facet();
+            output_facet->format("%Y.%m.%d;%H:%M:%S");
+            std::ostringstream oss;
+            oss.imbue(std::locale(std::locale::classic(), output_facet));
+            for(  it = readings->begin(); it != readings->end(); it++) {
+              klio::timestamp_t ts1=(*it).first;
+              boost::local_time::local_date_time localtime = 
+                lt->get_local_time(loadedSensor, ts1);
+              oss.str("");
+              oss << localtime;
+              double val1=(*it).second;
+              *outputstream << oss.str() << ";" << val1 << std::endl;
+            }
+          }
 
           /**
            * Export to octave script file command
@@ -172,6 +200,9 @@ int main(int argc,char** argv) {
             return 1;
           }
         }
+      }
+      if (! found_sensor) {
+        std::cout << "Sensor " << sensor_id << " not found. Aborting." << std::endl;
       }
     } catch (klio::StoreException const& ex) {
       std::cout << "Failed to export: " << ex.what() << std::endl;

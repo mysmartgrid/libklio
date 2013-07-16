@@ -82,6 +82,25 @@ SET(Boost_DETAILED_FAILURE_MSG true)
 FIND_PACKAGE(Boost 1.46.1 
   COMPONENTS test_exec_monitor program_options filesystem system date_time)
 
+# libjson
+include(FindJson)
+if( NOT JSON_FOUND)
+  message(FATAL_ERROR "libjson ist required.
+Install json or call cmake -DJSON_HOME=path_to_json_install")
+endif( NOT JSON_FOUND)
+include_directories(${JSON_INCLUDE_DIR})
+
+# check for curl
+IF(WIN32)
+  add_definitions(-DCURL_STATICLIB)
+  include(FindCURL_WIN32)
+else(WIN32)
+  #  add_definitions(-DCURL_STATICLIB)
+  include(FindCurl)
+  include(FindGnutls)
+endif(WIN32)
+find_package(OpenSSL)
+
 include_directories(${CMAKE_BINARY_DIR})
 
 # Check for some compiler stuff
@@ -134,6 +153,7 @@ message("  boost libraries shortcut: ${Boost_LIBRARIES}")
 message("  boost program options lib: ${Boost_PROGRAM_OPTIONS_LIBRARY}")
 message("  boost system lib: ${Boost_SYSTEM_LIBRARY}")
 message("  boost filesystem lib: ${Boost_FILESYSTEM_LIBRARY}")
+message("  json: -L${JSON_LIBRARY} -I${JSON_INCLUDE_DIR}")
 message("  sqlite3 include: ${SQLITE3_INCLUDE_DIR}, lib: ${SQLITE3_LIBRARIES}")
 message("  extended logging: ${ENABLE_LOGGING}")
 

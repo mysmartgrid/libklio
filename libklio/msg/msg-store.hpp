@@ -102,7 +102,6 @@ namespace klio {
         const std::string compose_sensor_url(const klio::Sensor::Ptr sensor, const std::string& query);
         const std::string compose_url(const std::string& object, const std::string& id);
 
-        //TODO: move these functions to another API to be shared with VZLogger
         struct json_object *perform_http_get(const std::string& url, const std::string& key);
         void perform_http_post(const std::string& url, const std::string& key, json_object *jobject);
         void perform_http_delete(const std::string& url, const std::string& key);

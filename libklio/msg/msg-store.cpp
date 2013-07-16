@@ -278,10 +278,10 @@ klio::Sensor::Ptr MSGStore::parse_sensor(const std::string& uuid_str, json_objec
 
     json_object *junit = json_object_object_get(jsensor, "unit");
     const char* unit = json_object_get_string(junit);
-    
+
     //TODO: there should be no default timezone
     const char* timezone = "Europe/Berlin";
-    
+
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
 
     return sensor_factory->createSensor(
@@ -416,72 +416,68 @@ struct json_object *MSGStore::perform_http_request(const std::string& method, co
     curl_global_init(CURL_GLOBAL_DEFAULT);
     CURL *curl = curl_easy_init();
 
-    if (curl) {
-        CURLresponse response;
-        response.data = NULL;
-        response.size = 0;
+    if (!curl) {
+        curl_global_cleanup();
+        throw StoreException("CURL could not be initiated.");
+    }
+    CURLresponse response;
+    response.data = NULL;
+    response.size = 0;
 
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *) &response);
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_custom_callback);
-        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *) &response);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_custom_callback);
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, method.c_str());
 
-        // signal-handling in libklio is NOT thread-safe.
-        curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
+    //Signal-handling is NOT thread-safe.
+    curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
 
-        //Required if next router has an ip-change.
-        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5);
+    //Required if next router has an ip-change.
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5);
 
-        curl_slist *headers = NULL;
-        headers = curl_slist_append(headers, "User-Agent: libklio");
-        headers = curl_slist_append(headers, "X-Version: 1.0");
-        headers = curl_slist_append(headers, "Accept: application/json,text/html");
+    curl_slist *headers = NULL;
+    headers = curl_slist_append(headers, "User-Agent: libklio");
+    headers = curl_slist_append(headers, "X-Version: 1.0");
+    headers = curl_slist_append(headers, "Accept: application/json,text/html");
 
-        const char* body = jbody == NULL ? "" : json_object_to_json_string(jbody);
-        oss << "X-Digest: " << digest_message(body, key);
+    const char* body = jbody == NULL ? "" : json_object_to_json_string(jbody);
+    oss << "X-Digest: " << digest_message(body, key);
+    headers = curl_slist_append(headers, oss.str().c_str());
+
+    if (method == "POST") {
+        headers = curl_slist_append(headers, "Content-type: application/json");
+
+        oss.str(std::string());
+        oss << "Content-Length: " << strlen(body);
         headers = curl_slist_append(headers, oss.str().c_str());
 
-        if (method == "POST") {
-            headers = curl_slist_append(headers, "Content-type: application/json");
-
-            oss.str(std::string());
-            oss << "Content-Length: " << strlen(body);
-            headers = curl_slist_append(headers, oss.str().c_str());
-
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body);
-
-        } else if (method == "DELETE") {
-            curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
-        }
-
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-
-        CURLcode curl_code = curl_easy_perform(curl);
-
-        long int http_code;
-        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
-
-        if (curl_code == CURLE_OK && http_code == 200) {
-
-            jobject = json_tokener_parse(response.data);
-
-        } else {
-            oss.str(std::string());
-            oss << "HTTPS request failed." <<
-                    " Error: " << curl_easy_strerror(curl_code) <<
-                    " HTTPS code: " << http_code;
-        }
-
-        curl_free(response.data);
-        curl_slist_free_all(headers);
-        curl_easy_cleanup(curl);
-
-    } else {
-        oss << "CURL could not be initiated.";
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body);
     }
 
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+    CURLcode curl_code = curl_easy_perform(curl);
+
+    long int http_code;
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+
+    if (curl_code == CURLE_OK && http_code == 200) {
+
+        jobject = json_tokener_parse(response.data);
+
+    } else {
+        oss.str(std::string());
+        oss << "HTTPS request failed." <<
+                " Error: " << curl_easy_strerror(curl_code) <<
+                " HTTPS code: " << http_code;
+    }
+
+    curl_free(response.data);
+    curl_slist_free_all(headers);
+    curl_easy_cleanup(curl);
     curl_global_cleanup();
 
     if (jobject == NULL) {

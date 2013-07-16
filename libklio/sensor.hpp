@@ -41,9 +41,9 @@ namespace klio {
                 const std::string& timezone) :
         _uuid(uuid),
         _name(name),
+        _description(description),
         _unit(unit),
-        _timezone(timezone),
-        _description(description) {
+        _timezone(timezone) {
         };
 
         virtual ~Sensor() {
@@ -74,7 +74,7 @@ namespace klio {
         const std::string str();
         const std::string uuid_string() const;
         const std::string uuid_short() const;
-        
+
         bool operator ==(const Sensor& rhs);
         bool operator !=(const Sensor& rhs);
 
@@ -84,9 +84,9 @@ namespace klio {
 
         uuid_t _uuid;
         std::string _name;
+        std::string _description;
         std::string _unit;
         std::string _timezone;
-        std::string _description;
     };
 };
 

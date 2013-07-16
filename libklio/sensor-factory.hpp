@@ -31,19 +31,22 @@ namespace klio {
     public:
         typedef std::tr1::shared_ptr<SensorFactory> Ptr;
 
-        SensorFactory() : _gen() {
+        SensorFactory() {
         };
+
         klio::Sensor::Ptr createSensor(
                 const std::string& name,
                 const std::string& unit,
                 const std::string& timezone
                 );
+
         klio::Sensor::Ptr createSensor(
                 const std::string& uuid_string,
                 const std::string& name,
                 const std::string& unit,
                 const std::string& timezone
                 );
+
         klio::Sensor::Ptr createSensor(
                 const std::string& uuid_string,
                 const std::string& name,
@@ -58,7 +61,7 @@ namespace klio {
     private:
         SensorFactory(const SensorFactory& original);
         SensorFactory& operator=(const SensorFactory& rhs);
-        boost::uuids::random_generator _gen;
+
         klio::Sensor::Ptr createSensor(
                 const Sensor::uuid_t& uuid,
                 const std::string& name,

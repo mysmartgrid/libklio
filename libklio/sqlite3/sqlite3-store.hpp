@@ -79,6 +79,14 @@ namespace klio {
 
         sqlite3 *db;
         bfs::path _path;
+
+        static const std::string create_sensors_table_stmt;
+        static const std::string insert_sensor_stmt;
+        static const std::string remove_sensor_stmt;
+        static const std::string update_sensor_stmt;
+        static const std::string select_sensor_stmt;
+        static const std::string select_sensor_by_name_stmt;
+        static const std::string select_all_sensor_uuids_stmt;
     };
 };
 

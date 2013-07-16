@@ -7,14 +7,13 @@
 
 using namespace klio;
 
-
 klio::Sensor::Ptr SensorFactory::createSensor(
         const std::string& name,
         const std::string& unit,
         const std::string& timezone
         ) {
-    boost::uuids::uuid u = _gen();
-    return createSensor(u, name, klio::DEFAULT_SENSOR_DESCRIPTION, unit, timezone);
+    boost::uuids::random_generator gen_uuid;
+    return createSensor(gen_uuid(), name, klio::DEFAULT_SENSOR_DESCRIPTION, unit, timezone);
 }
 
 klio::Sensor::Ptr SensorFactory::createSensor(
@@ -33,7 +32,7 @@ klio::Sensor::Ptr SensorFactory::createSensor(
         const std::string& unit,
         const std::string& timezone
         ) {
-    
+
     // type conversion: uuid_string to real uuid type
     boost::uuids::uuid u;
     std::stringstream ss;
@@ -50,11 +49,11 @@ klio::Sensor::Ptr SensorFactory::createSensor(
         const std::string& unit,
         const std::string& timezone
         ) {
-    klio::LocalTime::Ptr lt(new klio::LocalTime("../.."));
+    klio::LocalTime::Ptr local_time(new klio::LocalTime("../.."));
 
-    if (!lt->is_valid_timezone(timezone)) {
+    if (!local_time->is_valid_timezone(timezone)) {
 
-        std::vector<std::string> valid_regions(lt->get_valid_timezones());
+        std::vector<std::string> valid_regions(local_time->get_valid_timezones());
 
         std::ostringstream oss;
         oss << "Invalid timezone " << timezone << ". Valid timezones are: " << std::endl;

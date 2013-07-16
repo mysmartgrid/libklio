@@ -93,9 +93,8 @@ namespace klio {
         std::string _id;
         std::string _key;
 
-        struct json_object *get_json_sensors();
         struct json_object *get_json_readings(const klio::Sensor::Ptr sensor);
-        klio::Sensor::Ptr create_sensor(const std::string& uuid_str, json_object *jsensor);
+        klio::Sensor::Ptr parse_sensor(const std::string& uuid_str, json_object *jsensor);
         std::pair<timestamp_t, double > create_reading_pair(json_object *jpair);
         const std::string format_uuid_string(const std::string& meter);
         const std::string compose_device_url();
@@ -105,12 +104,11 @@ namespace klio {
 
         //TODO: move these functions to another API to be shared with VZLogger
         struct json_object *perform_http_get(const std::string& url, const std::string& key);
-        struct json_object *perform_http_post(const std::string& url, const std::string& key, json_object *jobject);
+        void *perform_http_post(const std::string& url, const std::string& key, json_object *jobject);
         void *perform_http_delete(const std::string& url, const std::string& key);
-        curl_slist *create_curl_headers();
         CURL *create_curl_handler(const std::string& url, curl_slist *headers);
         std::string digest_message(const std::string& data, const std::string& key);
-        struct json_object *perform_http_request(CURL *curl);
+        struct json_object *perform_http_request(const std::string& method, const std::string& url, const std::string& key, json_object *jbody);
     };
 };
 

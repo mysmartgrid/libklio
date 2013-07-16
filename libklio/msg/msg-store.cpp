@@ -352,13 +352,13 @@ struct json_object *MSGStore::perform_http_get(const std::string& url, const std
     return perform_http_request("GET", url, key, NULL);
 }
 
-void *MSGStore::perform_http_post(const std::string& url, const std::string& key, json_object *jbody) {
+void MSGStore::perform_http_post(const std::string& url, const std::string& key, json_object *jbody) {
 
     json_object *jobject = perform_http_request("POST", url, key, jbody);
     json_object_put(jobject);
 }
 
-void *MSGStore::perform_http_delete(const std::string& url, const std::string& key) {
+void MSGStore::perform_http_delete(const std::string& url, const std::string& key) {
 
     json_object *jobject = perform_http_request("DELETE", url, key, NULL);
     json_object_put(jobject);

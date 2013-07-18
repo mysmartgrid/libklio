@@ -280,7 +280,7 @@ void MSGStore::sync_data() {
     time_t now = tc.get_timestamp();
     time_t elapsed = now - last_sync;
 
-    if (elapsed > 300000 || buffer.size() > 1) {//FIXME: 10
+    if (elapsed > 300000 || buffer.size() > 10) {
         flush();
         last_sync = now;
     }

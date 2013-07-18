@@ -232,38 +232,6 @@ BOOST_AUTO_TEST_CASE(check_remove_msg_sensor) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_msg_store_heartbeat) {
-
-    std::cout << "Testing the MSG store heartbeat" << std::endl;
-    klio::StoreFactory::Ptr factory(new klio::StoreFactory());
-    std::string url = std::string("https://dev3-api.mysmartgrid.de:8443");
-
-    klio::MSGStore::Ptr store;
-
-    try {
-        std::cout << "Attempting to create MSG store " << url << std::endl;
-        klio::MSGStore::Ptr store(factory->create_msg_store(url,
-                std::string("d271f4de-36cd-f3d3-00db-3e96755d8736"),
-                std::string("d221f4de-36cd-f3d3-00db-3e96755d8733")));
-
-        std::cout << "Created: " << store->str() << std::endl;
-        store->open();
-        store->initialize();
-
-        std::cout << "Sending heartbeat of MSG store " << url << std::endl;
-        bool success = store->heartbeat();
-
-        BOOST_CHECK(success);
-
-        store->dispose();
-
-    } catch (klio::StoreException const& ex) {
-        store->dispose();
-        std::cout << "Caught invalid exception: " << ex.what() << std::endl;
-        BOOST_FAIL("Unexpected exception occurred for initialize request");
-    }
-}
-
 BOOST_AUTO_TEST_CASE(check_get_msg_sensor) {
 
     std::cout << "Testing get_sensor for MSG" << std::endl;

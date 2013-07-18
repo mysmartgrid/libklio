@@ -70,7 +70,7 @@ namespace klio {
         void close();
         void initialize();
         void dispose();
-        bool heartbeat();
+        void flush();
         const std::string str();
 
         virtual void add_sensor(const klio::Sensor::Ptr sensor);
@@ -97,8 +97,9 @@ namespace klio {
         std::map<klio::Sensor::Ptr, readings_t_Ptr> buffer;
         timestamp_t last_sync = 0;
 
-        void sync_data();
-        void flush();
+        void flush(bool force);
+        void flush(klio::Sensor::Ptr sensor);
+        bool heartbeat();
         struct json_object *get_json_readings(const klio::Sensor::Ptr sensor);
         klio::Sensor::Ptr parse_sensor(const std::string& uuid_str, json_object *jsensor);
         std::pair<timestamp_t, double > create_reading_pair(json_object *jpair);

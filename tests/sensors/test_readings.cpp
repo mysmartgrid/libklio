@@ -460,7 +460,7 @@ BOOST_AUTO_TEST_CASE(check_add_reading_msg) {
         for (klio::readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
 
             BOOST_CHECK_EQUAL(timestamp + (i++ * 60), (*it).first);
-            BOOST_CHECK_EQUAL(60000, (*it).second);
+            BOOST_CHECK_EQUAL(17, (*it).second);
         }
 
     } catch (klio::StoreException const& ex) {

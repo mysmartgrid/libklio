@@ -79,8 +79,8 @@ BOOST_AUTO_TEST_CASE(check_create_storage_msg) {
 
     try {
         std::cout << "Attempting to create MSG store " << url << std::endl;
-        klio::MSGStore::Ptr store(factory->create_msg_store(url, 
-                std::string("d271f4de-36cd-f3d3-00db-3e96755d8736"), 
+        klio::MSGStore::Ptr store(factory->create_msg_store(url,
+                std::string("d271f4de-36cd-f3d3-00db-3e96755d8736"),
                 std::string("d221f4de-36cd-f3d3-00db-3e96755d8733")));
 
         std::cout << "Created: " << store->str() << std::endl;

@@ -27,6 +27,7 @@
 #include <libklio/common.hpp>
 #include <libklio/types.hpp>
 #include <libklio/store.hpp>
+#include <libklio/sensor.hpp>
 
 
 namespace klio {
@@ -73,19 +74,19 @@ namespace klio {
         void flush();
         const std::string str();
 
-        virtual void add_sensor(const klio::Sensor::Ptr sensor);
-        virtual void remove_sensor(const klio::Sensor::Ptr sensor);
-        virtual void update_sensor(const klio::Sensor::Ptr sensor);
-        virtual klio::Sensor::Ptr get_sensor(const klio::Sensor::uuid_t& uuid);
-        virtual std::vector<klio::Sensor::Ptr> get_sensors_by_name(const std::string& name);
-        virtual std::vector<klio::Sensor::uuid_t> get_sensor_uuids();
+        virtual void add_sensor(const Sensor::Ptr sensor);
+        virtual void remove_sensor(const Sensor::Ptr sensor);
+        virtual void update_sensor(const Sensor::Ptr sensor);
+        virtual Sensor::Ptr get_sensor(const Sensor::uuid_t& uuid);
+        virtual std::vector<Sensor::Ptr> get_sensors_by_name(const std::string& name);
+        virtual std::vector<Sensor::uuid_t> get_sensor_uuids();
 
-        virtual void add_reading(const klio::Sensor::Ptr sensor, timestamp_t timestamp, double value);
-        virtual void add_readings(const klio::Sensor::Ptr sensor, const readings_t& readings);
-        virtual void update_readings(const klio::Sensor::Ptr sensor, const readings_t& readings);
-        virtual readings_t_Ptr get_all_readings(const klio::Sensor::Ptr sensor);
-        virtual unsigned long int get_num_readings(const klio::Sensor::Ptr sensor);
-        virtual std::pair<timestamp_t, double> get_last_reading(const klio::Sensor::Ptr sensor);
+        virtual void add_reading(const Sensor::Ptr sensor, timestamp_t timestamp, double value);
+        virtual void add_readings(const Sensor::Ptr sensor, const readings_t& readings);
+        virtual void update_readings(const Sensor::Ptr sensor, const readings_t& readings);
+        virtual readings_t_Ptr get_all_readings(const Sensor::Ptr sensor);
+        virtual unsigned long int get_num_readings(const Sensor::Ptr sensor);
+        virtual std::pair<timestamp_t, double> get_last_reading(const Sensor::Ptr sensor);
 
     private:
         MSGStore(const MSGStore& original);
@@ -94,19 +95,24 @@ namespace klio {
         std::string _id;
         std::string _key;
 
-        std::map<klio::Sensor::Ptr, readings_t_Ptr> buffer;
+        std::map<Sensor::uuid_t, Sensor::Ptr> sensors_buffer;
+        std::map<Sensor::uuid_t, readings_t_Ptr> readings_buffer;
         timestamp_t last_sync = 0;
 
+        void init_buffers(const Sensor::Ptr sensor);
+        void clear_buffers(const Sensor::Ptr sensor);
+        void clear_buffers();
         void flush(bool force);
-        void flush(klio::Sensor::Ptr sensor);
+        void flush(Sensor::Ptr sensor);
         bool heartbeat();
-        struct json_object *get_json_readings(const klio::Sensor::Ptr sensor);
-        klio::Sensor::Ptr parse_sensor(const std::string& uuid_str, json_object *jsensor);
+        std::vector<Sensor::Ptr> get_sensors();
+        struct json_object *get_json_readings(const Sensor::Ptr sensor);
+        Sensor::Ptr parse_sensor(const std::string& uuid_str, json_object *jsensor);
         std::pair<timestamp_t, double > create_reading_pair(json_object *jpair);
         const std::string format_uuid_string(const std::string& meter);
         const std::string compose_device_url();
-        const std::string compose_sensor_url(const klio::Sensor::Ptr sensor);
-        const std::string compose_sensor_url(const klio::Sensor::Ptr sensor, const std::string& query);
+        const std::string compose_sensor_url(const Sensor::Ptr sensor);
+        const std::string compose_sensor_url(const Sensor::Ptr sensor, const std::string& query);
         const std::string compose_url(const std::string& object, const std::string& id);
 
         struct json_object *perform_http_get(const std::string& url, const std::string& key);

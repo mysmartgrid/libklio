@@ -44,7 +44,8 @@ namespace klio {
         MSGStore(const std::string& url, const std::string& id, const std::string& key) :
         _url(url),
         _id(id),
-        _key(key) {
+        _key(key),
+        _last_sync(0) {
         };
 
         virtual ~MSGStore() {
@@ -94,10 +95,9 @@ namespace klio {
         std::string _url;
         std::string _id;
         std::string _key;
-
-        std::map<Sensor::uuid_t, Sensor::Ptr> sensors_buffer;
-        std::map<Sensor::uuid_t, readings_t_Ptr> readings_buffer;
-        timestamp_t last_sync = 0;
+        timestamp_t _last_sync;
+        std::map<Sensor::uuid_t, Sensor::Ptr> _sensors_buffer;
+        std::map<Sensor::uuid_t, readings_t_Ptr> _readings_buffer;
 
         void init_buffers(const Sensor::Ptr sensor);
         void clear_buffers(const Sensor::Ptr sensor);

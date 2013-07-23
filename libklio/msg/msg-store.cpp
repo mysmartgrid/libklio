@@ -99,7 +99,7 @@ void MSGStore::update_sensor(const Sensor::Ptr sensor) {
 
     std::string url = compose_sensor_url(sensor);
     json_object *jresponse = perform_http_post(url, _key, jobject);
-    sensors_buffer[sensor->uuid()] = sensor;
+    _sensors_buffer[sensor->uuid()] = sensor;
 
     json_object_put(jobject);
     json_object_put(jresponse);
@@ -107,7 +107,7 @@ void MSGStore::update_sensor(const Sensor::Ptr sensor) {
 
 Sensor::Ptr MSGStore::get_sensor(const Sensor::uuid_t& uuid) {
 
-    Sensor::Ptr sensor = sensors_buffer[uuid];
+    Sensor::Ptr sensor = _sensors_buffer[uuid];
     if (sensor) {
         return sensor;
 
@@ -122,7 +122,7 @@ std::vector<Sensor::Ptr> MSGStore::get_sensors_by_name(const std::string& name) 
 
     std::vector<Sensor::Ptr> sensors;
 
-    for (std::map<Sensor::uuid_t, Sensor::Ptr>::const_iterator it = sensors_buffer.begin(); it != sensors_buffer.end(); ++it) {
+    for (std::map<Sensor::uuid_t, Sensor::Ptr>::const_iterator it = _sensors_buffer.begin(); it != _sensors_buffer.end(); ++it) {
 
         Sensor::Ptr sensor = (*it).second;
 
@@ -137,7 +137,7 @@ std::vector<Sensor::uuid_t> MSGStore::get_sensor_uuids() {
 
     std::vector<Sensor::uuid_t> uuids;
 
-    for (std::map<Sensor::uuid_t, Sensor::Ptr>::const_iterator it = sensors_buffer.begin(); it != sensors_buffer.end(); ++it) {
+    for (std::map<Sensor::uuid_t, Sensor::Ptr>::const_iterator it = _sensors_buffer.begin(); it != _sensors_buffer.end(); ++it) {
         uuids.push_back((*it).first);
     }
     return uuids;
@@ -146,7 +146,7 @@ std::vector<Sensor::uuid_t> MSGStore::get_sensor_uuids() {
 void MSGStore::add_reading(const Sensor::Ptr sensor, timestamp_t timestamp, double value) {
 
     init_buffers(sensor);
-    readings_buffer[sensor->uuid()]->insert(reading_t(timestamp, value));
+    _readings_buffer[sensor->uuid()]->insert(reading_t(timestamp, value));
     flush(false);
 }
 
@@ -155,7 +155,7 @@ void MSGStore::add_readings(const Sensor::Ptr sensor, const readings_t& readings
     init_buffers(sensor);
 
     for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
-        readings_buffer[sensor->uuid()]->insert(reading_t((*it).first, (*it).second));
+        _readings_buffer[sensor->uuid()]->insert(reading_t((*it).first, (*it).second));
     }
     flush(false);
 }
@@ -224,23 +224,23 @@ std::pair<timestamp_t, double> MSGStore::get_last_reading(const Sensor::Ptr sens
 
 void MSGStore::init_buffers(const Sensor::Ptr sensor) {
 
-    sensors_buffer[sensor->uuid()] = sensor;
+    _sensors_buffer[sensor->uuid()] = sensor;
 
-    if (!readings_buffer[sensor->uuid()]) {
-        readings_buffer[sensor->uuid()] = readings_t_Ptr(new readings_t());
+    if (!_readings_buffer[sensor->uuid()]) {
+        _readings_buffer[sensor->uuid()] = readings_t_Ptr(new readings_t());
     }
 }
 
 void MSGStore::clear_buffers(const Sensor::Ptr sensor) {
 
-    sensors_buffer.erase(sensor->uuid());
-    readings_buffer.erase(sensor->uuid());
+    _sensors_buffer.erase(sensor->uuid());
+    _readings_buffer.erase(sensor->uuid());
 }
 
 void MSGStore::clear_buffers() {
 
-    sensors_buffer.clear();
-    readings_buffer.clear();
+    _sensors_buffer.clear();
+    _readings_buffer.clear();
 }
 
 void MSGStore::flush(bool force) {
@@ -248,20 +248,20 @@ void MSGStore::flush(bool force) {
     TimeConverter tc;
     timestamp_t now = tc.get_timestamp();
 
-    if (force || now - last_sync > 300) {
+    if (force || now - _last_sync > 300) {
 
-        for (std::map<Sensor::uuid_t, Sensor::Ptr>::const_iterator it = sensors_buffer.begin(); it != sensors_buffer.end(); ++it) {
+        for (std::map<Sensor::uuid_t, Sensor::Ptr>::const_iterator it = _sensors_buffer.begin(); it != _sensors_buffer.end(); ++it) {
 
             Sensor::Ptr sensor = (*it).second;
             flush(sensor);
         }
-        last_sync = now;
+        _last_sync = now;
     }
 }
 
 void MSGStore::flush(Sensor::Ptr sensor) {
 
-    readings_t_Ptr readings = readings_buffer[sensor->uuid()];
+    readings_t_Ptr readings = _readings_buffer[sensor->uuid()];
 
     if (!readings->empty()) {
 
@@ -317,9 +317,6 @@ std::vector<Sensor::Ptr> MSGStore::get_sensors() {
     for (int i = 0; i < json_object_array_length(jsensors); i++) {
 
         json_object *jsensor = json_object_array_get_idx(jsensors, i);
-        json_object *jfunction = json_object_object_get(jsensor, "function");
-        const char* function = json_object_get_string(jfunction);
-
         json_object *jmeter = json_object_object_get(jsensor, "meter");
         const char* meter = json_object_get_string(jmeter);
 

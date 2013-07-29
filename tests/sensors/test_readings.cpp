@@ -420,14 +420,14 @@ BOOST_AUTO_TEST_CASE(check_sync_readings) {
     ;
 }
 
-BOOST_AUTO_TEST_CASE(check_add_reading_msg) {
+BOOST_AUTO_TEST_CASE(check_add_watt_reading_msg) {
 
-    std::cout << "Testing add_reading for MSG" << std::endl;
+    std::cout << "Testing add_reading for MSG (Watt)" << std::endl;
     klio::StoreFactory::Ptr factory(new klio::StoreFactory());
     std::string url = "https://dev3-api.mysmartgrid.de:8443";
 
     std::cout << "Attempting to create MSG store " << url << std::endl;
-    klio::Store::Ptr store(factory->create_msg_store(url, "98c180748bcf890bdb7cc1281038adcb", "98c180748bcf890bdb7cc1281038adcb"));
+    klio::Store::Ptr store(factory->create_msg_store(url, "74c180748bcf890bdb7cc1281038adcb", "74c180748bcf890bdb7cc1281038adcb"));
     std::cout << "Created: " << store->str() << std::endl;
 
     try {
@@ -436,7 +436,7 @@ BOOST_AUTO_TEST_CASE(check_add_reading_msg) {
 
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
         klio::Sensor::Ptr sensor(sensor_factory->createSensor(
-                std::string("98c18074-8bcf-890b-db7c-c1081038adcb"),
+                std::string("74c18074-8bcf-890b-db7c-c1081038adcb"),
                 std::string("Test"),
                 std::string("description"),
                 std::string("watt"),
@@ -460,7 +460,113 @@ BOOST_AUTO_TEST_CASE(check_add_reading_msg) {
         for (klio::readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
 
             BOOST_CHECK_EQUAL(timestamp + (i++ * 60), (*it).first);
-            BOOST_CHECK_EQUAL(17, (*it).second);
+            BOOST_CHECK_EQUAL(17, round((*it).second));
+        }
+
+    } catch (klio::StoreException const& ex) {
+        store->dispose();
+        std::cout << "Caught invalid exception: " << ex.what() << std::endl;
+        BOOST_FAIL("Unexpected exception occurred for initialize request");
+    }
+}
+
+BOOST_AUTO_TEST_CASE(check_add_kwh_reading_msg) {
+
+    std::cout << "Testing add_reading for MSG (kWh)" << std::endl;
+    klio::StoreFactory::Ptr factory(new klio::StoreFactory());
+    std::string url = "https://dev3-api.mysmartgrid.de:8443";
+
+    std::cout << "Attempting to create MSG store " << url << std::endl;
+    klio::Store::Ptr store(factory->create_msg_store(url, "28c180748bcf890bdb7cc1281038adcb", "28c180748bcf890bdb7cc1281038adcb"));
+    std::cout << "Created: " << store->str() << std::endl;
+
+    try {
+        store->open(); // Second call to open - should not break
+        store->initialize();
+
+        klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+        klio::Sensor::Ptr sensor(sensor_factory->createSensor(
+                std::string("28c18074-8bcf-890b-db7c-c1081038adcb"),
+                std::string("Test"),
+                std::string("description"),
+                std::string("kwh"),
+                std::string("Europe/Berlin")));
+
+        store->add_sensor(sensor);
+
+        klio::timestamp_t timestamp = time(0);
+        timestamp -= timestamp % 60;
+        klio::readings_t readings;
+
+        for (int i = 0; i < 72; i++) {
+            klio::reading_t reading(timestamp - (i * 20), 2.113237 - 0.00023 * (1 + i));
+            readings.insert(reading);
+        }
+        store->add_readings(sensor, readings);
+
+        readings = *store->get_all_readings(sensor);
+        store->dispose();
+
+        BOOST_CHECK_EQUAL(24, readings.size());
+
+        int i = 23;
+        for (klio::readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
+
+            BOOST_CHECK_EQUAL(timestamp - (i-- * 60), (*it).first);
+            BOOST_CHECK_EQUAL(0.0000115, (*it).second);
+        }
+
+    } catch (klio::StoreException const& ex) {
+        store->dispose();
+        std::cout << "Caught invalid exception: " << ex.what() << std::endl;
+        BOOST_FAIL("Unexpected exception occurred for initialize request");
+    }
+}
+
+BOOST_AUTO_TEST_CASE(check_add_celsius_reading_msg) {
+
+    std::cout << "Testing add_reading for MSG (°C)" << std::endl;
+    klio::StoreFactory::Ptr factory(new klio::StoreFactory());
+    std::string url = "https://dev3-api.mysmartgrid.de:8443";
+
+    std::cout << "Attempting to create MSG store " << url << std::endl;
+    klio::Store::Ptr store(factory->create_msg_store(url, "28c180748bcf890bdb7cc1281038adcb", "28c180748bcf890bdb7cc1281038adcb"));
+    std::cout << "Created: " << store->str() << std::endl;
+
+    try {
+        store->open(); // Second call to open - should not break
+        store->initialize();
+
+        klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+        klio::Sensor::Ptr sensor(sensor_factory->createSensor(
+                std::string("28c18074-8bcf-890b-db7c-c1081038adcb"),
+                std::string("Test"),
+                std::string("description"),
+                std::string("C"),
+                std::string("Europe/Berlin")));
+
+        store->add_sensor(sensor);
+
+        klio::timestamp_t timestamp = time(0);
+        timestamp -= timestamp % 60;
+        klio::readings_t readings;
+
+        for (int i = 0; i < 72; i++) {
+            klio::reading_t reading(timestamp - (i * 20), 26.7938);
+            readings.insert(reading);
+        }
+        store->add_readings(sensor, readings);
+
+        readings = *store->get_all_readings(sensor);
+        store->dispose();
+
+        BOOST_CHECK_EQUAL(24, readings.size());
+
+        int i = 23;
+        for (klio::readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
+
+            BOOST_CHECK_EQUAL(timestamp - (i-- * 60), (*it).first);
+            BOOST_CHECK_EQUAL(26.7938, (*it).second);
         }
 
     } catch (klio::StoreException const& ex) {

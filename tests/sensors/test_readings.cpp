@@ -542,7 +542,7 @@ BOOST_AUTO_TEST_CASE(check_add_celsius_reading_msg) {
                 std::string("28c18074-8bcf-890b-db7c-c1081038adcb"),
                 std::string("Test"),
                 std::string("description"),
-                std::string("C"),
+                std::string("degC"),
                 std::string("Europe/Berlin")));
 
         store->add_sensor(sensor);

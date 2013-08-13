@@ -8,25 +8,28 @@
 using namespace klio;
 
 klio::Sensor::Ptr SensorFactory::createSensor(
+        const std::string& external_id,
         const std::string& name,
         const std::string& unit,
         const std::string& timezone
         ) {
     boost::uuids::random_generator gen_uuid;
-    return createSensor(gen_uuid(), name, klio::DEFAULT_SENSOR_DESCRIPTION, unit, timezone);
+    return createSensor(gen_uuid(), external_id, name, klio::DEFAULT_SENSOR_DESCRIPTION, unit, timezone);
 }
 
 klio::Sensor::Ptr SensorFactory::createSensor(
         const std::string& uuid_string,
+        const std::string& external_id,
         const std::string& name,
         const std::string& unit,
         const std::string& timezone
         ) {
-    return createSensor(uuid_string, name, klio::DEFAULT_SENSOR_DESCRIPTION, unit, timezone);
+    return createSensor(uuid_string, external_id, name, klio::DEFAULT_SENSOR_DESCRIPTION, unit, timezone);
 }
 
 klio::Sensor::Ptr SensorFactory::createSensor(
         const std::string& uuid_string,
+        const std::string& external_id,
         const std::string& name,
         const std::string& description,
         const std::string& unit,
@@ -39,11 +42,12 @@ klio::Sensor::Ptr SensorFactory::createSensor(
     ss << uuid_string;
     ss >> u;
 
-    return createSensor(u, name, description, unit, timezone);
+    return createSensor(u, external_id, name, description, unit, timezone);
 }
 
 klio::Sensor::Ptr SensorFactory::createSensor(
         const Sensor::uuid_t& uuid,
+        const std::string& external_id,
         const std::string& name,
         const std::string& description,
         const std::string& unit,
@@ -61,5 +65,5 @@ klio::Sensor::Ptr SensorFactory::createSensor(
 
         throw klio::DataFormatException(oss.str());
     }
-    return Sensor::Ptr(new Sensor(uuid, name, description, unit, timezone));
+    return Sensor::Ptr(new Sensor(uuid, external_id, name, description, unit, timezone));
 }

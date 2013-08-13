@@ -76,11 +76,11 @@ BOOST_AUTO_TEST_CASE ( local_time ) {
   std::string sensor_unit("unit");
   std::string sensor_timezone("America/New_York");
   klio::Sensor::Ptr sensor(sensor_factory->createSensor(
-        sensor_id, sensor_unit, sensor_timezone)); 
+        sensor_id, sensor_id, sensor_unit, sensor_timezone)); 
 
   try {
     klio::Sensor::Ptr broken_sensor(sensor_factory->createSensor(
-          sensor_id, sensor_unit, "HORST")); 
+          sensor_id, sensor_id, sensor_unit, "HORST")); 
     BOOST_FAIL("Created sensor with invalid timezone HORST");
   } catch (klio::DataFormatException& dfe) {
     std::cout << "Expected Exception: " << dfe.what() << std::endl;

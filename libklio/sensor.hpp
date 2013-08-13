@@ -35,11 +35,13 @@ namespace klio {
         typedef boost::uuids::uuid uuid_t;
 
         Sensor(const uuid_t uuid,
+                const std::string& external_id,
                 const std::string& name,
                 const std::string& description,
                 const std::string& unit,
                 const std::string& timezone) :
         _uuid(uuid),
+        _external_id(external_id),
         _name(name),
         _description(description),
         _unit(unit),
@@ -53,6 +55,10 @@ namespace klio {
 
         const uuid_t uuid() const {
             return _uuid;
+        };
+        
+        const std::string external_id() const {
+            return _external_id;
         };
 
         const std::string name() const {
@@ -83,6 +89,7 @@ namespace klio {
         Sensor& operator =(const Sensor& rhs);
 
         uuid_t _uuid;
+        std::string _external_id;
         std::string _name;
         std::string _description;
         std::string _unit;

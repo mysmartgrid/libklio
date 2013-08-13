@@ -25,7 +25,7 @@ void MSGStore::open() {
 void MSGStore::initialize() {
 
     json_object *jkey = json_object_new_string(_key.c_str());
-    json_object *jdescription = json_object_new_string("libklio mSG Store");
+    json_object *jdescription = json_object_new_string(_description.c_str());
     json_object *jtype = json_object_new_string("libklio");
 
     json_object *jobject = json_object_new_object();
@@ -116,6 +116,21 @@ Sensor::Ptr MSGStore::get_sensor(const Sensor::uuid_t& uuid) {
         err << "Sensor " << boost::uuids::to_string(uuid) << " could not be found.";
         throw StoreException(err.str());
     }
+}
+
+Sensor::Ptr MSGStore::get_sensor_by_external_id(const std::string& external_id) {
+
+    for (std::map<Sensor::uuid_t, Sensor::Ptr>::const_iterator it = _sensors_buffer.begin(); it != _sensors_buffer.end(); ++it) {
+
+        Sensor::Ptr sensor = (*it).second;
+
+        if (external_id == sensor->external_id()) {
+            return sensor;
+        }
+    }
+    std::ostringstream err;
+    err << "Sensor " << external_id << " could not be found.";
+    throw StoreException(err.str());
 }
 
 std::vector<Sensor::Ptr> MSGStore::get_sensors_by_name(const std::string& name) {
@@ -345,6 +360,9 @@ Sensor::Ptr MSGStore::parse_sensor(const std::string& uuid_str, json_object *jse
     json_object *jdescription = json_object_object_get(jsensor, "description");
     const char* description = json_object_get_string(jdescription);
 
+    json_object *jexternal_id = json_object_object_get(jsensor, "external_id");
+    const char* external_id = json_object_get_string(jexternal_id);
+
     json_object *junit = json_object_object_get(jsensor, "unit");
     const char* unit = json_object_get_string(junit);
 
@@ -355,6 +373,7 @@ Sensor::Ptr MSGStore::parse_sensor(const std::string& uuid_str, json_object *jse
 
     return sensor_factory->createSensor(
             uuid_str,
+            std::string(external_id),
             std::string(name),
             std::string(description),
             std::string(unit),

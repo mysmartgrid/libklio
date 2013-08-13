@@ -35,6 +35,7 @@ namespace klio {
         };
 
         klio::Sensor::Ptr createSensor(
+                const std::string& external_id,
                 const std::string& name,
                 const std::string& unit,
                 const std::string& timezone
@@ -42,6 +43,7 @@ namespace klio {
 
         klio::Sensor::Ptr createSensor(
                 const std::string& uuid_string,
+                const std::string& external_id,
                 const std::string& name,
                 const std::string& unit,
                 const std::string& timezone
@@ -49,6 +51,7 @@ namespace klio {
 
         klio::Sensor::Ptr createSensor(
                 const std::string& uuid_string,
+                const std::string& external_id,
                 const std::string& name,
                 const std::string& description,
                 const std::string& unit,
@@ -64,6 +67,7 @@ namespace klio {
 
         klio::Sensor::Ptr createSensor(
                 const Sensor::uuid_t& uuid,
+                const std::string& external_id,
                 const std::string& name,
                 const std::string& description,
                 const std::string& unit,

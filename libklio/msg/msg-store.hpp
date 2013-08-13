@@ -41,10 +41,11 @@ namespace klio {
     public:
         typedef std::tr1::shared_ptr<MSGStore> Ptr;
 
-        MSGStore(const std::string& url, const std::string& id, const std::string& key) :
+        MSGStore(const std::string& url, const std::string& id, const std::string& key, const std::string& description) :
         _url(url),
         _id(id),
         _key(key),
+        _description(description),
         _last_sync(0) {
         };
 
@@ -63,6 +64,10 @@ namespace klio {
         const std::string key() const {
             return _key;
         };
+        
+        const std::string description() const {
+            return _description;
+        };
 
         const std::string activation_code() const {
             return _id.substr(0, 10);
@@ -79,6 +84,7 @@ namespace klio {
         virtual void remove_sensor(const Sensor::Ptr sensor);
         virtual void update_sensor(const Sensor::Ptr sensor);
         virtual Sensor::Ptr get_sensor(const Sensor::uuid_t& uuid);
+        virtual Sensor::Ptr get_sensor_by_external_id(const std::string& external_id);
         virtual std::vector<Sensor::Ptr> get_sensors_by_name(const std::string& name);
         virtual std::vector<Sensor::uuid_t> get_sensor_uuids();
 
@@ -95,6 +101,7 @@ namespace klio {
         std::string _url;
         std::string _id;
         std::string _key;
+        std::string _description;
         timestamp_t _last_sync;
         std::map<Sensor::uuid_t, Sensor::Ptr> _sensors_buffer;
         std::map<Sensor::uuid_t, readings_t_Ptr> _readings_buffer;

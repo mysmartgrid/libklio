@@ -31,11 +31,11 @@ BOOST_AUTO_TEST_CASE(check_sensor_interface) {
 
     std::cout << std::endl << "*** Checking sensor semantics." << std::endl;
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-    klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", "Europe/Berlin"));
+    klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "sensor1", "Watt", "Europe/Berlin"));
     std::cout << "Created " << sensor1->str() << std::endl;
-    klio::Sensor::Ptr sensor1a(sensor_factory->createSensor("sensor1", "Watt", "Europe/Berlin"));
+    klio::Sensor::Ptr sensor1a(sensor_factory->createSensor("sensor1", "sensor1", "Watt", "Europe/Berlin"));
     std::cout << "Created " << sensor1a->str() << std::endl;
-    klio::Sensor::Ptr sensor2(sensor_factory->createSensor("sensor2", "Watt-Hours", "Europe/Berlin"));
+    klio::Sensor::Ptr sensor2(sensor_factory->createSensor("sensor2", "sensor2", "Watt-Hours", "Europe/Berlin"));
     std::cout << "Created " << sensor2->str() << std::endl;
 
     if (sensor1 != sensor1) {
@@ -56,7 +56,7 @@ BOOST_AUTO_TEST_CASE(check_create_sensor_sqlite3) {
     try {
         std::cout << std::endl << "*** Testing sensor creation for the SQLite3 store" << std::endl;
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-        klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", "Europe/Berlin"));
+        klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "sensor1", "Watt", "Europe/Berlin"));
 
         klio::StoreFactory::Ptr factory(new klio::StoreFactory());
         bfs::path db(TEST_DB_FILE);
@@ -105,8 +105,9 @@ BOOST_AUTO_TEST_CASE(check_update_sensor) {
     try {
         std::cout << std::endl << "*** Testing update sensor" << std::endl;
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+        std::string external_id("id1");
         std::string sensor_name("sensor1");
-        klio::Sensor::Ptr sensor(sensor_factory->createSensor(sensor_name, "Watt", "Europe/Berlin"));
+        klio::Sensor::Ptr sensor(sensor_factory->createSensor(external_id, sensor_name, "Watt", "Europe/Berlin"));
         klio::StoreFactory::Ptr factory(new klio::StoreFactory());
         bfs::path db(TEST_DB_FILE);
         bfs::remove(db);
@@ -118,7 +119,7 @@ BOOST_AUTO_TEST_CASE(check_update_sensor) {
             store->add_sensor(sensor);
 
             std::string description = "Test Description";
-            klio::Sensor::Ptr changed(sensor_factory->createSensor(sensor->uuid_string(), sensor_name, description, "Watt", "Europe/Berlin"));
+            klio::Sensor::Ptr changed(sensor_factory->createSensor(sensor->uuid_string(), external_id, sensor_name, description, "Watt", "Europe/Berlin"));
 
             store->update_sensor(changed);
 
@@ -154,7 +155,7 @@ BOOST_AUTO_TEST_CASE(check_retrieve_sensor_by_uuid) {
         std::cout << std::endl << "*** Testing sensor query by uuid" << std::endl;
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
 
-        klio::Sensor::Ptr sensor(sensor_factory->createSensor("sensor x", "Watt", "Europe/Berlin"));
+        klio::Sensor::Ptr sensor(sensor_factory->createSensor("sensor x", "sensor x", "Watt", "Europe/Berlin"));
 
         klio::StoreFactory::Ptr factory(new klio::StoreFactory());
         bfs::path db(TEST_DB_FILE);
@@ -192,10 +193,10 @@ BOOST_AUTO_TEST_CASE(check_retrieve_sensor_by_name) {
         std::cout << std::endl << "*** Testing sensor query by name" << std::endl;
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
         std::string sensor1_name("sensor_1");
-        klio::Sensor::Ptr sensor1(sensor_factory->createSensor(sensor1_name, "Watt", "Europe/Berlin"));
+        klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", sensor1_name, "Watt", "Europe/Berlin"));
         std::string sensor2_name("sensor2");
-        klio::Sensor::Ptr sensor2a(sensor_factory->createSensor(sensor2_name, "Watt", "Europe/Berlin"));
-        klio::Sensor::Ptr sensor2b(sensor_factory->createSensor(sensor2_name, "Watt", "Europe/Berlin"));
+        klio::Sensor::Ptr sensor2a(sensor_factory->createSensor("sensor2a", sensor2_name, "Watt", "Europe/Berlin"));
+        klio::Sensor::Ptr sensor2b(sensor_factory->createSensor("sensor2b", sensor2_name, "Watt", "Europe/Berlin"));
         klio::StoreFactory::Ptr factory(new klio::StoreFactory());
         bfs::path db(TEST_DB_FILE);
         bfs::remove(db);
@@ -246,8 +247,8 @@ BOOST_AUTO_TEST_CASE(check_retrieve_sensor_uuids_sqlite3) {
     try {
         std::cout << std::endl << "*** Testing sensor uuid query for the SQLite3 store" << std::endl;
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-        klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", "Europe/Berlin"));
-        klio::Sensor::Ptr sensor2(sensor_factory->createSensor("sensor2", "Watt", "Europe/Berlin"));
+        klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "sensor1", "Watt", "Europe/Berlin"));
+        klio::Sensor::Ptr sensor2(sensor_factory->createSensor("sensor2", "sensor2", "Watt", "Europe/Berlin"));
         klio::StoreFactory::Ptr factory(new klio::StoreFactory());
         bfs::path db(TEST_DB_FILE);
         bfs::remove(db);
@@ -294,7 +295,7 @@ BOOST_AUTO_TEST_CASE(check_remove_sensor_sqlite3) {
     try {
         std::cout << std::endl << "*** Testing sensor removal SQLite3 store" << std::endl;
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-        klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "Watt", "Europe/Berlin"));
+        klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "sensor1", "Watt", "Europe/Berlin"));
         klio::StoreFactory::Ptr factory(new klio::StoreFactory());
         bfs::path db(TEST_DB_FILE);
         bfs::remove(db);

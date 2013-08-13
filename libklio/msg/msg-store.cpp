@@ -84,12 +84,14 @@ void MSGStore::remove_sensor(const Sensor::Ptr sensor) {
 void MSGStore::update_sensor(const Sensor::Ptr sensor) {
 
     json_object *jdevice = json_object_new_string(_id.c_str());
+    json_object *jexternal_id = json_object_new_string(sensor->external_id().c_str());
     json_object *jname = json_object_new_string(sensor->name().c_str());
     json_object *jdescription = json_object_new_string(sensor->description().c_str());
     json_object *junit = json_object_new_string(sensor->unit().c_str());
 
     json_object *jconfig = json_object_new_object();
     json_object_object_add(jconfig, "device", jdevice);
+    json_object_object_add(jconfig, "externalid", jexternal_id);
     json_object_object_add(jconfig, "function", jname);
     json_object_object_add(jconfig, "description", jdescription);
     json_object_object_add(jconfig, "unit", junit);

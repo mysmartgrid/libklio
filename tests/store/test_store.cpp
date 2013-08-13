@@ -137,6 +137,7 @@ BOOST_AUTO_TEST_CASE(check_add_msg_sensor) {
 
         BOOST_CHECK_EQUAL(sensor->uuid(), retrieved->uuid());
         BOOST_CHECK_EQUAL(sensor->name(), retrieved->name());
+        BOOST_CHECK_EQUAL(sensor->external_id(), retrieved->external_id());
         BOOST_CHECK_EQUAL(sensor->description(), retrieved->description());
         BOOST_CHECK_EQUAL(sensor->unit(), retrieved->unit());
         BOOST_CHECK_EQUAL(sensor->timezone(), retrieved->timezone());

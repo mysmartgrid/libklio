@@ -360,7 +360,7 @@ Sensor::Ptr MSGStore::parse_sensor(const std::string& uuid_str, json_object *jse
     json_object *jdescription = json_object_object_get(jsensor, "description");
     const char* description = json_object_get_string(jdescription);
 
-    json_object *jexternal_id = json_object_object_get(jsensor, "external_id");
+    json_object *jexternal_id = json_object_object_get(jsensor, "externalid");
     const char* external_id = json_object_get_string(jexternal_id);
 
     json_object *junit = json_object_object_get(jsensor, "unit");

@@ -82,7 +82,8 @@ BOOST_AUTO_TEST_CASE(check_create_storage_msg) {
         klio::MSGStore::Ptr store(factory->create_msg_store(url,
                 "d271f4de-3ecd-f3d3-00db-3e96755d8736",
                 "d221f4de-3ecd-f3d3-00db-3e96755d8733",
-                "libklio test desc"));
+                "libklio test desc",
+                "libklio"));
         std::cout << "Created: " << store->str() << std::endl;
 
         store->open();
@@ -113,7 +114,8 @@ BOOST_AUTO_TEST_CASE(check_add_msg_sensor) {
     klio::MSGStore::Ptr store(factory->create_msg_store(url,
             "d271f4de-3ecd-f3d3-00db-3e96755d8736",
             "d221f4de-3ecd-f3d3-00db-3e96755d8733",
-            "libklio test desc"));
+            "libklio test desc",
+            "libklio"));
     std::cout << "Created: " << store->str() << std::endl;
 
     try {
@@ -158,7 +160,8 @@ BOOST_AUTO_TEST_CASE(check_update_msg_sensor) {
     klio::MSGStore::Ptr store(factory->create_msg_store(url,
             "d271f4de-3ecd-f3d3-00db-3e96755d8736",
             "d221f4de-3ecd-f3d3-00db-3e96755d8733",
-            "libklio test"));
+            "libklio test",
+            "libklio"));
     std::cout << "Created: " << store->str() << std::endl;
 
     try {
@@ -210,7 +213,8 @@ BOOST_AUTO_TEST_CASE(check_remove_msg_sensor) {
     klio::MSGStore::Ptr store(factory->create_msg_store(url,
             "d271f4de-3ecd-f3d3-00db-3e96755d8736",
             "d221f4de-3ecd-f3d3-00db-3e96755d8733",
-            "libklio test"));
+            "libklio test",
+            "libklio"));
     std::cout << "Created: " << store->str() << std::endl;
 
     try {
@@ -257,7 +261,8 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor) {
     klio::MSGStore::Ptr store(factory->create_msg_store(url,
             "d271f4de-3ecd-f3d3-00db-3e96755d8736",
             "d221f4de-3ecd-f3d3-00db-3e96755d8733",
-            "libklio test"));
+            "libklio test",
+            "libklio"));
     std::cout << "Created: " << store->str() << std::endl;
 
     try {
@@ -312,7 +317,8 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor_by_name) {
     klio::MSGStore::Ptr store(factory->create_msg_store(url,
             "d271f4de-3ecd-f3d3-00db-3e96755d8736",
             "d221f4de-3ecd-f3d3-00db-3e96755d8733",
-            "libklio test"));
+            "libklio test",
+            "libklio"));
     std::cout << "Created: " << store->str() << std::endl;
 
     try {
@@ -382,7 +388,11 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor_by_external_id) {
     std::string url = "https://dev3-api.mysmartgrid.de:8443";
 
     std::cout << "Attempting to create MSG store " << url << std::endl;
-    klio::MSGStore::Ptr store(factory->create_msg_store(url, "d271f4de-3ecd-f3d3-00db-3e96755d8736", "d221f4de-3ecd-f3d3-00db-3e96755d8733", "libklio test"));
+    klio::MSGStore::Ptr store(factory->create_msg_store(url,
+            "d271f4de-3ecd-f3d3-00db-3e96755d8736",
+            "d221f4de-3ecd-f3d3-00db-3e96755d8733",
+            "libklio test",
+            "libklio"));
     std::cout << "Created: " << store->str() << std::endl;
 
     try {
@@ -423,11 +433,11 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor_by_external_id) {
             store->get_sensor_by_external_id("External Id 3");
             store->dispose();
             BOOST_FAIL("An exception must be raised if the sensor is not found.");
-            
+
         } catch (klio::StoreException const& ex) {
             //This exception is expected
         }
-        
+
         store->dispose();
 
     } catch (klio::StoreException const& ex) {
@@ -444,8 +454,12 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor_uuids) {
     std::string url = "https://dev3-api.mysmartgrid.de:8443";
 
     std::cout << "Attempting to create MSG store " << url << std::endl;
-        klio::MSGStore::Ptr store(factory->create_msg_store(url, "d271f4de-3ecd-f3d3-00db-3e96755d3687", "d221f4de-3ecd-f3d3-00db-3e96755d8733", "libklio test"));
-        std::cout << "Created: " << store->str() << std::endl;
+    klio::MSGStore::Ptr store(factory->create_msg_store(url, 
+            "d271f4de-3ecd-f3d3-00db-3e96755d3687", 
+            "d221f4de-3ecd-f3d3-00db-3e96755d8733", 
+            "libklio test",
+            "libklio"));
+    std::cout << "Created: " << store->str() << std::endl;
 
     try {
         store->open();

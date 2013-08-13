@@ -30,13 +30,19 @@ MSGStore::Ptr StoreFactory::create_msg_store() {
 
 MSGStore::Ptr StoreFactory::create_msg_store(const std::string& id, const std::string& key) {
 
-    return create_msg_store("https://api.mysmartgrid.de:8443", id, key, "libklio mSG Store");
+    return create_msg_store("https://api.mysmartgrid.de:8443", id, key, "libklio mSG Store", "libklio");
 }
 
-MSGStore::Ptr StoreFactory::create_msg_store(const std::string& url, const std::string& id, const std::string& key, const std::string& description) {
+MSGStore::Ptr StoreFactory::create_msg_store(
+        const std::string& url,
+        const std::string& id,
+        const std::string& key,
+        const std::string& description,
+        const std::string& type) {
 
     return MSGStore::Ptr(new MSGStore(url,
             erase_all_copy(id, "-"),
             erase_all_copy(key, "-"),
-            description));
+            description,
+            type));
 }

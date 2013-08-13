@@ -436,7 +436,8 @@ BOOST_AUTO_TEST_CASE(check_add_watt_reading_msg) {
     klio::Store::Ptr store(factory->create_msg_store(url,
             "74c180748bcf890bdb7cc1281032adcb",
             "74c180748bcf890bdb7cc1281038adcb",
-            "libklio test"));
+            "libklio test",
+            "libklio"));
     
     std::cout << "Created: " << store->str() << std::endl;
 
@@ -491,7 +492,8 @@ BOOST_AUTO_TEST_CASE(check_add_kwh_reading_msg) {
     klio::Store::Ptr store(factory->create_msg_store(url,
             "28c180728bcf890bdb7cc1281038adcb",
             "28c180728bcf890bdb7cc1281038adcb",
-            "libklio test"));
+            "libklio test",
+            "libklio"));
     
     std::cout << "Created: " << store->str() << std::endl;
 
@@ -549,7 +551,8 @@ BOOST_AUTO_TEST_CASE(check_add_celsius_reading_msg) {
     klio::Store::Ptr store(factory->create_msg_store(url,
             "22c180742bcf890bdb7cc1281038adcb",
             "22c180742bcf890bdb7cc1281038adcb",
-            "libklio test"));
+            "libklio test",
+            "libklio"));
 
     std::cout << "Created: " << store->str() << std::endl;
 

@@ -26,7 +26,7 @@ void MSGStore::initialize() {
 
     json_object *jkey = json_object_new_string(_key.c_str());
     json_object *jdescription = json_object_new_string(_description.c_str());
-    json_object *jtype = json_object_new_string("libklio");
+    json_object *jtype = json_object_new_string(_type.c_str());
 
     json_object *jobject = json_object_new_object();
     json_object_object_add(jobject, "key", jkey);

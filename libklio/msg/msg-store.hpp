@@ -41,11 +41,12 @@ namespace klio {
     public:
         typedef std::tr1::shared_ptr<MSGStore> Ptr;
 
-        MSGStore(const std::string& url, const std::string& id, const std::string& key, const std::string& description) :
+        MSGStore(const std::string& url, const std::string& id, const std::string& key, const std::string& description, const std::string& type) :
         _url(url),
         _id(id),
         _key(key),
         _description(description),
+        _type(type),
         _last_sync(0) {
         };
 
@@ -67,6 +68,10 @@ namespace klio {
         
         const std::string description() const {
             return _description;
+        };
+        
+        const std::string type() const {
+            return _type;
         };
 
         const std::string activation_code() const {
@@ -102,6 +107,7 @@ namespace klio {
         std::string _id;
         std::string _key;
         std::string _description;
+        std::string _type;
         timestamp_t _last_sync;
         std::map<Sensor::uuid_t, Sensor::Ptr> _sensors_buffer;
         std::map<Sensor::uuid_t, readings_t_Ptr> _readings_buffer;

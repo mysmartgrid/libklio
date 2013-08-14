@@ -515,7 +515,7 @@ struct json_object *MSGStore::perform_http_request(const std::string& method, co
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_custom_callback);
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, method.c_str());
 

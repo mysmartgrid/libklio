@@ -18,13 +18,11 @@
  * along with libklio. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define BOOST_TEST_MODULE store_test
-
 #include <iostream>
 #include <boost/test/unit_test.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <libklio/store.hpp>
-#include <libklio/msg/msg-store.hpp>
+#include <libklio/sqlite3/sqlite3-store.hpp>
 #include <libklio/store-factory.hpp>
 #include <libklio/sensor-factory.hpp>
 #include <testconfig.h>
@@ -48,53 +46,24 @@ BOOST_AUTO_TEST_CASE(check_sanity) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_create_storage_sqlite3) {
+BOOST_AUTO_TEST_CASE(check_create_sqlite3_storage) {
 
-    std::cout << "Testing open storage utility for SQLite3" << std::endl;
-    klio::StoreFactory::Ptr factory(new klio::StoreFactory());
+    std::cout << "Testing storage creation for SQLite3" << std::endl;
+    klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
     bfs::path db(TEST_DB_FILE);
+    klio::Store::Ptr store;
+
     try {
         std::cout << "Attempting to create " << db << std::endl;
-        klio::Store::Ptr store(factory->open_sqlite3_store(db));
+        klio::Store::Ptr store(store_factory->create_sqlite3_store(db));
         std::cout << "Created database: " << store->str() << std::endl;
-        store->initialize();
-        store->close();
 
-        klio::Store::Ptr loaded(factory->open_sqlite3_store(db));
+        store->open();
+        store->initialize();
+
+        klio::Store::Ptr loaded(store_factory->open_sqlite3_store(db));
         std::cout << "Opened database: " << loaded->str() << std::endl;
 
-    } catch (klio::StoreException const& ex) {
-        std::cout << "Caught invalid exception: " << ex.what() << std::endl;
-        BOOST_FAIL("Unexpected exception occurred for initialize request");
-    }
-}
-
-BOOST_AUTO_TEST_CASE(check_create_storage_msg) {
-
-    std::cout << "Testing create storage utility for MSG" << std::endl;
-    klio::StoreFactory::Ptr factory(new klio::StoreFactory());
-    std::string url = std::string("https://dev3-api.mysmartgrid.de:8443");
-
-    klio::MSGStore::Ptr store;
-
-    try {
-        std::cout << "Attempting to create MSG store " << url << std::endl;
-        klio::MSGStore::Ptr store(factory->create_msg_store(url,
-                "d271f4de-3ecd-f3d3-00db-3e96755d8736",
-                "d221f4de-3ecd-f3d3-00db-3e96755d8733",
-                "libklio test desc",
-                "libklio"));
-        std::cout << "Created: " << store->str() << std::endl;
-
-        store->open();
-        store->initialize();
-
-        BOOST_CHECK_EQUAL(store->url(), url);
-        BOOST_CHECK_EQUAL(store->id(), "d271f4de3ecdf3d300db3e96755d8736");
-        BOOST_CHECK_EQUAL(store->key(), "d221f4de3ecdf3d300db3e96755d8733");
-        BOOST_CHECK_EQUAL(store->description(), "libklio test desc");
-        BOOST_CHECK_EQUAL(store->activation_code(), "d271f4de3e");
-
         store->dispose();
 
     } catch (klio::StoreException const& ex) {
@@ -104,24 +73,21 @@ BOOST_AUTO_TEST_CASE(check_create_storage_msg) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_add_msg_sensor) {
+BOOST_AUTO_TEST_CASE(check_add_sqlite3_sensor) {
 
-    std::cout << "Testing add_sensor for MSG" << std::endl;
-    klio::StoreFactory::Ptr factory(new klio::StoreFactory());
-    std::string url = "https://dev3-api.mysmartgrid.de:8443";
-
-    std::cout << "Attempting to create MSG store " << url << std::endl;
-    klio::MSGStore::Ptr store(factory->create_msg_store(url,
-            "d271f4de-3ecd-f3d3-00db-3e96755d8736",
-            "d221f4de-3ecd-f3d3-00db-3e96755d8733",
-            "libklio test desc",
-            "libklio"));
-    std::cout << "Created: " << store->str() << std::endl;
+    std::cout << "Testing sensor addition for SQLite3" << std::endl;
+    klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
+    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+    bfs::path db(TEST_DB_FILE);
+    klio::Store::Ptr store;
 
     try {
+        std::cout << "Attempting to create " << db << std::endl;
+        store = store_factory->create_sqlite3_store(db);
+        std::cout << "Created database: " << store->str() << std::endl;
+
         store->open();
         store->initialize();
-        klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
 
         klio::Sensor::Ptr sensor(sensor_factory->createSensor(
                 "89c18074-8bcf-240b-db7c-c1281038adcb",
@@ -151,27 +117,24 @@ BOOST_AUTO_TEST_CASE(check_add_msg_sensor) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_update_msg_sensor) {
+BOOST_AUTO_TEST_CASE(check_update_sqlite3_sensor) {
 
-    std::cout << "Testing update_sensor for MSG" << std::endl;
-    klio::StoreFactory::Ptr factory(new klio::StoreFactory());
-    std::string url = "https://dev3-api.mysmartgrid.de:8443";
-
-    std::cout << "Attempting to create MSG store " << url << std::endl;
-    klio::MSGStore::Ptr store(factory->create_msg_store(url,
-            "d271f4de-3ecd-f3d3-00db-3e96755d8736",
-            "d221f4de-3ecd-f3d3-00db-3e96755d8733",
-            "libklio test",
-            "libklio"));
-    std::cout << "Created: " << store->str() << std::endl;
+    std::cout << "Testing sensor update for SQLite3" << std::endl;
+    klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
+    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+    bfs::path db(TEST_DB_FILE);
+    klio::Store::Ptr store;
 
     try {
+        std::cout << "Attempting to create " << db << std::endl;
+        store = store_factory->create_sqlite3_store(db);
+        std::cout << "Created database: " << store->str() << std::endl;
+
         store->open();
         store->initialize();
-        klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
 
         klio::Sensor::Ptr sensor(sensor_factory->createSensor(
-                "89c18074-8bcf-240b-db7c-c1281038adcb",
+                "92c18074-8bcf-240b-db7c-c1281038adcb",
                 "Test",
                 "Test libklio",
                 "description",
@@ -181,7 +144,7 @@ BOOST_AUTO_TEST_CASE(check_update_msg_sensor) {
         store->add_sensor(sensor);
 
         klio::Sensor::Ptr changed(sensor_factory->createSensor(
-                "89c18074-8bcf-240b-db7c-c1281038adcb",
+                "92c18074-8bcf-240b-db7c-c1281038adcb",
                 "Test",
                 "Test libklio",
                 "changed description",
@@ -204,24 +167,21 @@ BOOST_AUTO_TEST_CASE(check_update_msg_sensor) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_remove_msg_sensor) {
+BOOST_AUTO_TEST_CASE(check_remove_sqlite3_sensor) {
 
-    std::cout << "Testing remove_sensor for MSG" << std::endl;
-    klio::StoreFactory::Ptr factory(new klio::StoreFactory());
-    std::string url = "https://dev3-api.mysmartgrid.de:8443";
-
-    std::cout << "Attempting to create MSG store " << url << std::endl;
-    klio::MSGStore::Ptr store(factory->create_msg_store(url,
-            "d271f4de-3ecd-f3d3-00db-3e96755d8736",
-            "d221f4de-3ecd-f3d3-00db-3e96755d8733",
-            "libklio test",
-            "libklio"));
-    std::cout << "Created: " << store->str() << std::endl;
+    std::cout << "Testing sensor removal for SQLite3" << std::endl;
+    klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
+    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+    bfs::path db(TEST_DB_FILE);
+    klio::Store::Ptr store;
 
     try {
+        std::cout << "Attempting to create " << db << std::endl;
+        store = store_factory->create_sqlite3_store(db);
+        std::cout << "Created database: " << store->str() << std::endl;
+
         store->open();
         store->initialize();
-        klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
 
         klio::Sensor::Ptr sensor(sensor_factory->createSensor(
                 "89c18074-8bcf-890b-db7c-c1281038adcb",
@@ -252,24 +212,21 @@ BOOST_AUTO_TEST_CASE(check_remove_msg_sensor) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_get_msg_sensor) {
+BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensor) {
 
-    std::cout << "Testing get_sensor for MSG" << std::endl;
-    klio::StoreFactory::Ptr factory(new klio::StoreFactory());
-    std::string url = "https://dev3-api.mysmartgrid.de:8443";
-
-    std::cout << "Attempting to create MSG store " << url << std::endl;
-    klio::MSGStore::Ptr store(factory->create_msg_store(url,
-            "d271f4de-3ecd-f3d3-00db-3e96755d8736",
-            "d221f4de-3ecd-f3d3-00db-3e96755d8733",
-            "libklio test",
-            "libklio"));
-    std::cout << "Created: " << store->str() << std::endl;
+    std::cout << "Testing sensor query by uuid for SQLite3" << std::endl;
+    klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
+    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+    bfs::path db(TEST_DB_FILE);
+    klio::Store::Ptr store;
 
     try {
+        std::cout << "Attempting to create " << db << std::endl;
+        store = store_factory->create_sqlite3_store(db);
+        std::cout << "Created database: " << store->str() << std::endl;
+
         store->open();
         store->initialize();
-        klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
 
         klio::Sensor::Ptr sensor(sensor_factory->createSensor(
                 "98c18074-8bcf-890b-db7c-c1281038adcb",
@@ -308,24 +265,21 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_get_msg_sensor_by_name) {
+BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensor_by_name) {
 
-    std::cout << "Testing get_sensor for MSG" << std::endl;
-    klio::StoreFactory::Ptr factory(new klio::StoreFactory());
-    std::string url = "https://dev3-api.mysmartgrid.de:8443";
-
-    std::cout << "Attempting to create MSG store " << url << std::endl;
-    klio::MSGStore::Ptr store(factory->create_msg_store(url,
-            "d271f4de-3ecd-f3d3-00db-3e96755d8736",
-            "d221f4de-3ecd-f3d3-00db-3e96755d8733",
-            "libklio test",
-            "libklio"));
-    std::cout << "Created: " << store->str() << std::endl;
+    std::cout << "Testing sensor query by name for SQLite3" << std::endl;
+    klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
+    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+    bfs::path db(TEST_DB_FILE);
+    klio::Store::Ptr store;
 
     try {
+        std::cout << "Attempting to create " << db << std::endl;
+        store = store_factory->create_sqlite3_store(db);
+        std::cout << "Created database: " << store->str() << std::endl;
+
         store->open();
         store->initialize();
-        klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
 
         klio::Sensor::Ptr sensor1(sensor_factory->createSensor(
                 "98c18074-8bcf-890b-db7c-c1281038adcb",
@@ -382,24 +336,21 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor_by_name) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_get_msg_sensor_by_external_id) {
+BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensor_by_external_id) {
 
-    std::cout << "Testing get_sensor for MSG" << std::endl;
-    klio::StoreFactory::Ptr factory(new klio::StoreFactory());
-    std::string url = "https://dev3-api.mysmartgrid.de:8443";
-
-    std::cout << "Attempting to create MSG store " << url << std::endl;
-    klio::MSGStore::Ptr store(factory->create_msg_store(url,
-            "d271f4de-3ecd-f3d3-00db-3e96755d8736",
-            "d221f4de-3ecd-f3d3-00db-3e96755d8733",
-            "libklio test",
-            "libklio"));
-    std::cout << "Created: " << store->str() << std::endl;
+    std::cout << "Testing sensor query by external id for SQLite3" << std::endl;
+    klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
+    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+    bfs::path db(TEST_DB_FILE);
+    klio::Store::Ptr store;
 
     try {
+        std::cout << "Attempting to create " << db << std::endl;
+        store = store_factory->create_sqlite3_store(db);
+        std::cout << "Created database: " << store->str() << std::endl;
+
         store->open();
         store->initialize();
-        klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
 
         klio::Sensor::Ptr sensor1(sensor_factory->createSensor(
                 "82c18074-8bcf-890b-db7c-c1281038adcb",
@@ -448,24 +399,21 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor_by_external_id) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_get_msg_sensor_uuids) {
+BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensor_uuids) {
 
-    std::cout << "Testing get_sensor for MSG" << std::endl;
-    klio::StoreFactory::Ptr factory(new klio::StoreFactory());
-    std::string url = "https://dev3-api.mysmartgrid.de:8443";
-
-    std::cout << "Attempting to create MSG store " << url << std::endl;
-    klio::MSGStore::Ptr store(factory->create_msg_store(url, 
-            "d271f4de-3ecd-f3d3-00db-3e96755d3687", 
-            "d221f4de-3ecd-f3d3-00db-3e96755d8733", 
-            "libklio test",
-            "libklio"));
-    std::cout << "Created: " << store->str() << std::endl;
+    std::cout << "Testing sensor uuids query for SQLite3" << std::endl;
+    klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
+    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+    bfs::path db(TEST_DB_FILE);
+    klio::Store::Ptr store;
 
     try {
+        std::cout << "Attempting to create " << db << std::endl;
+        store = store_factory->create_sqlite3_store(db);
+        std::cout << "Created database: " << store->str() << std::endl;
+
         store->open();
         store->initialize();
-        klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
 
         klio::Sensor::Ptr sensor1(sensor_factory->createSensor(
                 "98c17480-8bcf-890b-db7c-c1081038adcb",

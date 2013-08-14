@@ -70,8 +70,8 @@ void SQLite3Store::initialize() {
 }
 
 void SQLite3Store::dispose() {
-    //TODO: complete this method
     close();
+    bfs::remove(_path);
 }
 
 const std::string SQLite3Store::str() {

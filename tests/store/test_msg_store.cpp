@@ -57,11 +57,46 @@ BOOST_AUTO_TEST_CASE(check_create_msg_storage) {
         BOOST_CHECK_EQUAL(store->id(), "d271f4de3ecdf3d300db3e96755d8736");
         BOOST_CHECK_EQUAL(store->key(), "d221f4de3ecdf3d300db3e96755d8733");
         BOOST_CHECK_EQUAL(store->description(), "libklio test desc");
+        BOOST_CHECK_EQUAL(store->type(), "libklio");
         BOOST_CHECK_EQUAL(store->activation_code(), "d271f4de3e");
 
         store->dispose();
 
-    } catch (klio::StoreException const& ex) {
+        try {
+            store = factory->create_msg_store(url,
+                    "d281f4de-3ecd-f3d3-00db-3e96755d8736",
+                    "d271f4de-3ecd-f3d3-00db-3e96755d8733",
+                    "libklio test desc",
+                    "xxx");
+
+            store->open();
+            store->initialize();
+
+            BOOST_FAIL("A DataFormatException must be thrown when an invalid type is informed.");
+
+        } catch (klio::GenericException const& e) {
+            //This exception was expected
+        }
+        store->dispose();
+
+        try {
+            store = factory->create_msg_store(url,
+                    "####################################",
+                    "d271f4de-3ecd-f3d3-00db-3e96755d8733",
+                    "libklio test desc",
+                    "libklio");
+
+            store->open();
+            store->initialize();
+            
+            BOOST_FAIL("A DataFormatException must be thrown when an invalid uuid is informed.");
+
+        } catch (klio::GenericException const& ex) {
+            //This exception was expected
+        }
+        store->dispose();
+
+    } catch (klio::GenericException const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
@@ -106,9 +141,26 @@ BOOST_AUTO_TEST_CASE(check_add_msg_sensor) {
         BOOST_CHECK_EQUAL(sensor->unit(), retrieved->unit());
         BOOST_CHECK_EQUAL(sensor->timezone(), retrieved->timezone());
 
+        try {
+            sensor = sensor_factory->createSensor(
+                    "89c74018-8bcf-240b-db7c-c1281038adcb",
+                    "Test",
+                    "Test libklio",
+                    "changed description",
+                    "xxx",
+                    "Europe/Berlin");
+
+            store->add_sensor(sensor);
+
+            BOOST_FAIL("A DataFormatException must be thrown when an invalid unit is informed.");
+
+        } catch (klio::GenericException const& ex) {
+            //This exception was expected
+        }
+
         store->dispose();
 
-    } catch (klio::StoreException const& ex) {
+    } catch (klio::GenericException const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
@@ -144,13 +196,13 @@ BOOST_AUTO_TEST_CASE(check_update_msg_sensor) {
 
         store->add_sensor(sensor);
 
-        klio::Sensor::Ptr changed(sensor_factory->createSensor(
+        klio::Sensor::Ptr changed = sensor_factory->createSensor(
                 "89c18074-8bcf-240b-db7c-c1281038adcb",
                 "Test",
                 "Test libklio",
                 "changed description",
                 "watt",
-                "Europe/Berlin"));
+                "Europe/Berlin");
 
         store->update_sensor(changed);
 
@@ -161,7 +213,7 @@ BOOST_AUTO_TEST_CASE(check_update_msg_sensor) {
 
         store->dispose();
 
-    } catch (klio::StoreException const& ex) {
+    } catch (klio::GenericException const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
@@ -202,14 +254,14 @@ BOOST_AUTO_TEST_CASE(check_remove_msg_sensor) {
         try {
             klio::Sensor::Ptr retrieved = store->get_sensor(sensor->uuid());
 
-            BOOST_FAIL("An exception must be raised if the sensor is not found.");
+            BOOST_FAIL("An exception must be thrown if the sensor is not found.");
 
         } catch (klio::StoreException const& ok) {
             //This exception is expected
         }
         store->dispose();
 
-    } catch (klio::StoreException const& ex) {
+    } catch (klio::GenericException const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
@@ -266,7 +318,7 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor) {
 
         store->dispose();
 
-    } catch (klio::StoreException const& ex) {
+    } catch (klio::GenericException const& ex) {
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
     }
@@ -339,7 +391,7 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor_by_name) {
 
         store->dispose();
 
-    } catch (klio::StoreException const& ex) {
+    } catch (klio::GenericException const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
@@ -405,7 +457,7 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor_by_external_id) {
 
         store->dispose();
 
-    } catch (klio::StoreException const& ex) {
+    } catch (klio::GenericException const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
@@ -419,9 +471,9 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor_uuids) {
     std::string url = "https://dev3-api.mysmartgrid.de:8443";
 
     std::cout << "Attempting to create MSG store " << url << std::endl;
-    klio::MSGStore::Ptr store(factory->create_msg_store(url, 
-            "d271f4de-3ecd-f3d3-00db-3e96755d3687", 
-            "d221f4de-3ecd-f3d3-00db-3e96755d8733", 
+    klio::MSGStore::Ptr store(factory->create_msg_store(url,
+            "d271f4de-3ecd-f3d3-00db-3e96755d3687",
+            "d221f4de-3ecd-f3d3-00db-3e96755d8733",
             "libklio test",
             "libklio"));
     std::cout << "Created: " << store->str() << std::endl;
@@ -465,7 +517,7 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor_uuids) {
 
         store->dispose();
 
-    } catch (klio::StoreException const& ex) {
+    } catch (klio::GenericException const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");

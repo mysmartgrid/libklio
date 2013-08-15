@@ -34,15 +34,21 @@ void MSGStore::initialize() {
     json_object_object_add(jobject, "type", jtype);
 
     std::string url = compose_device_url();
-    json_object *jresponse = perform_http_post(url, _key, jobject);
+
+    try {
+        json_object *jresponse = perform_http_post(url, _key, jobject);
+        json_object_put(jresponse);
+        json_object_put(jobject);
+
+    } catch (GenericException const& e) {
+        json_object_put(jobject);
+        throw e;
+    }
 
     std::vector<Sensor::Ptr> sensors = get_sensors();
     for (std::vector<Sensor::Ptr>::const_iterator sensor = sensors.begin(); sensor != sensors.end(); ++sensor) {
         init_buffers(*sensor);
     }
-
-    json_object_put(jobject);
-    json_object_put(jresponse);
 }
 
 void MSGStore::close() {
@@ -51,9 +57,15 @@ void MSGStore::close() {
 
 void MSGStore::dispose() {
 
-    std::string url = compose_device_url();
-    perform_http_delete(url, _key);
     clear_buffers();
+    std::string url = compose_device_url();
+
+    //Tries to delete the remote store
+    try {
+        perform_http_delete(url, _key);
+
+    } catch (GenericException const& e) {
+    }
 }
 
 void MSGStore::flush() {
@@ -100,11 +112,17 @@ void MSGStore::update_sensor(const Sensor::Ptr sensor) {
     json_object_object_add(jobject, "config", jconfig);
 
     std::string url = compose_sensor_url(sensor);
-    json_object *jresponse = perform_http_post(url, _key, jobject);
-    _sensors_buffer[sensor->uuid()] = sensor;
+    try {
+        json_object *jresponse = perform_http_post(url, _key, jobject);
+        _sensors_buffer[sensor->uuid()] = sensor;
 
-    json_object_put(jobject);
-    json_object_put(jresponse);
+        json_object_put(jresponse);
+        json_object_put(jobject);
+
+    } catch (GenericException const& e) {
+        json_object_put(jobject);
+        throw e;
+    }
 }
 
 Sensor::Ptr MSGStore::get_sensor(const Sensor::uuid_t& uuid) {
@@ -300,11 +318,17 @@ void MSGStore::flush(Sensor::Ptr sensor) {
         json_object_object_add(jobject, "measurements", jtuples);
 
         std::string url = compose_sensor_url(sensor);
-        json_object *jresponse = perform_http_post(url, _key, jobject);
+        try {
+            json_object *jresponse = perform_http_post(url, _key, jobject);
 
-        json_object_put(jobject);
-        json_object_put(jresponse);
-        readings->clear();
+            json_object_put(jresponse);
+            json_object_put(jobject);
+            readings->clear();
+
+        } catch (GenericException const& e) {
+            json_object_put(jobject);
+            throw e;
+        }
     }
 }
 
@@ -314,13 +338,19 @@ bool MSGStore::heartbeat() {
 
     //TODO: post firmware version and return parsed server response
     std::string url = compose_device_url();
-    json_object *jresponse = perform_http_post(url, _key, jobject);
-    bool success = jresponse != NULL;
+    try {
+        json_object *jresponse = perform_http_post(url, _key, jobject);
+        bool success = jresponse != NULL;
 
-    json_object_put(jobject);
-    json_object_put(jresponse);
+        json_object_put(jobject);
+        json_object_put(jresponse);
 
-    return success;
+        return success;
+
+    } catch (GenericException const& e) {
+        json_object_put(jobject);
+        throw e;
+    }
 }
 
 std::vector<Sensor::Ptr> MSGStore::get_sensors() {
@@ -572,7 +602,7 @@ struct json_object *MSGStore::perform_http_request(const std::string& method, co
 
     if (http_code >= 400 && http_code <= 499) {
         throw DataFormatException(oss.str());
-        
+
     } else if (jobject == NULL) {
         throw StoreException(oss.str());
 

@@ -434,8 +434,8 @@ BOOST_AUTO_TEST_CASE(check_add_watt_reading_msg) {
 
     std::cout << "Attempting to create MSG store " << url << std::endl;
     klio::Store::Ptr store(factory->create_msg_store(url,
-            "74c180748bcf890bdb7cc1281032adcb",
-            "74c180748bcf890bdb7cc1281038adcb",
+            "72c160748bcf890bdb7cc1281032adcb",
+            "72c160748bcf890bdb7cc1281038adcb",
             "libklio test",
             "libklio"));
     
@@ -447,7 +447,7 @@ BOOST_AUTO_TEST_CASE(check_add_watt_reading_msg) {
 
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
         klio::Sensor::Ptr sensor(sensor_factory->createSensor(
-                "74c18072-8bcf-890b-db7c-c1081038adcb",
+                "72c160748bcf890bdb7cc1281032adcb",
                 "Sensor1",
                 "Test",
                 "description",
@@ -475,7 +475,7 @@ BOOST_AUTO_TEST_CASE(check_add_watt_reading_msg) {
             BOOST_CHECK_EQUAL(17, round((*it).second));
         }
 
-    } catch (klio::StoreException const& ex) {
+    } catch (klio::GenericException const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
@@ -534,7 +534,7 @@ BOOST_AUTO_TEST_CASE(check_add_kwh_reading_msg) {
             BOOST_CHECK_EQUAL(0.0000115, (*it).second);
         }
 
-    } catch (klio::StoreException const& ex) {
+    } catch (klio::GenericException const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
@@ -593,7 +593,7 @@ BOOST_AUTO_TEST_CASE(check_add_celsius_reading_msg) {
             BOOST_CHECK_EQUAL(26.7938, (*it).second);
         }
 
-    } catch (klio::StoreException const& ex) {
+    } catch (klio::GenericException const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");

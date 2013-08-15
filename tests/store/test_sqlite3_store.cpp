@@ -66,7 +66,7 @@ BOOST_AUTO_TEST_CASE(check_create_sqlite3_storage) {
 
         store->dispose();
 
-    } catch (klio::StoreException const& ex) {
+    } catch (klio::GenericException const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
@@ -110,7 +110,7 @@ BOOST_AUTO_TEST_CASE(check_add_sqlite3_sensor) {
 
         store->dispose();
 
-    } catch (klio::StoreException const& ex) {
+    } catch (klio::GenericException const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
@@ -160,7 +160,7 @@ BOOST_AUTO_TEST_CASE(check_update_sqlite3_sensor) {
 
         store->dispose();
 
-    } catch (klio::StoreException const& ex) {
+    } catch (klio::GenericException const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
@@ -205,7 +205,7 @@ BOOST_AUTO_TEST_CASE(check_remove_sqlite3_sensor) {
         }
         store->dispose();
 
-    } catch (klio::StoreException const& ex) {
+    } catch (klio::GenericException const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
@@ -259,7 +259,7 @@ BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensor) {
 
         store->dispose();
 
-    } catch (klio::StoreException const& ex) {
+    } catch (klio::GenericException const& ex) {
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
     }
@@ -329,7 +329,7 @@ BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensor_by_name) {
 
         store->dispose();
 
-    } catch (klio::StoreException const& ex) {
+    } catch (klio::GenericException const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
@@ -392,7 +392,7 @@ BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensor_by_external_id) {
 
         store->dispose();
 
-    } catch (klio::StoreException const& ex) {
+    } catch (klio::GenericException const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
@@ -449,7 +449,7 @@ BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensor_uuids) {
 
         store->dispose();
 
-    } catch (klio::StoreException const& ex) {
+    } catch (klio::GenericException const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");

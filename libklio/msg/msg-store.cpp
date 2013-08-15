@@ -570,9 +570,13 @@ struct json_object *MSGStore::perform_http_request(const std::string& method, co
     curl_easy_cleanup(curl);
     curl_global_cleanup();
 
-    if (jobject == NULL) {
+    if (http_code >= 400 && http_code <= 499) {
+        throw DataFormatException(oss.str());
+        
+    } else if (jobject == NULL) {
         throw StoreException(oss.str());
-    }
 
-    return jobject;
+    } else {
+        return jobject;
+    }
 }

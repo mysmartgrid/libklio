@@ -603,6 +603,9 @@ struct json_object *MSGStore::perform_http_request(const std::string& method, co
     if (http_code >= 400 && http_code <= 499) {
         throw DataFormatException(oss.str());
 
+    } else if (http_code >= 500) {
+        throw CommunicationException(oss.str());
+        
     } else if (jobject == NULL) {
         throw StoreException(oss.str());
 

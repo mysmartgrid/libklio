@@ -280,7 +280,7 @@ BOOST_AUTO_TEST_CASE(check_num_readings) {
         bfs::path db(TEST_DB_FILE);
         klio::Store::Ptr store(store_factory->open_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
-        
+
         try {
             store->initialize();
             store->add_sensor(sensor1);
@@ -438,7 +438,7 @@ BOOST_AUTO_TEST_CASE(check_add_watt_reading_msg) {
             "72c160748bcf890bdb7cc1281038adcb",
             "libklio test",
             "libklio"));
-    
+
     std::cout << "Created: " << store->str() << std::endl;
 
     try {
@@ -494,7 +494,7 @@ BOOST_AUTO_TEST_CASE(check_add_kwh_reading_msg) {
             "28c180728bcf890bdb7cc1281038adcb",
             "libklio test",
             "libklio"));
-    
+
     std::cout << "Created: " << store->str() << std::endl;
 
     try {
@@ -560,38 +560,47 @@ BOOST_AUTO_TEST_CASE(check_add_celsius_reading_msg) {
         store->open(); // Second call to open - should not break
         store->initialize();
 
-        klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-        klio::Sensor::Ptr sensor(sensor_factory->createSensor(
-                "22c18074-2bcf-890b-db7c-c1281038adcb",
-                "Sensor1",
-                "Test",
-                "description",
-                "degC",
-                "Europe/Berlin"));
+        double value = 26.7938;
 
-        store->add_sensor(sensor);
+        do {
+            klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+            klio::Sensor::Ptr sensor(sensor_factory->createSensor(
+                    "22c18074-2bcf-890b-db7c-c1281038adcb",
+                    "Sensor1",
+                    "Test",
+                    "description",
+                    "degC",
+                    "Europe/Berlin"));
 
-        klio::timestamp_t timestamp = time(0);
-        timestamp -= timestamp % 60;
-        klio::readings_t readings;
+            store->add_sensor(sensor);
 
-        for (int i = 0; i < 72; i++) {
-            klio::reading_t reading(timestamp - (i * 20), 26.7938);
-            readings.insert(reading);
-        }
-        store->add_readings(sensor, readings);
+            klio::timestamp_t timestamp = time(0);
+            timestamp -= timestamp % 60;
+            klio::readings_t readings;
 
-        readings = *store->get_all_readings(sensor);
+            for (int i = 0; i < 72; i++) {
+                klio::reading_t reading(timestamp - (i * 20), 26.7938);
+                readings.insert(reading);
+            }
+            store->add_readings(sensor, readings);
+
+            readings = *store->get_all_readings(sensor);
+
+            BOOST_CHECK_EQUAL(24, readings.size());
+
+            int i = 23;
+            for (klio::readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
+
+                BOOST_CHECK_EQUAL(timestamp - (i-- * 60), (*it).first);
+                BOOST_CHECK_EQUAL(26.7938, (*it).second);
+            }
+            
+            store->remove_sensor(sensor);
+            value -= 26.7938;
+
+        } while (value > -27);
+        
         store->dispose();
-
-        BOOST_CHECK_EQUAL(24, readings.size());
-
-        int i = 23;
-        for (klio::readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
-
-            BOOST_CHECK_EQUAL(timestamp - (i-- * 60), (*it).first);
-            BOOST_CHECK_EQUAL(26.7938, (*it).second);
-        }
 
     } catch (klio::GenericException const& ex) {
         store->dispose();
@@ -601,4 +610,3 @@ BOOST_AUTO_TEST_CASE(check_add_celsius_reading_msg) {
 }
 
 //BOOST_AUTO_TEST_SUITE_END()
-             

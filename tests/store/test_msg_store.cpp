@@ -208,8 +208,12 @@ BOOST_AUTO_TEST_CASE(check_update_msg_sensor) {
 
         klio::Sensor::Ptr retrieved = store->get_sensor(changed->uuid());
 
-        BOOST_CHECK_EQUAL(changed->name(), retrieved->name());
-        BOOST_CHECK_EQUAL(changed->description(), retrieved->description());
+        BOOST_CHECK_EQUAL(retrieved->name(), changed->name());
+        BOOST_CHECK_EQUAL(retrieved->external_id(), changed->external_id());
+        BOOST_CHECK_EQUAL(retrieved->name(), changed->name());
+        BOOST_CHECK_EQUAL(retrieved->description(), changed->description());
+        BOOST_CHECK_EQUAL(retrieved->unit(), changed->unit());
+        BOOST_CHECK_EQUAL(retrieved->timezone(), changed->timezone());
 
         store->dispose();
 

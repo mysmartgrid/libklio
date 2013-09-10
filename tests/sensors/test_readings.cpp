@@ -442,7 +442,7 @@ BOOST_AUTO_TEST_CASE(check_add_watt_reading_msg) {
     std::cout << "Created: " << store->str() << std::endl;
 
     try {
-        store->open(); // Second call to open - should not break
+        store->open();
         store->initialize();
 
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
@@ -498,7 +498,7 @@ BOOST_AUTO_TEST_CASE(check_add_kwh_reading_msg) {
     std::cout << "Created: " << store->str() << std::endl;
 
     try {
-        store->open(); // Second call to open - should not break
+        store->open();
         store->initialize();
 
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
@@ -557,7 +557,7 @@ BOOST_AUTO_TEST_CASE(check_add_celsius_reading_msg) {
     std::cout << "Created: " << store->str() << std::endl;
 
     try {
-        store->open(); // Second call to open - should not break
+        store->open();
         store->initialize();
 
         double value = 26.7938;
@@ -579,7 +579,7 @@ BOOST_AUTO_TEST_CASE(check_add_celsius_reading_msg) {
             klio::readings_t readings;
 
             for (int i = 0; i < 72; i++) {
-                klio::reading_t reading(timestamp - (i * 20), 26.7938);
+                klio::reading_t reading(timestamp - (i * 20), value);
                 readings.insert(reading);
             }
             store->add_readings(sensor, readings);
@@ -592,9 +592,9 @@ BOOST_AUTO_TEST_CASE(check_add_celsius_reading_msg) {
             for (klio::readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
 
                 BOOST_CHECK_EQUAL(timestamp - (i-- * 60), (*it).first);
-                BOOST_CHECK_EQUAL(26.7938, (*it).second);
+                BOOST_CHECK_EQUAL(value, (*it).second);
             }
-            
+
             store->remove_sensor(sensor);
             value -= 26.7938;
 

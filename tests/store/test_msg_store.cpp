@@ -125,7 +125,7 @@ BOOST_AUTO_TEST_CASE(check_add_msg_sensor) {
         klio::Sensor::Ptr sensor(sensor_factory->createSensor(
                 "89c18074-8bcf-240b-db7c-c1281038adcb",
                 "Test",
-                "Test libklio",
+                "Test libklio - long id - 948438382392938483493932039943499393220",
                 "this is a sensor description",
                 "kwh",
                 "Europe/Berlin"));
@@ -157,6 +157,23 @@ BOOST_AUTO_TEST_CASE(check_add_msg_sensor) {
         } catch (klio::GenericException const& ex) {
             //This exception was expected
         }
+
+        try {
+            sensor = sensor_factory->createSensor(
+                    "89c74018-8bcf-240b-db7c-c1281038adcb",
+                    "Test",
+                    "Test libklio - this id is too long - 9484383823929384834939320399434993932200000",
+                    "changed description",
+                    "xxx",
+                    "Europe/Berlin");
+
+            store->add_sensor(sensor);
+
+            BOOST_FAIL("A DataFormatException must be thrown when an invalid external_id is informed.");
+
+        } catch (klio::GenericException const& ex) {
+            //This exception was expected
+        }        
 
         store->dispose();
 
@@ -208,8 +225,12 @@ BOOST_AUTO_TEST_CASE(check_update_msg_sensor) {
 
         klio::Sensor::Ptr retrieved = store->get_sensor(changed->uuid());
 
-        BOOST_CHECK_EQUAL(changed->name(), retrieved->name());
-        BOOST_CHECK_EQUAL(changed->description(), retrieved->description());
+        BOOST_CHECK_EQUAL(retrieved->name(), changed->name());
+        BOOST_CHECK_EQUAL(retrieved->external_id(), changed->external_id());
+        BOOST_CHECK_EQUAL(retrieved->name(), changed->name());
+        BOOST_CHECK_EQUAL(retrieved->description(), changed->description());
+        BOOST_CHECK_EQUAL(retrieved->unit(), changed->unit());
+        BOOST_CHECK_EQUAL(retrieved->timezone(), changed->timezone());
 
         store->dispose();
 

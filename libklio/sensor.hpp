@@ -56,7 +56,7 @@ namespace klio {
         const uuid_t uuid() const {
             return _uuid;
         };
-        
+
         const std::string external_id() const {
             return _external_id;
         };
@@ -76,6 +76,26 @@ namespace klio {
         const std::string timezone() const {
             return _timezone;
         };
+
+        void external_id(const std::string& external_id) {
+            _external_id = external_id;
+        }
+
+        void name(const std::string& name) {
+            _name = name;
+        }
+
+        void description(const std::string& description) {
+            _description = description;
+        }
+        
+        void unit(const std::string& unit) {
+            _unit = unit;
+        }
+        
+        void timezone(const std::string& timezone) {
+            _timezone = timezone;
+        }
 
         const std::string str();
         const std::string uuid_string() const;

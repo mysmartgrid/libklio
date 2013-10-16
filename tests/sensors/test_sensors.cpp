@@ -20,6 +20,7 @@
 
 #include <iostream>
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid.hpp>
 #include <boost/test/unit_test.hpp>
 #include <libklio/store.hpp>
 #include <libklio/store-factory.hpp>
@@ -106,6 +107,7 @@ BOOST_AUTO_TEST_CASE(check_update_sensor) {
         std::cout << std::endl << "*** Testing update sensor" << std::endl;
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
         klio::Sensor::Ptr sensor(sensor_factory->createSensor("original_external_id", "sensor1", "Watt", "Europe/Berlin"));
+        boost::uuids::uuid sensor_id = sensor->uuid();
 
         klio::StoreFactory::Ptr factory(new klio::StoreFactory());
         bfs::path db(TEST_DB_FILE);
@@ -117,20 +119,17 @@ BOOST_AUTO_TEST_CASE(check_update_sensor) {
             store->initialize();
             store->add_sensor(sensor);
 
-            klio::Sensor::Ptr changed(sensor_factory->createSensor(
-                    sensor->uuid_string(),
-                    "Changed External id",
-                    "Changed Name",
-                    "Changed Description",
-                    "kWh",
-                    "Europe/Paris"));
+            sensor->external_id("Changed External id");
+            sensor->name("Changed Name");
+            sensor->description("Changed Description");
+            sensor->unit("kWh");
+            sensor->timezone("Europe/Paris");
 
-            store->update_sensor(changed);
+            store->update_sensor(sensor);
+            std::cout << "Updated: " << store->str() << std::endl;
 
             // Test unique sensor name retrieval
             std::vector<klio::Sensor::Ptr> sensors = store->get_sensors_by_name("Changed Name");
-
-            store->remove_sensor(sensor);
 
             BOOST_CHECK_EQUAL(sensors.size(), 1U);
 
@@ -138,8 +137,9 @@ BOOST_AUTO_TEST_CASE(check_update_sensor) {
             for (it = sensors.begin(); it < sensors.end(); it++) {
 
                 klio::Sensor::Ptr found = (*it);
-                std::cout << "Found Sensor: " << sensor->name() << std::endl;
-                BOOST_CHECK_EQUAL(found->uuid(), changed->uuid());
+                std::cout << "Found Sensor: " << found->name() << std::endl;
+
+                BOOST_CHECK_EQUAL(found->uuid(), sensor_id);
                 BOOST_CHECK_EQUAL(found->external_id(), "Changed External id");
                 BOOST_CHECK_EQUAL(found->name(), "Changed Name");
                 BOOST_CHECK_EQUAL(found->description(), "Changed Description");

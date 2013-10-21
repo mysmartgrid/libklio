@@ -134,6 +134,12 @@ namespace klio {
         CURL *create_curl_handler(const std::string& url, curl_slist *headers);
         std::string digest_message(const std::string& data, const std::string& key);
         struct json_object *perform_http_request(const std::string& method, const std::string& url, const std::string& key, json_object *jbody);
+
+        struct json_object *create_json_object();
+        struct json_object *create_json_string(const std::string& str);
+        struct json_object *create_json_array();
+        struct json_object *create_json_int(const int value);
+        struct json_object *create_json_double(const double value);
     };
 };
 

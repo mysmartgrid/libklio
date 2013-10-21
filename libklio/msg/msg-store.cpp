@@ -24,11 +24,11 @@ void MSGStore::open() {
 
 void MSGStore::initialize() {
 
-    json_object *jkey = json_object_new_string(_key.c_str());
-    json_object *jdescription = json_object_new_string(_description.c_str());
-    json_object *jtype = json_object_new_string(_type.c_str());
+    json_object *jkey = create_json_string(_key.c_str());
+    json_object *jdescription = create_json_string(_description.c_str());
+    json_object *jtype = create_json_string(_type.c_str());
 
-    json_object *jobject = json_object_new_object();
+    json_object *jobject = create_json_object();
     json_object_object_add(jobject, "key", jkey);
     json_object_object_add(jobject, "description", jdescription);
     json_object_object_add(jobject, "type", jtype);
@@ -95,20 +95,20 @@ void MSGStore::remove_sensor(const Sensor::Ptr sensor) {
 
 void MSGStore::update_sensor(const Sensor::Ptr sensor) {
 
-    json_object *jdevice = json_object_new_string(_id.c_str());
-    json_object *jexternal_id = json_object_new_string(sensor->external_id().c_str());
-    json_object *jname = json_object_new_string(sensor->name().c_str());
-    json_object *jdescription = json_object_new_string(sensor->description().c_str());
-    json_object *junit = json_object_new_string(sensor->unit().c_str());
+    json_object *jdevice = create_json_string(_id.c_str());
+    json_object *jexternal_id = create_json_string(sensor->external_id().c_str());
+    json_object *jname = create_json_string(sensor->name().c_str());
+    json_object *jdescription = create_json_string(sensor->description().c_str());
+    json_object *junit = create_json_string(sensor->unit().c_str());
 
-    json_object *jconfig = json_object_new_object();
+    json_object *jconfig = create_json_object();
     json_object_object_add(jconfig, "device", jdevice);
     json_object_object_add(jconfig, "externalid", jexternal_id);
     json_object_object_add(jconfig, "function", jname);
     json_object_object_add(jconfig, "description", jdescription);
     json_object_object_add(jconfig, "unit", junit);
 
-    json_object *jobject = json_object_new_object();
+    json_object *jobject = create_json_object();
     json_object_object_add(jobject, "config", jconfig);
 
     std::string url = compose_sensor_url(sensor);
@@ -300,21 +300,21 @@ void MSGStore::flush(Sensor::Ptr sensor) {
 
     if (!readings->empty()) {
 
-        json_object *jtuples = json_object_new_array();
+        json_object *jtuples = create_json_array();
 
         for (readings_cit_t rit = readings->begin(); rit != readings->end(); ++rit) {
 
             timestamp_t timestamp = (*rit).first;
             double value = (*rit).second;
 
-            struct json_object *jtuple = json_object_new_array();
-            json_object_array_add(jtuple, json_object_new_int(timestamp));
-            json_object_array_add(jtuple, json_object_new_double(value));
+            struct json_object *jtuple = create_json_array();
+            json_object_array_add(jtuple, create_json_int(timestamp));
+            json_object_array_add(jtuple, create_json_double(value));
 
             json_object_array_add(jtuples, jtuple);
         }
 
-        json_object *jobject = json_object_new_object();
+        json_object *jobject = create_json_object();
         json_object_object_add(jobject, "measurements", jtuples);
 
         std::string url = compose_sensor_url(sensor);
@@ -334,7 +334,7 @@ void MSGStore::flush(Sensor::Ptr sensor) {
 
 bool MSGStore::heartbeat() {
 
-    json_object *jobject = json_object_new_object();
+    json_object *jobject = create_json_object();
 
     //TODO: post firmware version and return parsed server response
     std::string url = compose_device_url();
@@ -516,8 +516,9 @@ static size_t curl_write_custom_callback(void *ptr, size_t size, size_t nmemb, v
 
     response->data = (char *) realloc(response->data, response->size + realsize + 1);
     if (response->data == NULL) { // out of memory!
-        LOG("Cannot allocate memory");
-        exit(EXIT_FAILURE);
+        std::ostringstream err;
+        err << "Cannot allocate memory for CURLresponse.";
+        throw MemoryException(err.str());
     }
 
     memcpy(&(response->data[response->size]), ptr, realsize);
@@ -605,11 +606,71 @@ struct json_object *MSGStore::perform_http_request(const std::string& method, co
 
     } else if (http_code >= 500) {
         throw CommunicationException(oss.str());
-        
+
     } else if (jobject == NULL) {
         throw StoreException(oss.str());
 
     } else {
         return jobject;
     }
+}
+
+struct json_object *MSGStore::create_json_object() {
+
+    json_object *jobject = json_object_new_object();
+
+    if (jobject == NULL) {
+        std::ostringstream err;
+        err << "Cannot allocate memory for json_object.";
+        throw MemoryException(err.str());
+    }
+    return jobject;
+}
+
+struct json_object *MSGStore::create_json_string(const std::string& string) {
+
+    json_object *jstring = json_object_new_string(string.c_str());
+
+    if (jstring == NULL) {
+        std::ostringstream err;
+        err << "Cannot allocate memory for json string.";
+        throw MemoryException(err.str());
+    }
+    return jstring;
+}
+
+struct json_object *MSGStore::create_json_array() {
+
+    struct json_object *jarray = json_object_new_array();
+
+    if (jarray == NULL) {
+        std::ostringstream err;
+        err << "Cannot allocate memory for json array.";
+        throw MemoryException(err.str());
+    }
+    return jarray;
+}
+
+struct json_object *MSGStore::create_json_int(const int value) {
+
+    struct json_object *jint = json_object_new_int(value);
+
+    if (jint == NULL) {
+        std::ostringstream err;
+        err << "Cannot allocate memory for json int.";
+        throw MemoryException(err.str());
+    }
+    return jint;
+}
+
+struct json_object *MSGStore::create_json_double(const double value) {
+
+    struct json_object *jdouble = json_object_new_double(value);
+
+    if (jdouble == NULL) {
+        std::ostringstream err;
+        err << "Cannot allocate memory for json double.";
+        throw MemoryException(err.str());
+    }
+    return jdouble;
 }

@@ -117,7 +117,7 @@ int main(int argc,char** argv) {
       }
 
       klio::Sensor::Ptr new_sensor(sensor_factory->createSensor(
-            sensor_id, sensor_unit, sensor_timezone)); 
+            sensor_id, sensor_id, sensor_unit, sensor_timezone)); 
       try {
         klio::Store::Ptr store(factory->open_sqlite3_store(db));
         std::cout << "opened store: " << store->str() << std::endl;

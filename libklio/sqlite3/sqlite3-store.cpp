@@ -13,34 +13,37 @@ using namespace klio;
 
 //Database statements
 //TODO: Declare prepared statements
-const std::string create_sensors_table_stmt(
-        "CREATE TABLE IF NOT EXISTS sensors(uuid VARCHAR(16) PRIMARY KEY, name VARCHAR(100), description VARCHAR(255), unit VARCHAR(20), timezone INTEGER);"
+const std::string SQLite3Store::create_sensors_table_stmt(
+        "CREATE TABLE IF NOT EXISTS sensors(uuid VARCHAR(16) PRIMARY KEY, external_id VARCHAR(32), name VARCHAR(100), description VARCHAR(255), unit VARCHAR(20), timezone INTEGER);"
         );
 
-const std::string insert_sensor_stmt(
-        "INSERT INTO sensors (uuid, name, description, unit, timezone) VALUES (?1, ?2, ?3, ?4, ?5);"
+const std::string SQLite3Store::insert_sensor_stmt(
+        "INSERT INTO sensors (uuid, external_id, name, description, unit, timezone) VALUES (?1, ?2, ?3, ?4, ?5, ?6);"
         );
 
-const std::string remove_sensor_stmt(
+const std::string SQLite3Store::remove_sensor_stmt(
         "DELETE FROM sensors WHERE uuid = ?1"
         );
 
-const std::string update_sensor_stmt(
-        "UPDATE sensors SET name = ?2, description = ?3, unit = ?4, timezone = ?5 WHERE uuid = ?1;"
+const std::string SQLite3Store::update_sensor_stmt(
+        "UPDATE sensors SET external_id = ?2, name = ?3, description = ?4, unit = ?5, timezone = ?6 WHERE uuid = ?1;"
         );
 
-const std::string select_sensor_stmt(
-        "SELECT uuid, name, description, unit, timezone FROM sensors WHERE uuid = ?1;"
+const std::string SQLite3Store::select_sensor_stmt(
+        "SELECT uuid, external_id, name, description, unit, timezone FROM sensors WHERE uuid = ?1;"
         );
 
-const std::string select_sensor_by_name_stmt(
-        "SELECT uuid, name, description, unit, timezone FROM sensors WHERE name = ?1;"
+const std::string SQLite3Store::select_sensor_by_external_id_stmt(
+        "SELECT uuid, external_id, name, description, unit, timezone FROM sensors WHERE external_id = ?1;"
         );
 
-const std::string select_all_sensor_uuids_stmt(
+const std::string SQLite3Store::select_sensor_by_name_stmt(
+        "SELECT uuid, external_id, name, description, unit, timezone FROM sensors WHERE name = ?1;"
+        );
+
+const std::string SQLite3Store::select_all_sensor_uuids_stmt(
         "SELECT uuid FROM sensors;"
         );
-
 
 void SQLite3Store::open() {
 
@@ -67,10 +70,9 @@ void SQLite3Store::initialize() {
 }
 
 void SQLite3Store::dispose() {
-    //TODO: complete this method
     close();
+    bfs::remove(_path);
 }
-
 
 const std::string SQLite3Store::str() {
 
@@ -87,10 +89,11 @@ void SQLite3Store::add_sensor(klio::Sensor::Ptr sensor) {
 
     sqlite3_stmt* stmt = prepare(insert_sensor_stmt);
     sqlite3_bind_text(stmt, 1, sensor->uuid_string().c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt, 2, sensor->name().c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt, 3, sensor->description().c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt, 4, sensor->unit().c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt, 5, sensor->timezone().c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 2, sensor->external_id().c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 3, sensor->name().c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 4, sensor->description().c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 5, sensor->unit().c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 6, sensor->timezone().c_str(), -1, SQLITE_TRANSIENT);
 
     execute(stmt, SQLITE_DONE);
     reset(stmt);
@@ -135,10 +138,11 @@ void SQLite3Store::update_sensor(klio::Sensor::Ptr sensor) {
 
     sqlite3_stmt* stmt = prepare(update_sensor_stmt);
     sqlite3_bind_text(stmt, 1, sensor->uuid_string().c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt, 2, sensor->name().c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt, 3, sensor->description().c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt, 4, sensor->unit().c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt, 5, sensor->timezone().c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 2, sensor->external_id().c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 3, sensor->name().c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 4, sensor->description().c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 5, sensor->unit().c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 6, sensor->timezone().c_str(), -1, SQLITE_TRANSIENT);
 
     execute(stmt, SQLITE_DONE);
     finalize(stmt);
@@ -154,22 +158,23 @@ klio::Sensor::Ptr SQLite3Store::get_sensor(const klio::Sensor::uuid_t& uuid) {
     sqlite3_bind_text(stmt, 1, to_string(uuid).c_str(), -1, SQLITE_TRANSIENT);
 
     execute(stmt, SQLITE_ROW);
-    
-    const unsigned char* select_uuid = sqlite3_column_text(stmt, 0);
-    const unsigned char* select_name = sqlite3_column_text(stmt, 1);
-    const unsigned char* select_description = sqlite3_column_text(stmt, 2);
-    const unsigned char* select_unit = sqlite3_column_text(stmt, 3);
-    const unsigned char* select_timezone = sqlite3_column_text(stmt, 4);
-
-    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-    klio::Sensor::Ptr sensor(sensor_factory->createSensor(
-            std::string((char*) select_uuid),
-            std::string((char*) select_name),
-            std::string((char*) select_description),
-            std::string((char*) select_unit),
-            std::string((char*) select_timezone)));
-
+    klio::Sensor::Ptr sensor = parse_sensor(stmt);
     finalize(stmt);
+
+    return sensor;
+}
+
+klio::Sensor::Ptr SQLite3Store::get_sensor_by_external_id(const std::string& external_id) {
+
+    LOG("Attempting to load sensor " << external_id);
+
+    sqlite3_stmt* stmt = prepare(select_sensor_by_external_id_stmt);
+    sqlite3_bind_text(stmt, 1, external_id.c_str(), -1, SQLITE_TRANSIENT);
+
+    execute(stmt, SQLITE_ROW);
+    klio::Sensor::Ptr sensor = parse_sensor(stmt);
+    finalize(stmt);
+
     return sensor;
 }
 
@@ -177,30 +182,13 @@ std::vector<klio::Sensor::Ptr> SQLite3Store::get_sensors_by_name(const std::stri
 
     LOG("Attempting to load sensor " << name);
 
+    std::vector<klio::Sensor::Ptr> sensors;
     sqlite3_stmt* stmt = prepare(select_sensor_by_name_stmt);
     sqlite3_bind_text(stmt, 1, name.c_str(), -1, SQLITE_TRANSIENT);
 
-    std::vector<klio::Sensor::Ptr> sensors;
-    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-
     while (SQLITE_ROW == sqlite3_step(stmt)) {
-
-        const unsigned char* select_uuid = sqlite3_column_text(stmt, 0);
-        const unsigned char* select_name = sqlite3_column_text(stmt, 1);
-        const unsigned char* select_desc = sqlite3_column_text(stmt, 2);
-        const unsigned char* select_unit = sqlite3_column_text(stmt, 3);
-        const unsigned char* select_timezone = sqlite3_column_text(stmt, 4);
-
-        klio::Sensor::Ptr current(sensor_factory->createSensor(
-                std::string((char*) select_uuid),
-                std::string((char*) select_name),
-                std::string((char*) select_desc),
-                std::string((char*) select_unit),
-                std::string((char*) select_timezone)));
-
-        sensors.push_back(current);
+        sensors.push_back(parse_sensor(stmt));
     }
-
     finalize(stmt);
 
     return sensors;
@@ -211,7 +199,6 @@ std::vector<klio::Sensor::uuid_t> SQLite3Store::get_sensor_uuids() {
     LOG("Retrieving UUIDs from store.");
 
     std::vector<klio::Sensor::uuid_t> uuids;
-
     sqlite3_stmt* stmt = prepare(select_all_sensor_uuids_stmt);
 
     while (SQLITE_ROW == sqlite3_step(stmt)) {
@@ -223,7 +210,6 @@ std::vector<klio::Sensor::uuid_t> SQLite3Store::get_sensor_uuids() {
         ss >> u;
         uuids.push_back(u);
     }
-
     finalize(stmt);
 
     return uuids;
@@ -238,6 +224,7 @@ static int empty_callback(void *not_used, int argc, char **argv, char **az_col_n
         printf("%s,\t", argv[i]);
     }
     printf("\n");
+
     return 0;
 }
 
@@ -321,6 +308,7 @@ static int get_all_readings_callback(void *store, int argc, char **argv, char **
             tc->convert_from_epoch(epoch),
             value
             ));
+
     return 0;
 }
 
@@ -415,7 +403,7 @@ int SQLite3Store::execute(sqlite3_stmt *stmt, int expected_code) {
     int rc = sqlite3_step(stmt);
 
     if (rc != expected_code) {
-        
+
         std::ostringstream oss;
         oss << "Can't execute SQL statement. Error: " << sqlite3_errmsg(db) << ", Error code: " << rc;
         finalize(stmt);
@@ -447,4 +435,17 @@ int SQLite3Store::execute(std::string stmt, int (*callback)(void*, int, char**, 
         throw StoreException(oss.str());
     }
     return rc;
+}
+
+klio::Sensor::Ptr SQLite3Store::parse_sensor(sqlite3_stmt* stmt) {
+
+    klio::SensorFactory::Ptr factory(new klio::SensorFactory());
+
+    return factory->createSensor(
+            std::string((char*) sqlite3_column_text(stmt, 0)), //uuid
+            std::string((char*) sqlite3_column_text(stmt, 1)), //external id
+            std::string((char*) sqlite3_column_text(stmt, 2)), //name
+            std::string((char*) sqlite3_column_text(stmt, 3)), //description
+            std::string((char*) sqlite3_column_text(stmt, 4)), //unit
+            std::string((char*) sqlite3_column_text(stmt, 5)));
 }

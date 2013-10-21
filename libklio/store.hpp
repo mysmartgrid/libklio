@@ -1,5 +1,5 @@
 /**
- * This file is part of libklio.
+ * This class represents an abstract Klio store.
  *
  * (c) Fraunhofer ITWM - Mathias Dalheimer <dalheimer@itwm.fhg.de>,    2010
  *                       Ely de Oliveira   <ely.oliveira@itwm.fhg.de>, 2013
@@ -49,7 +49,8 @@ namespace klio {
         virtual void add_sensor(klio::Sensor::Ptr sensor) = 0;
         virtual void remove_sensor(const klio::Sensor::Ptr sensor) = 0;
         virtual void update_sensor(const klio::Sensor::Ptr sensor) = 0;
-        virtual klio::Sensor::Ptr get_sensor(const klio::Sensor::uuid_t& uuid) = 0;
+        virtual Sensor::Ptr get_sensor(const klio::Sensor::uuid_t& uuid) = 0;
+        virtual Sensor::Ptr get_sensor_by_external_id(const std::string& external_id) = 0;
         virtual std::vector<klio::Sensor::Ptr> get_sensors_by_name(const std::string& name) = 0;
         virtual std::vector<klio::Sensor::uuid_t> get_sensor_uuids() = 0;
 

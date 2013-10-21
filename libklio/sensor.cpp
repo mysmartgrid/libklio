@@ -5,6 +5,7 @@
 
 
 using namespace klio;
+using namespace boost::uuids;
 
 const std::string Sensor::uuid_string() const {
     return to_string(_uuid);
@@ -23,7 +24,7 @@ const std::string Sensor::uuid_short() const {
 }
 
 bool Sensor::operator ==(const Sensor& rhs) {
-    return _name == rhs.name() && _uuid == rhs.uuid() && _unit == rhs.unit() && _timezone == rhs.timezone();
+    return _uuid == rhs.uuid() && _name == rhs.name() && _unit == rhs.unit() && _timezone == rhs.timezone();
 }
 
 bool Sensor::operator !=(const Sensor& rhs) {

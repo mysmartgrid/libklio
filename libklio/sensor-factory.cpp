@@ -7,54 +7,57 @@
 
 using namespace klio;
 
-
 klio::Sensor::Ptr SensorFactory::createSensor(
+        const std::string& external_id,
         const std::string& name,
         const std::string& unit,
         const std::string& timezone
         ) {
-    boost::uuids::uuid u = _gen();
-    return createSensor(u, name, klio::DEFAULT_SENSOR_DESCRIPTION, unit, timezone);
+    boost::uuids::random_generator gen_uuid;
+    return createSensor(gen_uuid(), external_id, name, klio::DEFAULT_SENSOR_DESCRIPTION, unit, timezone);
 }
 
 klio::Sensor::Ptr SensorFactory::createSensor(
         const std::string& uuid_string,
+        const std::string& external_id,
         const std::string& name,
         const std::string& unit,
         const std::string& timezone
         ) {
-    return createSensor(uuid_string, name, klio::DEFAULT_SENSOR_DESCRIPTION, unit, timezone);
+    return createSensor(uuid_string, external_id, name, klio::DEFAULT_SENSOR_DESCRIPTION, unit, timezone);
 }
 
 klio::Sensor::Ptr SensorFactory::createSensor(
         const std::string& uuid_string,
+        const std::string& external_id,
         const std::string& name,
         const std::string& description,
         const std::string& unit,
         const std::string& timezone
         ) {
-    
+
     // type conversion: uuid_string to real uuid type
     boost::uuids::uuid u;
     std::stringstream ss;
     ss << uuid_string;
     ss >> u;
 
-    return createSensor(u, name, description, unit, timezone);
+    return createSensor(u, external_id, name, description, unit, timezone);
 }
 
 klio::Sensor::Ptr SensorFactory::createSensor(
         const Sensor::uuid_t& uuid,
+        const std::string& external_id,
         const std::string& name,
         const std::string& description,
         const std::string& unit,
         const std::string& timezone
         ) {
-    klio::LocalTime::Ptr lt(new klio::LocalTime("../.."));
+    klio::LocalTime::Ptr local_time(new klio::LocalTime("../.."));
 
-    if (!lt->is_valid_timezone(timezone)) {
+    if (!local_time->is_valid_timezone(timezone)) {
 
-        std::vector<std::string> valid_regions(lt->get_valid_timezones());
+        std::vector<std::string> valid_regions(local_time->get_valid_timezones());
 
         std::ostringstream oss;
         oss << "Invalid timezone " << timezone << ". Valid timezones are: " << std::endl;
@@ -62,5 +65,5 @@ klio::Sensor::Ptr SensorFactory::createSensor(
 
         throw klio::DataFormatException(oss.str());
     }
-    return Sensor::Ptr(new Sensor(uuid, name, description, unit, timezone));
+    return Sensor::Ptr(new Sensor(uuid, external_id, name, description, unit, timezone));
 }

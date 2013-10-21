@@ -374,62 +374,6 @@ std::vector<Sensor::Ptr> MSGStore::get_sensors() {
     return sensors;
 }
 
-struct json_object *MSGStore::get_json_readings(const Sensor::Ptr sensor) {
-
-    std::ostringstream query;
-    query << "interval=hour&unit=" << sensor->unit();
-
-    std::string url = compose_sensor_url(sensor, query.str());
-    return perform_http_get(url, _key);
-}
-
-Sensor::Ptr MSGStore::parse_sensor(const std::string& uuid_str, json_object *jsensor) {
-
-    json_object *jname = json_object_object_get(jsensor, "function");
-    const char* name = json_object_get_string(jname);
-
-    json_object *jdescription = json_object_object_get(jsensor, "description");
-    const char* description = json_object_get_string(jdescription);
-
-    json_object *jexternal_id = json_object_object_get(jsensor, "externalid");
-    const char* external_id = json_object_get_string(jexternal_id);
-
-    json_object *junit = json_object_object_get(jsensor, "unit");
-    const char* unit = json_object_get_string(junit);
-
-    //TODO: there should be no default timezone
-    const char* timezone = "Europe/Berlin";
-
-    SensorFactory::Ptr sensor_factory(new SensorFactory());
-
-    return sensor_factory->createSensor(
-            uuid_str,
-            std::string(external_id),
-            std::string(name),
-            std::string(description),
-            std::string(unit),
-            std::string(timezone));
-}
-
-std::pair<timestamp_t, double > MSGStore::create_reading_pair(json_object *jpair) {
-
-    json_object *jvalue = json_object_array_get_idx(jpair, 1);
-    double value = json_object_get_double(jvalue);
-
-    if (isnan(value)) {
-        return std::pair<timestamp_t, double>(0, 0);
-
-    } else {
-        json_object *jtimestamp = json_object_array_get_idx(jpair, 0);
-        long epoch = json_object_get_int(jtimestamp);
-
-        TimeConverter::Ptr tc(new TimeConverter());
-        timestamp_t timestamp = tc->convert_from_epoch(epoch);
-
-        return std::pair<timestamp_t, double>(timestamp, value);
-    }
-}
-
 const std::string MSGStore::format_uuid_string(const std::string& meter) {
 
     std::stringstream oss;
@@ -672,4 +616,60 @@ struct json_object *MSGStore::create_json_double(const double value) {
         throw MemoryException(err.str());
     }
     return jdouble;
+}
+
+struct json_object *MSGStore::get_json_readings(const Sensor::Ptr sensor) {
+
+    std::ostringstream query;
+    query << "interval=hour&unit=" << sensor->unit();
+
+    std::string url = compose_sensor_url(sensor, query.str());
+    return perform_http_get(url, _key);
+}
+
+Sensor::Ptr MSGStore::parse_sensor(const std::string& uuid_str, json_object *jsensor) {
+
+    json_object *jname = json_object_object_get(jsensor, "function");
+    const char* name = json_object_get_string(jname);
+
+    json_object *jdescription = json_object_object_get(jsensor, "description");
+    const char* description = json_object_get_string(jdescription);
+
+    json_object *jexternal_id = json_object_object_get(jsensor, "externalid");
+    const char* external_id = json_object_get_string(jexternal_id);
+
+    json_object *junit = json_object_object_get(jsensor, "unit");
+    const char* unit = json_object_get_string(junit);
+
+    //TODO: there should be no default timezone
+    const char* timezone = "Europe/Berlin";
+
+    SensorFactory::Ptr sensor_factory(new SensorFactory());
+
+    return sensor_factory->createSensor(
+            uuid_str,
+            std::string(external_id),
+            std::string(name),
+            std::string(description),
+            std::string(unit),
+            std::string(timezone));
+}
+
+std::pair<timestamp_t, double > MSGStore::create_reading_pair(json_object *jpair) {
+
+    json_object *jvalue = json_object_array_get_idx(jpair, 1);
+    double value = json_object_get_double(jvalue);
+
+    if (isnan(value)) {
+        return std::pair<timestamp_t, double>(0, 0);
+
+    } else {
+        json_object *jtimestamp = json_object_array_get_idx(jpair, 0);
+        long epoch = json_object_get_int(jtimestamp);
+
+        TimeConverter::Ptr tc(new TimeConverter());
+        timestamp_t timestamp = tc->convert_from_epoch(epoch);
+
+        return std::pair<timestamp_t, double>(timestamp, value);
+    }
 }

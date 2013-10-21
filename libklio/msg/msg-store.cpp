@@ -336,7 +336,6 @@ bool MSGStore::heartbeat() {
 
     json_object *jobject = create_json_object();
 
-    //TODO: post firmware version and return parsed server response
     std::string url = compose_device_url();
     try {
         json_object *jresponse = perform_http_post(url, _key, jobject);

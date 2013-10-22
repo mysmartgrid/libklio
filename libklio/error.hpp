@@ -87,6 +87,19 @@ namespace klio {
         };
 
     };
+    
+    class MemoryException : public GenericException {
+    public:
+        typedef std::tr1::shared_ptr<MemoryException> Ptr;
+
+        MemoryException(const std::string reason) :
+        klio::GenericException(reason) {
+        };
+
+        virtual ~MemoryException() throw () {
+        };
+
+    };    
 
 }
 

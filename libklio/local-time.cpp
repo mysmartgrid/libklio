@@ -20,8 +20,7 @@ LocalTime::LocalTime(const char* cmd)
             _tz_db.load_from_file(
                     (bfs::path(cmd) / zonespec_filename).c_str()
                     );
-        } else
-        if (bfs::exists(bfs::path(cmd) / ".." / "share" / "libklio" / zonespec_filename)) {
+        } else if (bfs::exists(bfs::path(cmd) / ".." / "share" / "libklio" / zonespec_filename)) {
             _tz_db.load_from_file(
                     (bfs::path(cmd) / ".." / "share" / "libklio" / zonespec_filename).c_str()
                     );

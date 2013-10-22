@@ -35,15 +35,17 @@ namespace klio {
         typedef boost::uuids::uuid uuid_t;
 
         Sensor(const uuid_t uuid,
+                const std::string& external_id,
                 const std::string& name,
                 const std::string& description,
                 const std::string& unit,
                 const std::string& timezone) :
         _uuid(uuid),
+        _external_id(external_id),
         _name(name),
+        _description(description),
         _unit(unit),
-        _timezone(timezone),
-        _description(description) {
+        _timezone(timezone) {
         };
 
         virtual ~Sensor() {
@@ -53,6 +55,10 @@ namespace klio {
 
         const uuid_t uuid() const {
             return _uuid;
+        };
+
+        const std::string external_id() const {
+            return _external_id;
         };
 
         const std::string name() const {
@@ -71,10 +77,30 @@ namespace klio {
             return _timezone;
         };
 
+        void external_id(const std::string& external_id) {
+            _external_id = external_id;
+        }
+
+        void name(const std::string& name) {
+            _name = name;
+        }
+
+        void description(const std::string& description) {
+            _description = description;
+        }
+        
+        void unit(const std::string& unit) {
+            _unit = unit;
+        }
+        
+        void timezone(const std::string& timezone) {
+            _timezone = timezone;
+        }
+
         const std::string str();
         const std::string uuid_string() const;
         const std::string uuid_short() const;
-        
+
         bool operator ==(const Sensor& rhs);
         bool operator !=(const Sensor& rhs);
 
@@ -83,10 +109,11 @@ namespace klio {
         Sensor& operator =(const Sensor& rhs);
 
         uuid_t _uuid;
+        std::string _external_id;
         std::string _name;
+        std::string _description;
         std::string _unit;
         std::string _timezone;
-        std::string _description;
     };
 };
 

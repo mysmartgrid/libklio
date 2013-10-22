@@ -119,7 +119,7 @@ namespace klio {
         void clear_buffers();
         void flush(bool force);
         void flush(Sensor::Ptr sensor);
-        bool heartbeat();
+        void heartbeat();
         std::vector<Sensor::Ptr> get_sensors();
 
         const std::string format_uuid_string(const std::string& meter);

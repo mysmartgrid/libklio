@@ -48,8 +48,6 @@ BOOST_AUTO_TEST_CASE(check_sensor_interface) {
     if (sensor1 == sensor2) {
         BOOST_FAIL("Sensor1 == Sensor2, oh noes");
     }
-    ;
-    ;
 }
 
 BOOST_AUTO_TEST_CASE(check_create_sensor_sqlite3) {

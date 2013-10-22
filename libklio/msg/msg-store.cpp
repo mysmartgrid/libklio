@@ -354,6 +354,7 @@ bool MSGStore::heartbeat() {
 
     TimeConverter tc;
     timestamp_t now = tc.get_timestamp();
+    bool success;
 
     //Send a heartbeat every 30 minutes
     if (now - _last_heartbeat > 1800) {
@@ -364,7 +365,7 @@ bool MSGStore::heartbeat() {
             std::string url = compose_device_url();
 
             json_object *jresponse = perform_http_post(url, _key, jobject);
-            bool success = jresponse != NULL;
+            success = jresponse != NULL;
 
             if (success) {
                 _last_heartbeat = now;
@@ -373,13 +374,12 @@ bool MSGStore::heartbeat() {
             json_object_put(jresponse);
             json_object_put(jobject);
 
-            return success;
-
         } catch (GenericException const& e) {
             json_object_put(jobject);
             throw e;
         }
     }
+    return success;
 }
 
 std::vector<Sensor::Ptr> MSGStore::get_sensors() {

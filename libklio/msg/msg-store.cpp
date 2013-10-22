@@ -352,22 +352,33 @@ void MSGStore::flush(Sensor::Ptr sensor) {
 
 bool MSGStore::heartbeat() {
 
-    json_object *jobject = create_json_object();
+    TimeConverter tc;
+    timestamp_t now = tc.get_timestamp();
 
-    try {
-        std::string url = compose_device_url();
+    //Send a heartbeat every 30 minutes
+    if (now - _last_heartbeat > 1800) {
 
-        json_object *jresponse = perform_http_post(url, _key, jobject);
-        bool success = jresponse != NULL;
+        json_object *jobject = create_json_object();
 
-        json_object_put(jresponse);
-        json_object_put(jobject);
+        try {
+            std::string url = compose_device_url();
 
-        return success;
+            json_object *jresponse = perform_http_post(url, _key, jobject);
+            bool success = jresponse != NULL;
 
-    } catch (GenericException const& e) {
-        json_object_put(jobject);
-        throw e;
+            if (success) {
+                _last_heartbeat = now;
+            }
+
+            json_object_put(jresponse);
+            json_object_put(jobject);
+
+            return success;
+
+        } catch (GenericException const& e) {
+            json_object_put(jobject);
+            throw e;
+        }
     }
 }
 

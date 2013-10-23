@@ -32,10 +32,13 @@ BOOST_AUTO_TEST_CASE(check_sensor_interface) {
 
     std::cout << std::endl << "*** Checking sensor semantics." << std::endl;
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+
     klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "sensor1", "Watt", "Europe/Berlin"));
     std::cout << "Created " << sensor1->str() << std::endl;
+
     klio::Sensor::Ptr sensor1a(sensor_factory->createSensor("sensor1", "sensor1", "Watt", "Europe/Berlin"));
     std::cout << "Created " << sensor1a->str() << std::endl;
+
     klio::Sensor::Ptr sensor2(sensor_factory->createSensor("sensor2", "sensor2", "Watt-Hours", "Europe/Berlin"));
     std::cout << "Created " << sensor2->str() << std::endl;
 
@@ -83,6 +86,7 @@ BOOST_AUTO_TEST_CASE(check_create_sensor_sqlite3) {
             std::cout << "Caught invalid exception: " << ex.what() << std::endl;
             BOOST_FAIL("Unexpected store exception occurred during sensor test");
         }
+
         try {
             store->add_sensor(sensor1);
             BOOST_FAIL("No exception occurred during duplicate sensor add request");

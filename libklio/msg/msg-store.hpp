@@ -119,9 +119,7 @@ namespace klio {
         void flush(Sensor::Ptr sensor);
         bool heartbeat();
         std::vector<Sensor::Ptr> get_sensors();
-        struct json_object *get_json_readings(const Sensor::Ptr sensor);
-        Sensor::Ptr parse_sensor(const std::string& uuid_str, json_object *jsensor);
-        std::pair<timestamp_t, double > create_reading_pair(json_object *jpair);
+
         const std::string format_uuid_string(const std::string& meter);
         const std::string compose_device_url();
         const std::string compose_sensor_url(const Sensor::Ptr sensor);
@@ -140,6 +138,9 @@ namespace klio {
         struct json_object *create_json_array();
         struct json_object *create_json_int(const int value);
         struct json_object *create_json_double(const double value);
+        struct json_object *get_json_readings(const Sensor::Ptr sensor);
+        Sensor::Ptr parse_sensor(const std::string& uuid_str, json_object *jsensor);
+        std::pair<timestamp_t, double > create_reading_pair(json_object *jpair);
     };
 };
 

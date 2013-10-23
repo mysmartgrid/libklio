@@ -37,19 +37,17 @@ BOOST_AUTO_TEST_CASE(check_create_msg_storage) {
 
     std::cout << "Testing storage creation for mSG" << std::endl;
     klio::StoreFactory::Ptr factory(new klio::StoreFactory());
-    std::string url = std::string("https://dev3-api.mysmartgrid.de:8443");
+    std::string url = "https://dev3-api.mysmartgrid.de:8443";
 
-    klio::MSGStore::Ptr store;
+    std::cout << "Attempting to create MSG store " << url << std::endl;
+    klio::MSGStore::Ptr store(factory->create_msg_store(url,
+            "d271f4de-3ecd-f3d3-00db-3e96755d8736",
+            "d221f4de-3ecd-f3d3-00db-3e96755d8733",
+            "libklio test desc",
+            "libklio"));
+    std::cout << "Created: " << store->str() << std::endl;
 
     try {
-        std::cout << "Attempting to create MSG store " << url << std::endl;
-        klio::MSGStore::Ptr store(factory->create_msg_store(url,
-                "d271f4de-3ecd-f3d3-00db-3e96755d8736",
-                "d221f4de-3ecd-f3d3-00db-3e96755d8733",
-                "libklio test desc",
-                "libklio"));
-        std::cout << "Created: " << store->str() << std::endl;
-
         store->open();
         store->initialize();
 
@@ -88,7 +86,7 @@ BOOST_AUTO_TEST_CASE(check_create_msg_storage) {
 
             store->open();
             store->initialize();
-            
+
             BOOST_FAIL("A DataFormatException must be thrown when an invalid uuid is informed.");
 
         } catch (klio::GenericException const& ex) {
@@ -173,7 +171,7 @@ BOOST_AUTO_TEST_CASE(check_add_msg_sensor) {
 
         } catch (klio::GenericException const& ex) {
             //This exception was expected
-        }        
+        }
 
         store->dispose();
 

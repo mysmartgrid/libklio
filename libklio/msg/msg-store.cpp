@@ -24,19 +24,16 @@ void MSGStore::open() {
 
 void MSGStore::initialize() {
 
-    json_object *jkey = create_json_string(_key.c_str());
-    json_object *jdescription = create_json_string(_description.c_str());
-    json_object *jtype = create_json_string(_type.c_str());
-
     json_object *jobject = create_json_object();
-    json_object_object_add(jobject, "key", jkey);
-    json_object_object_add(jobject, "description", jdescription);
-    json_object_object_add(jobject, "type", jtype);
-
-    std::string url = compose_device_url();
 
     try {
+        json_object_object_add(jobject, "key", create_json_string(_key.c_str()));
+        json_object_object_add(jobject, "description", create_json_string(_description.c_str()));
+        json_object_object_add(jobject, "type", create_json_string(_type.c_str()));
+
+        std::string url = compose_device_url();
         json_object *jresponse = perform_http_post(url, _key, jobject);
+
         json_object_put(jresponse);
         json_object_put(jobject);
 
@@ -95,32 +92,39 @@ void MSGStore::remove_sensor(const Sensor::Ptr sensor) {
 
 void MSGStore::update_sensor(const Sensor::Ptr sensor) {
 
-    json_object *jdevice = create_json_string(_id.c_str());
-    json_object *jexternal_id = create_json_string(sensor->external_id().c_str());
-    json_object *jname = create_json_string(sensor->name().c_str());
-    json_object *jdescription = create_json_string(sensor->description().c_str());
-    json_object *junit = create_json_string(sensor->unit().c_str());
-
     json_object *jconfig = create_json_object();
-    json_object_object_add(jconfig, "device", jdevice);
-    json_object_object_add(jconfig, "externalid", jexternal_id);
-    json_object_object_add(jconfig, "function", jname);
-    json_object_object_add(jconfig, "description", jdescription);
-    json_object_object_add(jconfig, "unit", junit);
 
-    json_object *jobject = create_json_object();
-    json_object_object_add(jobject, "config", jconfig);
-
-    std::string url = compose_sensor_url(sensor);
     try {
-        json_object *jresponse = perform_http_post(url, _key, jobject);
+        json_object *jdevice = create_json_string(_id.c_str());
+        json_object_object_add(jconfig, "device", jdevice);
+
+        json_object *jexternal_id = create_json_string(sensor->external_id().c_str());
+        json_object_object_add(jconfig, "externalid", jexternal_id);
+
+        json_object *jname = create_json_string(sensor->name().c_str());
+        json_object_object_add(jconfig, "function", jname);
+
+        json_object *jdescription = create_json_string(sensor->description().c_str());
+        json_object_object_add(jconfig, "description", jdescription);
+
+        json_object *junit = create_json_string(sensor->unit().c_str());
+        json_object_object_add(jconfig, "unit", junit);
+
+        json_object *jobject = create_json_object();
+        json_object_object_add(jobject, "config", jconfig);
+        jconfig = jobject;
+
+        std::string url = compose_sensor_url(sensor);
+
+        json_object *jresponse = perform_http_post(url, _key, jconfig);
+        json_object_put(jresponse);
+
         _sensors_buffer[sensor->uuid()] = sensor;
 
-        json_object_put(jresponse);
-        json_object_put(jobject);
+        json_object_put(jconfig);
 
     } catch (GenericException const& e) {
-        json_object_put(jobject);
+        json_object_put(jconfig);
         throw e;
     }
 }
@@ -205,21 +209,28 @@ readings_t_Ptr MSGStore::get_all_readings(const Sensor::Ptr sensor) {
     flush(sensor);
 
     struct json_object *jreadings = get_json_readings(sensor);
-    int length = json_object_array_length(jreadings);
-    readings_t_Ptr readings(new readings_t());
 
-    for (int i = 0; i < length; i++) {
+    try {
+        int length = json_object_array_length(jreadings);
+        readings_t_Ptr readings(new readings_t());
 
-        json_object *jpair = json_object_array_get_idx(jreadings, i);
-        std::pair<timestamp_t, double > reading = create_reading_pair(jpair);
+        for (int i = 0; i < length; i++) {
 
-        if (reading.first > 0) {
-            readings->insert(reading);
+            json_object *jpair = json_object_array_get_idx(jreadings, i);
+            std::pair<timestamp_t, double > reading = create_reading_pair(jpair);
+
+            if (reading.first > 0) {
+                readings->insert(reading);
+            }
         }
-    }
-    json_object_put(jreadings);
 
-    return readings;
+        json_object_put(jreadings);
+        return readings;
+
+    } catch (GenericException const& e) {
+        json_object_put(jreadings);
+        throw e;
+    }
 }
 
 unsigned long int MSGStore::get_num_readings(const Sensor::Ptr sensor) {
@@ -239,22 +250,27 @@ std::pair<timestamp_t, double> MSGStore::get_last_reading(const Sensor::Ptr sens
     flush(sensor);
 
     json_object *jreadings = get_json_readings(sensor);
-    int i = json_object_array_length(jreadings) - 1;
 
-    if (i >= 0) {
-        json_object *jpair = json_object_array_get_idx(jreadings, i);
-        std::pair<timestamp_t, double > reading = create_reading_pair(jpair);
+    try {
+        int i = json_object_array_length(jreadings) - 1;
 
-        if (reading.first > 0) {
-            json_object_put(jreadings);
-            return reading;
+        if (i >= 0) {
+            json_object *jpair = json_object_array_get_idx(jreadings, i);
+            std::pair<timestamp_t, double > reading = create_reading_pair(jpair);
+
+            if (reading.first > 0) {
+                json_object_put(jreadings);
+                return reading;
+            }
         }
-    }
-    json_object_put(jreadings);
+        std::ostringstream err;
+        err << "No reading found for sensor " << sensor->uuid_short() << ".";
+        throw StoreException(err.str());
 
-    std::ostringstream err;
-    err << "No reading found for sensor " << sensor->uuid_short() << ".";
-    throw StoreException(err.str());
+    } catch (GenericException const& e) {
+        json_object_put(jreadings);
+        throw e;
+    }
 }
 
 void MSGStore::init_buffers(const Sensor::Ptr sensor) {
@@ -300,33 +316,35 @@ void MSGStore::flush(Sensor::Ptr sensor) {
 
     if (!readings->empty()) {
 
-        json_object *jtuples = create_json_array();
+        json_object *jmeasurements = create_json_array();
 
-        for (readings_cit_t rit = readings->begin(); rit != readings->end(); ++rit) {
-
-            timestamp_t timestamp = (*rit).first;
-            double value = (*rit).second;
-
-            struct json_object *jtuple = create_json_array();
-            json_object_array_add(jtuple, create_json_int(timestamp));
-            json_object_array_add(jtuple, create_json_double(value));
-
-            json_object_array_add(jtuples, jtuple);
-        }
-
-        json_object *jobject = create_json_object();
-        json_object_object_add(jobject, "measurements", jtuples);
-
-        std::string url = compose_sensor_url(sensor);
         try {
-            json_object *jresponse = perform_http_post(url, _key, jobject);
+            for (readings_cit_t rit = readings->begin(); rit != readings->end(); ++rit) {
+
+                timestamp_t timestamp = (*rit).first;
+                double value = (*rit).second;
+
+                struct json_object *jtuple = create_json_array();
+                json_object_array_add(jmeasurements, jtuple);
+
+                json_object_array_add(jtuple, create_json_int(timestamp));
+                json_object_array_add(jtuple, create_json_double(value));
+            }
+
+            json_object *jobject = create_json_object();
+            json_object_object_add(jobject, "measurements", jmeasurements);
+            jmeasurements = jobject;
+
+            std::string url = compose_sensor_url(sensor);
+
+            json_object *jresponse = perform_http_post(url, _key, jmeasurements);
 
             json_object_put(jresponse);
-            json_object_put(jobject);
+            json_object_put(jmeasurements);
             readings->clear();
 
         } catch (GenericException const& e) {
-            json_object_put(jobject);
+            json_object_put(jmeasurements);
             throw e;
         }
     }
@@ -336,14 +354,14 @@ bool MSGStore::heartbeat() {
 
     json_object *jobject = create_json_object();
 
-    //TODO: post firmware version and return parsed server response
-    std::string url = compose_device_url();
     try {
+        std::string url = compose_device_url();
+
         json_object *jresponse = perform_http_post(url, _key, jobject);
         bool success = jresponse != NULL;
 
-        json_object_put(jobject);
         json_object_put(jresponse);
+        json_object_put(jobject);
 
         return success;
 
@@ -355,79 +373,30 @@ bool MSGStore::heartbeat() {
 
 std::vector<Sensor::Ptr> MSGStore::get_sensors() {
 
-    std::vector<Sensor::Ptr> sensors;
-
     std::string url = compose_device_url();
     struct json_object *jobject = perform_http_get(url, _key);
-    json_object *jsensors = json_object_object_get(jobject, "sensors");
 
-    for (int i = 0; i < json_object_array_length(jsensors); i++) {
+    try {
+        std::vector<Sensor::Ptr> sensors;
+        json_object *jsensors = json_object_object_get(jobject, "sensors");
 
-        json_object *jsensor = json_object_array_get_idx(jsensors, i);
-        json_object *jmeter = json_object_object_get(jsensor, "meter");
-        const char* meter = json_object_get_string(jmeter);
+        for (int i = 0; i < json_object_array_length(jsensors); i++) {
 
-        sensors.push_back(parse_sensor(
-                format_uuid_string(meter),
-                jsensor));
+            json_object *jsensor = json_object_array_get_idx(jsensors, i);
+            json_object *jmeter = json_object_object_get(jsensor, "meter");
+            const char* meter = json_object_get_string(jmeter);
 
-    }
-    return sensors;
-}
+            sensors.push_back(parse_sensor(
+                    format_uuid_string(meter),
+                    jsensor));
+        }
+        json_object_put(jobject);
 
-struct json_object *MSGStore::get_json_readings(const Sensor::Ptr sensor) {
+        return sensors;
 
-    std::ostringstream query;
-    query << "interval=hour&unit=" << sensor->unit();
-
-    std::string url = compose_sensor_url(sensor, query.str());
-    return perform_http_get(url, _key);
-}
-
-Sensor::Ptr MSGStore::parse_sensor(const std::string& uuid_str, json_object *jsensor) {
-
-    json_object *jname = json_object_object_get(jsensor, "function");
-    const char* name = json_object_get_string(jname);
-
-    json_object *jdescription = json_object_object_get(jsensor, "description");
-    const char* description = json_object_get_string(jdescription);
-
-    json_object *jexternal_id = json_object_object_get(jsensor, "externalid");
-    const char* external_id = json_object_get_string(jexternal_id);
-
-    json_object *junit = json_object_object_get(jsensor, "unit");
-    const char* unit = json_object_get_string(junit);
-
-    //TODO: there should be no default timezone
-    const char* timezone = "Europe/Berlin";
-
-    SensorFactory::Ptr sensor_factory(new SensorFactory());
-
-    return sensor_factory->createSensor(
-            uuid_str,
-            std::string(external_id),
-            std::string(name),
-            std::string(description),
-            std::string(unit),
-            std::string(timezone));
-}
-
-std::pair<timestamp_t, double > MSGStore::create_reading_pair(json_object *jpair) {
-
-    json_object *jvalue = json_object_array_get_idx(jpair, 1);
-    double value = json_object_get_double(jvalue);
-
-    if (isnan(value)) {
-        return std::pair<timestamp_t, double>(0, 0);
-
-    } else {
-        json_object *jtimestamp = json_object_array_get_idx(jpair, 0);
-        long epoch = json_object_get_int(jtimestamp);
-
-        TimeConverter::Ptr tc(new TimeConverter());
-        timestamp_t timestamp = tc->convert_from_epoch(epoch);
-
-        return std::pair<timestamp_t, double>(timestamp, value);
+    } catch (GenericException const& e) {
+        json_object_put(jobject);
+        throw e;
     }
 }
 
@@ -673,4 +642,60 @@ struct json_object *MSGStore::create_json_double(const double value) {
         throw MemoryException(err.str());
     }
     return jdouble;
+}
+
+struct json_object *MSGStore::get_json_readings(const Sensor::Ptr sensor) {
+
+    std::ostringstream query;
+    query << "interval=hour&unit=" << sensor->unit();
+
+    std::string url = compose_sensor_url(sensor, query.str());
+    return perform_http_get(url, _key);
+}
+
+Sensor::Ptr MSGStore::parse_sensor(const std::string& uuid_str, json_object *jsensor) {
+
+    json_object *jname = json_object_object_get(jsensor, "function");
+    const char* name = json_object_get_string(jname);
+
+    json_object *jdescription = json_object_object_get(jsensor, "description");
+    const char* description = json_object_get_string(jdescription);
+
+    json_object *jexternal_id = json_object_object_get(jsensor, "externalid");
+    const char* external_id = json_object_get_string(jexternal_id);
+
+    json_object *junit = json_object_object_get(jsensor, "unit");
+    const char* unit = json_object_get_string(junit);
+
+    //TODO: there should be no default timezone
+    const char* timezone = "Europe/Berlin";
+
+    SensorFactory::Ptr sensor_factory(new SensorFactory());
+
+    return sensor_factory->createSensor(
+            uuid_str,
+            std::string(external_id),
+            std::string(name),
+            std::string(description),
+            std::string(unit),
+            std::string(timezone));
+}
+
+std::pair<timestamp_t, double > MSGStore::create_reading_pair(json_object *jpair) {
+
+    json_object *jvalue = json_object_array_get_idx(jpair, 1);
+    double value = json_object_get_double(jvalue);
+
+    if (isnan(value)) {
+        return std::pair<timestamp_t, double>(0, 0);
+
+    } else {
+        json_object *jtimestamp = json_object_array_get_idx(jpair, 0);
+        long epoch = json_object_get_int(jtimestamp);
+
+        TimeConverter::Ptr tc(new TimeConverter());
+        timestamp_t timestamp = tc->convert_from_epoch(epoch);
+
+        return std::pair<timestamp_t, double>(timestamp, value);
+    }
 }

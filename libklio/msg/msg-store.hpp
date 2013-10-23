@@ -143,6 +143,7 @@ namespace klio {
         struct json_object *get_json_readings(const Sensor::Ptr sensor);
         Sensor::Ptr parse_sensor(const std::string& uuid_str, json_object *jsensor);
         std::pair<timestamp_t, double > create_reading_pair(json_object *jpair);
+        void destroy_object(json_object * jobject);
     };
 };
 

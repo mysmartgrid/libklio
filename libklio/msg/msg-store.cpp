@@ -24,7 +24,7 @@ void MSGStore::open() {
 
 void MSGStore::initialize() {
 
-    json_object *jobject;
+    json_object *jobject = NULL;
 
     try {
         jobject = create_json_object();
@@ -115,7 +115,7 @@ void MSGStore::remove_sensor(const Sensor::Ptr sensor) {
 
 void MSGStore::update_sensor(const Sensor::Ptr sensor) {
 
-    json_object *jconfig;
+    json_object *jconfig = NULL;
 
     try {
         jconfig = create_json_object();
@@ -234,7 +234,7 @@ void MSGStore::update_readings(const Sensor::Ptr sensor, const readings_t& readi
 
 readings_t_Ptr MSGStore::get_all_readings(const Sensor::Ptr sensor) {
 
-    struct json_object *jreadings;
+    struct json_object *jreadings = NULL;
 
     try {
         flush(sensor);
@@ -268,7 +268,7 @@ readings_t_Ptr MSGStore::get_all_readings(const Sensor::Ptr sensor) {
 
 unsigned long int MSGStore::get_num_readings(const Sensor::Ptr sensor) {
 
-    struct json_object *jreadings;
+    struct json_object *jreadings = NULL;
 
     try {
         flush(sensor);
@@ -290,7 +290,7 @@ unsigned long int MSGStore::get_num_readings(const Sensor::Ptr sensor) {
 
 std::pair<timestamp_t, double> MSGStore::get_last_reading(const Sensor::Ptr sensor) {
 
-    json_object *jreadings;
+    json_object *jreadings = NULL;
 
     try {
         flush(sensor);
@@ -361,7 +361,7 @@ void MSGStore::flush(bool force) {
 
 void MSGStore::flush(Sensor::Ptr sensor) {
 
-    json_object *jmeasurements;
+    json_object *jmeasurements = NULL;
 
     try {
         readings_t_Ptr readings = _readings_buffer[sensor->uuid()];
@@ -407,7 +407,7 @@ void MSGStore::flush(Sensor::Ptr sensor) {
 
 void MSGStore::heartbeat() {
 
-    json_object *jobject;
+    json_object *jobject = NULL;
 
     try {
         TimeConverter tc;
@@ -438,7 +438,7 @@ void MSGStore::heartbeat() {
 
 std::vector<Sensor::Ptr> MSGStore::get_sensors() {
 
-    struct json_object *jobject;
+    struct json_object *jobject = NULL;
 
     try {
         std::string url = compose_device_url();
@@ -570,10 +570,10 @@ static size_t curl_write_custom_callback(void *ptr, size_t size, size_t nmemb, v
 
 struct json_object * MSGStore::perform_http_request(const std::string& method, const std::string& url, const std::string& key, json_object * jbody) {
 
-    long int http_code;
+    long int http_code = 0;
     CURLcode curl_code;
     CURLresponse response;
-    CURL *curl;
+    CURL *curl = NULL;
     json_object *jobject = NULL;
     curl_slist *headers = NULL;
 

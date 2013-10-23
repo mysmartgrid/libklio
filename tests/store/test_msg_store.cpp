@@ -114,8 +114,8 @@ BOOST_AUTO_TEST_CASE(check_add_msg_sensor) {
 
         std::cout << "Attempting to create MSG store " << url << std::endl;
         klio::MSGStore::Ptr store(factory->create_msg_store(url,
-                "d271f4de-3ecd-f3d3-00db-3e96755d8736",
-                "d221f4de-3ecd-f3d3-00db-3e96755d8733",
+                "755d8736-3ecd-f3d3-00db-3e96755d8736",
+                "755d8736-3ecd-f3d3-00db-3e96755d8733",
                 "libklio test desc",
                 "libklio"));
         std::cout << "Created: " << store->str() << std::endl;
@@ -127,9 +127,9 @@ BOOST_AUTO_TEST_CASE(check_add_msg_sensor) {
 
             klio::Sensor::Ptr sensor(sensor_factory->createSensor(
                     "89c18074-8bcf-240b-db7c-c1281038adcb",
-                    "Test",
-                    "Test libklio - long id - 948438382392938483493932039943499393220",
-                    "this is a sensor description",
+                    "Test libklio - long id - 94843838239293848349393203994349939äß´€",
+                    "Test äß´€",
+                    "this is a sensor description äß´€",
                     "kwh",
                     "Europe/Berlin"));
 
@@ -137,12 +137,12 @@ BOOST_AUTO_TEST_CASE(check_add_msg_sensor) {
 
             klio::Sensor::Ptr retrieved = store->get_sensor(sensor->uuid());
 
-            BOOST_CHECK_EQUAL(sensor->uuid(), retrieved->uuid());
-            BOOST_CHECK_EQUAL(sensor->name(), retrieved->name());
-            BOOST_CHECK_EQUAL(sensor->external_id(), retrieved->external_id());
-            BOOST_CHECK_EQUAL(sensor->description(), retrieved->description());
-            BOOST_CHECK_EQUAL(sensor->unit(), retrieved->unit());
-            BOOST_CHECK_EQUAL(sensor->timezone(), retrieved->timezone());
+            BOOST_CHECK_EQUAL(retrieved->uuid(), sensor->uuid());
+            BOOST_CHECK_EQUAL(retrieved->external_id(), "Test libklio - long id - 94843838239293848349393203994349939äß´€");
+            BOOST_CHECK_EQUAL(retrieved->name(), "Test äß´€");
+            BOOST_CHECK_EQUAL(retrieved->description(), "this is a sensor description äß´€");
+            BOOST_CHECK_EQUAL(retrieved->unit(), "kwh");
+            BOOST_CHECK_EQUAL(retrieved->timezone(), "Europe/Berlin");
 
             try {
                 sensor = sensor_factory->createSensor(
@@ -164,8 +164,8 @@ BOOST_AUTO_TEST_CASE(check_add_msg_sensor) {
             try {
                 sensor = sensor_factory->createSensor(
                         "89c74018-8bcf-240b-db7c-c1281038adcb",
-                        "Test",
                         "Test libklio - this id is too long - 9484383823929384834939320399434993932200000",
+                        "Test",
                         "changed description",
                         "xxx",
                         "Europe/Berlin");

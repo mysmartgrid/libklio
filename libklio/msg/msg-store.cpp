@@ -303,7 +303,7 @@ std::pair<timestamp_t, double> MSGStore::get_last_reading(const Sensor::Ptr sens
             std::pair<timestamp_t, double > reading = create_reading_pair(jpair);
 
             if (reading.first > 0) {
-                json_object_put(jreadings);
+                destroy_object(jreadings);
                 return reading;
             }
         }
@@ -520,7 +520,7 @@ struct json_object * MSGStore::perform_http_post(const std::string& url, const s
 void MSGStore::perform_http_delete(const std::string& url, const std::string & key) {
 
     json_object *jobject = perform_http_request("DELETE", url, key, NULL);
-    json_object_put(jobject);
+    destroy_object(jobject);
 }
 
 std::string MSGStore::digest_message(const std::string& data, const std::string & key) {

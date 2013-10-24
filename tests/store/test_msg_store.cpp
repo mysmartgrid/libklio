@@ -323,27 +323,38 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor) {
             store->initialize();
             klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
 
-            klio::Sensor::Ptr sensor(sensor_factory->createSensor(
+            klio::Sensor::Ptr sensor1(sensor_factory->createSensor(
                     "98c18074-8bcf-890b-db7c-c12810383333",
-                    "GetTest",
-                    "GetTest",
-                    "GetDescription",
+                    "Id123123123",
+                    "Test1",
+                    "Description1",
                     "watt",
                     "Europe/Berlin"));
 
-            store->add_sensor(sensor);
+            klio::Sensor::Ptr sensor2(sensor_factory->createSensor(
+                    "89c18074-8bcf-890b-db7c-c12810383333",
+                    "Id123123123",
+                    "Test2",
+                    "Description2",
+                    "watt",
+                    "Europe/Berlin"));
 
-            klio::Sensor::Ptr retrieved = store->get_sensor(sensor->uuid());
+            store->add_sensor(sensor1);
+            store->add_sensor(sensor2);
 
-            BOOST_CHECK_EQUAL(sensor->uuid(), retrieved->uuid());
-            BOOST_CHECK_EQUAL(sensor->name(), retrieved->name());
-            BOOST_CHECK_EQUAL(sensor->description(), retrieved->description());
+            
+            klio::Sensor::Ptr retrieved = store->get_sensor(sensor1->uuid());
 
-            store->remove_sensor(sensor);
+            BOOST_CHECK_EQUAL(sensor1->uuid(), retrieved->uuid());
+            BOOST_CHECK_EQUAL(sensor1->external_id(), retrieved->external_id());
+            BOOST_CHECK_EQUAL(sensor1->name(), retrieved->name());
+            BOOST_CHECK_EQUAL(sensor1->description(), retrieved->description());
+
+            store->remove_sensor(sensor1);
 
             try {
                 //Non existent
-                store->get_sensor(sensor->uuid());
+                store->get_sensor(sensor1->uuid());
                 store->dispose();
 
                 BOOST_FAIL("An exception must be raised if the sensor is found.");

@@ -16,9 +16,9 @@ function (get_revision_info REV_INFO)
 endfunction()
 
 get_revision_info (PROJECT_REVISION)
-if (NOT PROJECT_REVISION)
+if (NOT ${PROJECT_REVISION} EQUAL "")
   message (FATAL_ERROR "could not discover revision info, please define -DPROJECT_REVISION by hand!")
-endif (NOT PROJECT_REVISION)
+endif()
 set (PROJECT_REVISION "${PROJECT_REVISION}" CACHE STRING "Source code revision" FORCE)
 
 set(CPACK_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}.${PROJECT_REVISION}")

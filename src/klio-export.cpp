@@ -24,11 +24,11 @@
 #include <libklio/store.hpp>
 #include <libklio/store-factory.hpp>
 #include <libklio/sensor.hpp>
-#include <libklio/sensorfactory.hpp>
+#include <libklio/sensor-factory.hpp>
 #include <libklio/exporter.hpp>
-#include <libklio/octave_exporter.hpp>
-#include <libklio/json_exporter.hpp>
-#include <libklio/local_time.hpp>
+#include <libklio/octave-exporter.hpp>
+#include <libklio/json-exporter.hpp>
+#include <libklio/local-time.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/program_options.hpp>
@@ -122,13 +122,13 @@ int main(int argc,char** argv) {
         return 2;
       }
       std::string sensor_id(vm["id"].as<std::string>());
-      klio::Store::Ptr store(factory->openStore(klio::SQLITE3, db));
+      klio::Store::Ptr store(factory->open_sqlite3_store(db));
       std::cout << "opened store: " << store->str() << std::endl;
-      std::vector<klio::Sensor::uuid_t> uuids = store->getSensorUUIDs();
+      std::vector<klio::Sensor::uuid_t> uuids = store->get_sensor_uuids();
       std::vector<klio::Sensor::uuid_t>::iterator it;
       bool found_sensor=false;
       for(  it = uuids.begin(); it < uuids.end(); it++) {
-        klio::Sensor::Ptr loadedSensor(store->getSensor(*it));
+        klio::Sensor::Ptr loadedSensor(store->get_sensor(*it));
         if (boost::iequals(loadedSensor->name(), sensor_id)) {
           found_sensor=true;
           klio::readings_t_Ptr readings = store->get_all_readings(loadedSensor);

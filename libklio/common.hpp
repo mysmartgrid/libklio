@@ -1,13 +1,14 @@
 /**
  * This file is part of libklio.
  *
- * (c) Fraunhofer ITWM - Mathias Dalheimer <dalheimer@itwm.fhg.de>, 2010
+ * (c) Fraunhofer ITWM - Mathias Dalheimer <dalheimer@itwm.fhg.de>,    2010
+ *                       Ely de Oliveira   <ely.oliveira@itwm.fhg.de>, 2013
  *
  * libklio is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * libklio is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -15,7 +16,6 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with libklio. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 #ifndef LIBKLIO_COMMON_HPP
@@ -25,12 +25,12 @@
 /* Include TR1 shared ptrs in a portable way. */
 #include <cstddef> // for __GLIBCXX__
 #ifdef __GLIBCXX__
-#  include <tr1/memory>
+#include <tr1/memory>
 #else
-#  ifdef __IBMCPP__
-#    define __IBMCPP_TR1__
-#  endif
-#  include <memory>
+#ifdef __IBMCPP__
+#define __IBMCPP_TR1__
+#endif
+#include <memory>
 #endif
 
 //#define ENABLE_LOGGING 0
@@ -52,18 +52,23 @@
 #include <string>
 
 namespace klio {
-  class VersionInfo {
+
+    class VersionInfo {
     public:
-      typedef std::tr1::shared_ptr<VersionInfo> Ptr;
-      VersionInfo () {};
-      virtual ~VersionInfo() {};
-      const std::string getVersion();
+        typedef std::tr1::shared_ptr<VersionInfo> Ptr;
+
+        VersionInfo() {
+        };
+
+        virtual ~VersionInfo() {
+        };
+        const std::string getVersion();
 
     private:
-      VersionInfo (const VersionInfo& original);
-      VersionInfo& operator= (const VersionInfo& rhs);
-      
-  };
+        VersionInfo(const VersionInfo& original);
+        VersionInfo& operator=(const VersionInfo& rhs);
+
+    };
 
 };
 

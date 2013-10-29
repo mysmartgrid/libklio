@@ -1,3 +1,4 @@
+# -*- mode: cmake; -*-
 # Revision 1391, 1.2 kB  (checked in by rexbron) 
 # - Try to find SQLITE3
 # Once done this will define

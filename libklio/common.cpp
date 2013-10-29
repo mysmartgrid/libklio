@@ -17,15 +17,15 @@
  * along with libklio. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
 #include "common.hpp"
 #include <sstream>
 
 
 using namespace klio;
 
-
 const std::string VersionInfo::getVersion() {
-  std::ostringstream oss;
-  oss << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH;
-  return oss.str();
+    std::ostringstream oss;
+    oss << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH;
+    return oss.str();
 }

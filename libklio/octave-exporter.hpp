@@ -18,37 +18,35 @@
  * along with libklio. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LIBKLIO_EXPORTER_HPP
-#define LIBKLIO_EXPORTER_HPP 1
+#ifndef LIBKLIO_OCTAVE_EXPORTER_HPP
+#define LIBKLIO_OCTAVE_EXPORTER_HPP 1
 
-#include <iostream>
-#include "store.hpp"
+#include "exporter.hpp"
 
 
 namespace klio {
 
-    class Exporter {
+    class OctaveExporter : public Exporter {
     public:
-        typedef std::tr1::shared_ptr<Exporter> Ptr;
+        typedef std::tr1::shared_ptr<OctaveExporter> Ptr;
 
-        Exporter(std::ostream& out) :
-        _out(out) {
+        OctaveExporter(std::ostream& out) : Exporter(out) {
         };
         virtual void process(klio::readings_t_Ptr readings,
-                const std::string& name, const std::string& description) = 0;
+                const std::string& name, const std::string& description);
 
-        virtual ~Exporter() {
+        virtual ~OctaveExporter() {
         };
 
-    protected:
-        std::ostream& _out;
-
     private:
-        Exporter(const Exporter& original);
-        Exporter& operator=(const Exporter& rhs);
-
+        OctaveExporter(const OctaveExporter& original);
+        OctaveExporter& operator=(const OctaveExporter& rhs);
+        void write_lead_in(const std::string& name, const std::string& description);
+        void write_description_function(const std::string& name,
+                const std::string& description);
+        void write_values_function(const std::string& name,
+                klio::readings_t_Ptr readings);
     };
-
 };
 
-#endif /* LIBKLIO_EXPORTER_HPP */
+#endif /* LIBKLIO_OCTAVE_EXPORTER_HPP */

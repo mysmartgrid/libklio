@@ -59,7 +59,6 @@ namespace klio {
 
         virtual ~CommunicationException() throw () {
         };
-
     };
 
     class DataFormatException : public GenericException {
@@ -72,7 +71,6 @@ namespace klio {
 
         virtual ~DataFormatException() throw () {
         };
-
     };
 
     class StoreException : public GenericException {
@@ -85,20 +83,30 @@ namespace klio {
 
         virtual ~StoreException() throw () {
         };
-
     };
     
-    class MemoryException : public GenericException {
+    class EnvironmentException : public GenericException {
+    public:
+        typedef std::tr1::shared_ptr<EnvironmentException> Ptr;
+
+        EnvironmentException(const std::string reason) :
+        klio::GenericException(reason) {
+        };
+
+        virtual ~EnvironmentException() throw () {
+        };
+    };    
+
+    class MemoryException : public EnvironmentException {
     public:
         typedef std::tr1::shared_ptr<MemoryException> Ptr;
 
         MemoryException(const std::string reason) :
-        klio::GenericException(reason) {
+        klio::EnvironmentException(reason) {
         };
 
         virtual ~MemoryException() throw () {
         };
-
     };    
 
 }

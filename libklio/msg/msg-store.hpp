@@ -47,7 +47,8 @@ namespace klio {
         _key(key),
         _description(description),
         _type(type),
-        _last_sync(0) {
+        _last_sync(0),
+        _last_heartbeat(0) {
         };
 
         virtual ~MSGStore() {
@@ -109,6 +110,7 @@ namespace klio {
         std::string _description;
         std::string _type;
         timestamp_t _last_sync;
+        timestamp_t _last_heartbeat;
         std::map<Sensor::uuid_t, Sensor::Ptr> _sensors_buffer;
         std::map<Sensor::uuid_t, readings_t_Ptr> _readings_buffer;
 
@@ -117,7 +119,7 @@ namespace klio {
         void clear_buffers();
         void flush(bool force);
         void flush(Sensor::Ptr sensor);
-        bool heartbeat();
+        void heartbeat();
         std::vector<Sensor::Ptr> get_sensors();
 
         const std::string format_uuid_string(const std::string& meter);
@@ -141,6 +143,7 @@ namespace klio {
         struct json_object *get_json_readings(const Sensor::Ptr sensor);
         Sensor::Ptr parse_sensor(const std::string& uuid_str, json_object *jsensor);
         std::pair<timestamp_t, double > create_reading_pair(json_object *jpair);
+        void destroy_object(json_object * jobject);
     };
 };
 

@@ -164,6 +164,9 @@ klio::Sensor::Ptr SQLite3Store::get_sensor(const klio::Sensor::uuid_t& uuid) {
     return sensor;
 }
 
+/**
+ * @deprecated
+ */
 klio::Sensor::Ptr SQLite3Store::get_sensor_by_external_id(const std::string& external_id) {
 
     LOG("Attempting to load sensor " << external_id);
@@ -176,6 +179,22 @@ klio::Sensor::Ptr SQLite3Store::get_sensor_by_external_id(const std::string& ext
     finalize(stmt);
 
     return sensor;
+}
+
+std::vector<klio::Sensor::Ptr> SQLite3Store::get_sensors_by_external_id(const std::string& external_id) {
+
+    LOG("Attempting to load sensor " << external_id);
+
+    std::vector<klio::Sensor::Ptr> sensors;
+    sqlite3_stmt* stmt = prepare(select_sensor_by_external_id_stmt);
+    sqlite3_bind_text(stmt, 1, external_id.c_str(), -1, SQLITE_TRANSIENT);
+
+    while (SQLITE_ROW == sqlite3_step(stmt)) {
+        sensors.push_back(parse_sensor(stmt));
+    }
+    finalize(stmt);
+
+    return sensors;
 }
 
 std::vector<klio::Sensor::Ptr> SQLite3Store::get_sensors_by_name(const std::string& name) {

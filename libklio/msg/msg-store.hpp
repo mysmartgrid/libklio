@@ -66,11 +66,11 @@ namespace klio {
         const std::string key() const {
             return _key;
         };
-        
+
         const std::string description() const {
             return _description;
         };
-        
+
         const std::string type() const {
             return _type;
         };
@@ -90,7 +90,6 @@ namespace klio {
         virtual void remove_sensor(const Sensor::Ptr sensor);
         virtual void update_sensor(const Sensor::Ptr sensor);
         virtual Sensor::Ptr get_sensor(const Sensor::uuid_t& uuid);
-        virtual Sensor::Ptr get_sensor_by_external_id(const std::string& external_id);
         virtual std::vector<Sensor::Ptr> get_sensors_by_external_id(const std::string& external_id);
         virtual std::vector<Sensor::Ptr> get_sensors_by_name(const std::string& name);
         virtual std::vector<Sensor::uuid_t> get_sensor_uuids();
@@ -114,8 +113,9 @@ namespace klio {
         timestamp_t _last_heartbeat;
         std::map<Sensor::uuid_t, Sensor::Ptr> _sensors_buffer;
         std::map<Sensor::uuid_t, readings_t_Ptr> _readings_buffer;
+        std::map<std::string, Sensor::uuid_t> _external_ids_buffer;
 
-        void init_buffers(const Sensor::Ptr sensor);
+        void set_buffers(const Sensor::Ptr sensor);
         void clear_buffers(const Sensor::Ptr sensor);
         void clear_buffers();
         void flush(bool force);

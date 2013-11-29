@@ -336,69 +336,6 @@ BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensor_by_name) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensor_by_external_id) {
-
-    std::cout << "Testing sensor query by external id for SQLite3" << std::endl;
-    klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
-    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-    bfs::path db(TEST_DB_FILE);
-    klio::Store::Ptr store;
-
-    try {
-        std::cout << "Attempting to create " << db << std::endl;
-        store = store_factory->create_sqlite3_store(db);
-        std::cout << "Created database: " << store->str() << std::endl;
-
-        store->open();
-        store->initialize();
-
-        klio::Sensor::Ptr sensor1(sensor_factory->createSensor(
-                "82c18074-8bcf-890b-db7c-c1281038adcb",
-                "External Id 1",
-                "Sensor 1",
-                "Description 1",
-                "watt",
-                "Europe/Berlin"));
-
-        store->add_sensor(sensor1);
-
-        klio::Sensor::Ptr sensor2(sensor_factory->createSensor(
-                "74c18074-890b-8bcf-db7c-c1281038adcb",
-                "External Id 2",
-                "Sensor 2",
-                "Description 2",
-                "watt",
-                "Europe/Berlin"));
-
-        store->add_sensor(sensor2);
-
-        klio::Sensor::Ptr retrieved = store->get_sensor_by_external_id("External Id 1");
-
-        BOOST_CHECK_EQUAL(sensor1->uuid(), retrieved->uuid());
-        BOOST_CHECK_EQUAL(sensor1->external_id(), retrieved->external_id());
-        BOOST_CHECK_EQUAL(sensor1->name(), retrieved->name());
-        BOOST_CHECK_EQUAL(sensor1->unit(), retrieved->unit());
-        BOOST_CHECK_EQUAL(sensor1->timezone(), retrieved->timezone());
-        BOOST_CHECK_EQUAL(sensor1->description(), retrieved->description());
-
-        try {
-            store->get_sensor_by_external_id("External Id 3");
-            store->dispose();
-            BOOST_FAIL("An exception must be raised if the sensor is not found.");
-
-        } catch (klio::StoreException const& ex) {
-            //This exception is expected
-        }
-
-        store->dispose();
-
-    } catch (klio::GenericException const& ex) {
-        store->dispose();
-        std::cout << "Caught invalid exception: " << ex.what() << std::endl;
-        BOOST_FAIL("Unexpected exception occurred for initialize request");
-    }
-}
-
 BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensors_by_external_id) {
 
     std::cout << "Testing sensor query by external id for SQLite3" << std::endl;

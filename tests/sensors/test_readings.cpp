@@ -421,7 +421,7 @@ BOOST_AUTO_TEST_CASE(check_sync_readings) {
 
 BOOST_AUTO_TEST_CASE(check_add_watt_reading_msg) {
 
-    try {
+    //try {
         std::cout << "Testing add_reading for MSG (Watt)" << std::endl;
         klio::StoreFactory::Ptr factory(new klio::StoreFactory());
         std::string url = "https://dev3-api.mysmartgrid.de:8443";
@@ -474,9 +474,9 @@ BOOST_AUTO_TEST_CASE(check_add_watt_reading_msg) {
             std::cout << "Caught invalid exception: " << ex.what() << std::endl;
             BOOST_FAIL("Unexpected exception occurred for initialize request");
         }
-    } catch (std::exception const& ex) {
-        BOOST_FAIL("Unexpected exception occurred during sensor test");
-    }
+    //} catch (std::exception const& ex) {
+    //    BOOST_FAIL("Unexpected exception occurred during sensor test");
+    //}
 }
 
 BOOST_AUTO_TEST_CASE(check_add_kwh_reading_msg) {

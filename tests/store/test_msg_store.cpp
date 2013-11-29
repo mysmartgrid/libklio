@@ -222,9 +222,9 @@ BOOST_AUTO_TEST_CASE(check_update_msg_sensor) {
 
             klio::Sensor::Ptr changed = sensor_factory->createSensor(
                     "89c18074-8bcf-240b-db7c-c1281038adcb",
-                    "Test 89c18074-8bcf-240b-db7c-c1281038adcb",
-                    "Test libklio",
-                    "changed description",
+                    "Changed 89c18074-8bcf-240b-db7c-c1281038adcb",
+                    "Changed libklio",
+                    "Changed description",
                     "watt",
                     "Europe/Berlin");
 
@@ -243,6 +243,119 @@ BOOST_AUTO_TEST_CASE(check_update_msg_sensor) {
 
         } catch (klio::GenericException const& ex) {
             store->dispose();
+            std::cout << "Caught invalid exception: " << ex.what() << std::endl;
+            BOOST_FAIL("Unexpected exception occurred for initialize request");
+        }
+    } catch (std::exception const& ex) {
+        BOOST_FAIL("Unexpected exception occurred during MSGStore test");
+    }
+}
+
+BOOST_AUTO_TEST_CASE(check_move_msg_sensor_to_new_store) {
+
+    try {
+        std::cout << "Testing sensor id update" << std::endl;
+        klio::StoreFactory::Ptr factory(new klio::StoreFactory());
+        std::string url = "https://dev3-api.mysmartgrid.de:8443";
+
+        std::cout << "Attempting to create MSG store " << url << std::endl;
+        klio::MSGStore::Ptr store1(factory->create_msg_store(url,
+                "d221f4de-3ecd-f3d3-00db-3e96755d8732",
+                "d241f4de-3ecd-f3d3-00db-3e96755d8731",
+                "libklio test first store",
+                "libklio"));
+        std::cout << "Created: " << store1->str() << std::endl;
+
+        std::cout << "Attempting to create MSG store " << url << std::endl;
+        klio::MSGStore::Ptr store2(factory->create_msg_store(url,
+                "4ecdf4de-3ecd-f3d3-00db-3e96755d8732",
+                "3ecdf4de-3ecd-f3d3-00db-3e96755d8731",
+                "libklio test second store",
+                "libklio"));
+        std::cout << "Created: " << store2->str() << std::endl;
+
+        klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+        std::string external_id = "Test 90328074-8bcf-240b-db7c-c1281038adcb";
+
+        try {
+            store1->open();
+            store2->open();
+            store1->initialize();
+            store2->initialize();
+
+            klio::Sensor::Ptr sensor(sensor_factory->createSensor(
+                    "90328074-8bcf-240b-db7c-c1281038adcb",
+                    external_id,
+                    "Test libklio1",
+                    "description1",
+                    "watt",
+                    "Europe/Berlin"));
+
+            store1->add_sensor(sensor);
+
+
+            klio::Sensor::Ptr changed(sensor_factory->createSensor(
+                    "66328074-8bcf-240b-db7c-c1281038adcb",
+                    external_id,
+                    "Test libklio2",
+                    "description2",
+                    "watt",
+                    "Europe/Berlin"));
+
+            store1->add_sensor(changed);
+
+            std::vector<klio::Sensor::Ptr> sensors = store1->get_sensors_by_external_id(external_id);
+
+            BOOST_CHECK_EQUAL(1, sensors.size());
+
+            klio::Sensor::Ptr retrieved = (*sensors.begin());
+
+            BOOST_CHECK_EQUAL(retrieved->uuid(), changed->uuid());
+            BOOST_CHECK_EQUAL(retrieved->name(), changed->name());
+            BOOST_CHECK_EQUAL(retrieved->external_id(), external_id);
+            BOOST_CHECK_EQUAL(retrieved->name(), changed->name());
+            BOOST_CHECK_EQUAL(retrieved->description(), changed->description());
+            BOOST_CHECK_EQUAL(retrieved->unit(), changed->unit());
+            BOOST_CHECK_EQUAL(retrieved->timezone(), changed->timezone());
+
+            changed = sensor_factory->createSensor(
+                    "89c18074-8bcf-240b-db7c-c1281038adcb",
+                    external_id,
+                    "Test libklio3",
+                    "description3",
+                    "watt",
+                    "Europe/Berlin");
+
+            store2->add_sensor(changed);
+
+            store1->close();
+            store1->open();
+            store1->initialize();
+
+            sensors = store1->get_sensors_by_external_id(external_id);
+
+            BOOST_CHECK_EQUAL(0, sensors.size());
+
+            sensors = store2->get_sensors_by_external_id(external_id);
+
+            BOOST_CHECK_EQUAL(1, sensors.size());
+
+            retrieved = (*sensors.begin());
+
+            BOOST_CHECK_EQUAL(retrieved->uuid(), changed->uuid());
+            BOOST_CHECK_EQUAL(retrieved->name(), changed->name());
+            BOOST_CHECK_EQUAL(retrieved->external_id(), external_id);
+            BOOST_CHECK_EQUAL(retrieved->name(), changed->name());
+            BOOST_CHECK_EQUAL(retrieved->description(), changed->description());
+            BOOST_CHECK_EQUAL(retrieved->unit(), changed->unit());
+            BOOST_CHECK_EQUAL(retrieved->timezone(), changed->timezone());
+
+            store1->dispose();
+            store2->dispose();
+
+        } catch (klio::GenericException const& ex) {
+            store1->dispose();
+            store2->dispose();
             std::cout << "Caught invalid exception: " << ex.what() << std::endl;
             BOOST_FAIL("Unexpected exception occurred for initialize request");
         }
@@ -325,7 +438,7 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor) {
 
             klio::Sensor::Ptr sensor1(sensor_factory->createSensor(
                     "98c18074-8bcf-890b-db7c-c12810383333",
-                    "Id123123123",
+                    "External Id 98c18074-8bcf-890b-db7c-c12810383333",
                     "Test1",
                     "Description1",
                     "watt",
@@ -333,7 +446,7 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor) {
 
             klio::Sensor::Ptr sensor2(sensor_factory->createSensor(
                     "89c18074-8bcf-890b-db7c-c12810383333",
-                    "Id123123123",
+                    "External Id 89c18074-8bcf-890b-db7c-c12810383333",
                     "Test2",
                     "Description2",
                     "watt",
@@ -342,7 +455,7 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor) {
             store->add_sensor(sensor1);
             store->add_sensor(sensor2);
 
-            
+
             klio::Sensor::Ptr retrieved = store->get_sensor(sensor1->uuid());
 
             BOOST_CHECK_EQUAL(sensor1->uuid(), retrieved->uuid());
@@ -452,76 +565,6 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor_by_name) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_get_msg_sensor_by_external_id) {
-
-    try {
-        std::cout << "Testing sensor query by external id for mSG" << std::endl;
-        klio::StoreFactory::Ptr factory(new klio::StoreFactory());
-        std::string url = "https://dev3-api.mysmartgrid.de:8443";
-
-        std::cout << "Attempting to create MSG store " << url << std::endl;
-        klio::MSGStore::Ptr store(factory->create_msg_store(url,
-                "d271f4de-3ecd-f3d3-00db-3e96755d8736",
-                "d221f4de-3ecd-f3d3-00db-3e96755d8733",
-                "libklio test",
-                "libklio"));
-        std::cout << "Created: " << store->str() << std::endl;
-
-        try {
-            store->open();
-            store->initialize();
-            klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-
-            klio::Sensor::Ptr sensor1(sensor_factory->createSensor(
-                    "82c18074-8bcf-890b-db7c-c1281038adcb",
-                    "External Id 82c18074-8bcf-890b-db7c-c1281038adcb",
-                    "Sensor 1",
-                    "Description 1",
-                    "watt",
-                    "Europe/Berlin"));
-
-            store->add_sensor(sensor1);
-
-            klio::Sensor::Ptr sensor2(sensor_factory->createSensor(
-                    "74c18074-890b-8bcf-db7c-c1281038adcb",
-                    "External Id 74c18074-890b-8bcf-db7c-c1281038adcb",
-                    "Sensor 2",
-                    "Description 2",
-                    "watt",
-                    "Europe/Berlin"));
-
-            store->add_sensor(sensor2);
-
-            klio::Sensor::Ptr retrieved = store->get_sensor_by_external_id("External Id 82c18074-8bcf-890b-db7c-c1281038adcb");
-
-            BOOST_CHECK_EQUAL(sensor1->uuid(), retrieved->uuid());
-            BOOST_CHECK_EQUAL(sensor1->external_id(), retrieved->external_id());
-            BOOST_CHECK_EQUAL(sensor1->name(), retrieved->name());
-            BOOST_CHECK_EQUAL(sensor1->unit(), retrieved->unit());
-            BOOST_CHECK_EQUAL(sensor1->timezone(), retrieved->timezone());
-            BOOST_CHECK_EQUAL(sensor1->description(), retrieved->description());
-
-            try {
-                store->get_sensor_by_external_id("External Id 3");
-                store->dispose();
-                BOOST_FAIL("An exception must be raised if the sensor is not found.");
-
-            } catch (klio::StoreException const& ex) {
-                //This exception is expected
-            }
-
-            store->dispose();
-
-        } catch (klio::GenericException const& ex) {
-            store->dispose();
-            std::cout << "Caught invalid exception: " << ex.what() << std::endl;
-            BOOST_FAIL("Unexpected exception occurred for initialize request");
-        }
-    } catch (std::exception const& ex) {
-        BOOST_FAIL("Unexpected exception occurred during MSGStore test");
-    }
-}
-
 BOOST_AUTO_TEST_CASE(check_get_msg_sensors_by_external_id) {
 
     try {
@@ -565,7 +608,7 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensors_by_external_id) {
             std::vector<klio::Sensor::Ptr> sensors = store->get_sensors_by_external_id("External Id 82c18074-8bcf-890b-db7c-c1281038adcb");
 
             BOOST_CHECK_EQUAL(1, sensors.size());
-            
+
             std::vector<klio::Sensor::Ptr>::iterator it = sensors.begin();
             klio::Sensor::Ptr retrieved = (*it);
 

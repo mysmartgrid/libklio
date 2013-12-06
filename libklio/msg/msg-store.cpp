@@ -97,7 +97,6 @@ const std::string MSGStore::str() {
 void MSGStore::add_sensor(const Sensor::Ptr sensor) {
 
     update_sensor(sensor);
-    set_buffers(sensor);
 }
 
 void MSGStore::remove_sensor(const Sensor::Ptr sensor) {

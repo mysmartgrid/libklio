@@ -275,7 +275,7 @@ BOOST_AUTO_TEST_CASE(check_move_msg_sensor_to_new_store) {
         std::cout << "Created: " << store2->str() << std::endl;
 
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-        std::string external_id = "Test 90328074-8bcf-240b-db7c-c1281038adcb";
+        const std::string external_id = "Test 90328074-8bcf-240b-db7c-c1281038adcb";
 
         try {
             store1->open();
@@ -293,6 +293,16 @@ BOOST_AUTO_TEST_CASE(check_move_msg_sensor_to_new_store) {
 
             store1->add_sensor(sensor);
 
+            klio::timestamp_t timestamp = time(0) - 3000;
+            timestamp -= timestamp % 60;
+
+            for (int i = 0; i < 12; i++) {
+                store1->add_reading(sensor, timestamp + (i * 60), i * 1000);
+            }
+
+            klio::readings_t readings1 = *store1->get_all_readings(sensor);
+
+            BOOST_CHECK_EQUAL(11, readings1.size());
 
             klio::Sensor::Ptr changed(sensor_factory->createSensor(
                     "66328074-8bcf-240b-db7c-c1281038adcb",
@@ -304,6 +314,10 @@ BOOST_AUTO_TEST_CASE(check_move_msg_sensor_to_new_store) {
 
             store1->add_sensor(changed);
 
+            store1->close();
+            store1->open();
+            store1->initialize();
+            
             std::vector<klio::Sensor::Ptr> sensors = store1->get_sensors_by_external_id(external_id);
 
             BOOST_CHECK_EQUAL(1, sensors.size());
@@ -311,12 +325,17 @@ BOOST_AUTO_TEST_CASE(check_move_msg_sensor_to_new_store) {
             klio::Sensor::Ptr retrieved = (*sensors.begin());
 
             BOOST_CHECK_EQUAL(retrieved->uuid(), changed->uuid());
+            BOOST_CHECK_EQUAL(retrieved->uuid_string(), "66328074-8bcf-240b-db7c-c1281038adcb");
             BOOST_CHECK_EQUAL(retrieved->name(), changed->name());
             BOOST_CHECK_EQUAL(retrieved->external_id(), external_id);
             BOOST_CHECK_EQUAL(retrieved->name(), changed->name());
             BOOST_CHECK_EQUAL(retrieved->description(), changed->description());
             BOOST_CHECK_EQUAL(retrieved->unit(), changed->unit());
             BOOST_CHECK_EQUAL(retrieved->timezone(), changed->timezone());
+
+            klio::readings_t readings2 = *store1->get_all_readings(retrieved);
+
+            BOOST_CHECK_EQUAL(11, readings2.size());
 
             changed = sensor_factory->createSensor(
                     "89c18074-8bcf-240b-db7c-c1281038adcb",
@@ -343,12 +362,17 @@ BOOST_AUTO_TEST_CASE(check_move_msg_sensor_to_new_store) {
             retrieved = (*sensors.begin());
 
             BOOST_CHECK_EQUAL(retrieved->uuid(), changed->uuid());
+            BOOST_CHECK_EQUAL(retrieved->uuid_string(), "89c18074-8bcf-240b-db7c-c1281038adcb");
             BOOST_CHECK_EQUAL(retrieved->name(), changed->name());
             BOOST_CHECK_EQUAL(retrieved->external_id(), external_id);
             BOOST_CHECK_EQUAL(retrieved->name(), changed->name());
             BOOST_CHECK_EQUAL(retrieved->description(), changed->description());
             BOOST_CHECK_EQUAL(retrieved->unit(), changed->unit());
             BOOST_CHECK_EQUAL(retrieved->timezone(), changed->timezone());
+
+            klio::readings_t readings3 = *store2->get_all_readings(retrieved);
+
+            BOOST_CHECK_EQUAL(11, readings3.size());
 
             store1->dispose();
             store2->dispose();

@@ -4,6 +4,8 @@ file(GLOB klio_hdrs *.h *.hpp)
 install(FILES ${klio_hdrs} DESTINATION include/libklio)
 file(GLOB klio_sqlite3_hdrs sqlite3/*.h sqlite3/*.hpp)
 install(FILES ${klio_sqlite3_hdrs} DESTINATION include/libklio/sqlite3)
+file(GLOB klio_rocksdb_hdrs rocksdb/*.h rocksdb/*.hpp)
+install(FILES ${klio_rocksdb_hdrs} DESTINATION include/libklio/rocksdb)
 file(GLOB klio_algorithm_hdrs algorithm/*.h algorithm/*.hpp)
 install(FILES ${klio_algorithm_hdrs} DESTINATION include/libklio/algorithm)
 file(GLOB klio_msg_hdrs msg/*.h msg/*.hpp)
@@ -20,9 +22,10 @@ include_directories(${CMAKE_SOURCE_DIR}
                     ${Boost_INCLUDE_DIRS})
 file(GLOB klio_src *.cpp *.hpp)
 file(GLOB klio_sqlite3_src sqlite3/*.cpp sqlite3/*.hpp)
+file(GLOB klio_rocksdb_src rocksdb/*.cpp rocksdb/*.hpp)
 file(GLOB klio_msg_src msg/*.cpp msg/*.hpp)
 file(GLOB klio_algorithm_src algorithm/*.cpp algorithm/*.hpp)
-ADD_LIBRARY(klio STATIC ${klio_src} ${klio_sqlite3_src} ${klio_msg_src} ${klio_algorithm_src})
+ADD_LIBRARY(klio STATIC ${klio_src} ${klio_sqlite3_src} ${klio_rocksdb_src} ${klio_msg_src} ${klio_algorithm_src})
 
 target_link_libraries(klio
 #  ${GNUTLS_LIBRARIES}

@@ -3,6 +3,7 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/algorithm/string/erase.hpp>
 #include <libklio/sqlite3/sqlite3-store.hpp>
+#include <libklio/rocksdb/rocksdb-store.hpp>
 #include <libklio/msg/msg-store.hpp>
 #include "store-factory.hpp"
 
@@ -19,6 +20,18 @@ SQLite3Store::Ptr StoreFactory::create_sqlite3_store(const bfs::path& path) {
 SQLite3Store::Ptr StoreFactory::open_sqlite3_store(const bfs::path& path) {
 
     SQLite3Store::Ptr store = create_sqlite3_store(path);
+    store->open();
+    return store;
+}
+
+RocksDBStore::Ptr StoreFactory::create_rocksdb_store(const bfs::path& path) {
+
+    return RocksDBStore::Ptr(new RocksDBStore(path));
+}
+
+RocksDBStore::Ptr StoreFactory::open_rocksdb_store(const bfs::path& path) {
+
+    RocksDBStore::Ptr store = create_rocksdb_store(path);
     store->open();
     return store;
 }

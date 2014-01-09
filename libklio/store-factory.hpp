@@ -27,6 +27,7 @@
 #include <libklio/types.hpp>
 #include <libklio/store.hpp>
 #include <libklio/sqlite3/sqlite3-store.hpp>
+#include <libklio/rocksdb/rocksdb-store.hpp>
 #include <libklio/msg/msg-store.hpp>
 
 namespace bfs = boost::filesystem;
@@ -46,6 +47,8 @@ namespace klio {
 
         SQLite3Store::Ptr create_sqlite3_store(const bfs::path& path);
         SQLite3Store::Ptr open_sqlite3_store(const bfs::path& path);
+        RocksDBStore::Ptr create_rocksdb_store(const bfs::path& path);
+        RocksDBStore::Ptr open_rocksdb_store(const bfs::path& path);
         MSGStore::Ptr create_msg_store();
         MSGStore::Ptr create_msg_store(const std::string& id, const std::string& key);
         MSGStore::Ptr create_msg_store(const std::string& url, const std::string& id, const std::string& key, const std::string& description, const std::string& type);

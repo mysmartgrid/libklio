@@ -57,14 +57,7 @@ namespace klio {
                 const std::string& unit,
                 const std::string& timezone
                 );
-
-        virtual ~SensorFactory() {
-        };
-
-    private:
-        SensorFactory(const SensorFactory& original);
-        SensorFactory& operator=(const SensorFactory& rhs);
-
+        
         klio::Sensor::Ptr createSensor(
                 const Sensor::uuid_t& uuid,
                 const std::string& external_id,
@@ -73,6 +66,13 @@ namespace klio {
                 const std::string& unit,
                 const std::string& timezone
                 );
+
+        virtual ~SensorFactory() {
+        };
+
+    private:
+        SensorFactory(const SensorFactory& original);
+        SensorFactory& operator=(const SensorFactory& rhs);
     };
 };
 

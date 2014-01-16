@@ -68,7 +68,7 @@ IF( JSON_HOME )
   SET(_json_HOME ${JSON_HOME})
 ENDIF( JSON_HOME )
 
-message("Json search: '${_json_INCLUDE_SEARCH_DIRS}' ${CMAKE_INCLUDE_PATH}")
+message("Jsoon search: '${_json_INCLUDE_SEARCH_DIRS}' ${CMAKE_INCLUDE_PATH}")
 # find the include files
 FIND_PATH(JSON_INCLUDE_DIR json/json.h
    HINTS

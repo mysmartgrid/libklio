@@ -1,5 +1,5 @@
 /**
- * This class represents a local store, implemented as a SQlite 3 database.
+ * This class represents a local store, implemented as a RocksDB database.
  *
  * (c) Fraunhofer ITWM - Ely de Oliveira   <ely.oliveira@itwm.fhg.de>, 2014
  *
@@ -21,6 +21,7 @@
 #define LIBKLIO_ROCKSDB_ROCKSDBSTORE_HPP 1
 
 #include <vector>
+#include <rocksdb/db.h>
 #include <boost/filesystem.hpp>
 #include <libklio/common.hpp>
 #include <libklio/store.hpp>
@@ -66,6 +67,31 @@ namespace klio {
     private:
         RocksDBStore(const RocksDBStore& original);
         RocksDBStore& operator =(const RocksDBStore& rhs);
+
+        void put_sensor(const bool create, const Sensor::Ptr sensor);
+        void add_external_id_index(klio::Sensor::Ptr sensor);
+        void add_name_index(klio::Sensor::Ptr sensor);
+        void remove_external_id_index(klio::Sensor::Ptr sensor);
+        void remove_name_index(klio::Sensor::Ptr sensor);
+        void add_index_key(const std::string& index_path, const std::string& key, const std::string& value);
+        void remove_index_key(const std::string& index_path, const std::string& key);
+        std::vector<klio::Sensor::Ptr> get_sensors_by_index(const std::string& index_path, const std::string& key);
+
+        rocksdb::DB* open_db(const bool create_if_missing, const bool error_if_exists, const std::string& db_path);
+        void close_db(const rocksdb::DB* db);
+        void put_value(rocksdb::DB* db, const std::string& key, const std::string& value);
+        std::string get_value(rocksdb::DB* db, const std::string& key);
+        void delete_value(rocksdb::DB* db, const std::string& key);
+
+        const std::string compose_db_path();
+        const std::string compose_indexes_path();
+        const std::string compose_name_index_path();
+        const std::string compose_external_id_index_path();
+        const std::string compose_sensors_path();
+        const std::string compose_sensor_path(const std::string& uuid);
+        const std::string compose_sensor_properties_path(const std::string& uuid);
+        const std::string compose_sensor_readings_path(const std::string& uuid);
+        void create_directory(const std::string& dir);
 
         bfs::path _path;
     };

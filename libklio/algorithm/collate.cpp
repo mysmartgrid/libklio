@@ -63,5 +63,8 @@ klio::collate(Store::Ptr store, const sensors_t& sensors) {
         ++sensor_idx;
     }
 
-    return make_tuple(retval, timestampcount, 1 + sensors.size());
+    //FIXME
+    //return make_tuple(retval, (unsigned long int) timestampcount, (unsigned long int) (1 + sensors.size()));
+    klio::sensordata_table_t x;
+    return x;
 }

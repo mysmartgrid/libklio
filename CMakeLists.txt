@@ -50,6 +50,7 @@ set(CMAKE_CXX_FLAGS_EXPERIMENTAL "${CMAKE_CXX_FLAGS_EXPERIMENTAL} -Wno-system-he
 set(CMAKE_CXX_FLAGS_EXPERIMENTAL "${CMAKE_CXX_FLAGS_EXPERIMENTAL} -Wno-non-virtual-dtor")
 set(CMAKE_CXX_FLAGS_EXPERIMENTAL "${CMAKE_CXX_FLAGS_EXPERIMENTAL} -pg -fprofile-generate ")
 set(CMAKE_CXX_FLAGS_EXPERIMENTAL "${CMAKE_CXX_FLAGS_EXPERIMENTAL} -fprofile-arcs -ftest-coverage")
+
 # gprof and gcov support
 set(CMAKE_CXX_FLAGS_PROFILE "-O0 -g -ggdb -W -Wreturn-type -Wno-shadow")
 set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_PROFILE} -Wunused-variable -Wunused-parameter")
@@ -68,7 +69,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wno-attributes")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Werror")
 
 # always set these flags
-set(CMAKE_CXX_FLAGS "-Wall ")
+set(CMAKE_CXX_FLAGS "-Wall -std=gnu++11")
 
 FIND_PACKAGE(Sqlite)
 # We depend on boost >= 1.46.1 because of the updated filesystem
@@ -82,10 +83,18 @@ SET(Boost_DETAILED_FAILURE_MSG true)
 FIND_PACKAGE(Boost 1.46.1 
   COMPONENTS test_exec_monitor program_options filesystem system date_time)
 
+# RocksDB
+include(FindRocksDB)
+if( NOT ROCKSDB_FOUND)
+  message(FATAL_ERROR "RocksDB is required.
+Install RocksDB or call cmake -DROCKSDB_HOME=path_to_rocksdb_install")
+endif( NOT ROCKSDB_FOUND)
+include_directories(${ROCKSDB_INCLUDE_DIR})
+
 # libjson
 include(FindJson)
 if( NOT JSON_FOUND)
-  message(FATAL_ERROR "libjson ist required.
+  message(FATAL_ERROR "libjson is required.
 Install json or call cmake -DJSON_HOME=path_to_json_install")
 endif( NOT JSON_FOUND)
 include_directories(${JSON_INCLUDE_DIR})
@@ -158,5 +167,6 @@ message("  boost system lib: ${Boost_SYSTEM_LIBRARY}")
 message("  boost filesystem lib: ${Boost_FILESYSTEM_LIBRARY}")
 message("  json: -L${JSON_LIBRARY} -I${JSON_INCLUDE_DIR}")
 message("  sqlite3 include: ${SQLITE3_INCLUDE_DIR}, lib: ${SQLITE3_LIBRARIES}")
+message("  rocksdb include: ${ROCKSDB_INCLUDE_DIR}, lib: ${ROCKSDB_LIBRARIES}")
 message("  extended logging: ${ENABLE_LOGGING}")
 

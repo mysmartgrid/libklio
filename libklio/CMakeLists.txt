@@ -17,6 +17,7 @@ install(FILES ${CMAKE_BINARY_DIR}/libklio/config.h DESTINATION include/libklio)
 
 include_directories(${CMAKE_SOURCE_DIR}
                     ${SQLITE3_INCLUDE_DIR}
+                    ${ROCKSDB_INCLUDE_DIR}
                     ${CURL_INCLUDE_DIR}
                     ${OPENSSL_INCLUDE_DIR}
                     ${Boost_INCLUDE_DIRS})
@@ -30,6 +31,7 @@ ADD_LIBRARY(klio STATIC ${klio_src} ${klio_sqlite3_src} ${klio_rocksdb_src} ${kl
 target_link_libraries(klio
 #  ${GNUTLS_LIBRARIES}
   ${SQLITE3_LIBRARIES}
+  ${ROCKSDB_LIBRARIES}
   ${Boost_LIBRARIES}
   ${CURL_SHARED_LIBRARY}
   ${JSON_LIBRARY}

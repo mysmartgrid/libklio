@@ -290,11 +290,10 @@ BOOST_AUTO_TEST_CASE(check_get_rocksdb_sensor_by_name) {
 
         store->add_sensor(sensor3);
 
-        //TODO: allow duplicated entries
-        //std::vector<klio::Sensor::Ptr> duplicated = store->get_sensors_by_name("Duplicated Name");
+        std::vector<klio::Sensor::Ptr> duplicated = store->get_sensors_by_name("Duplicated Name");
         std::vector<klio::Sensor::Ptr> unique = store->get_sensors_by_name("Unique Name");
 
-        //BOOST_CHECK_EQUAL(2, duplicated.size());
+        BOOST_CHECK_EQUAL(2, duplicated.size());
         BOOST_CHECK_EQUAL(1, unique.size());
 
         std::vector<klio::Sensor::Ptr>::iterator it = unique.begin();
@@ -365,9 +364,8 @@ BOOST_AUTO_TEST_CASE(check_get_rocksdb_sensors_by_external_id) {
         BOOST_CHECK_EQUAL(sensor1->timezone(), retrieved->timezone());
         BOOST_CHECK_EQUAL(sensor1->description(), retrieved->description());
 
-        //FIXME: re-enable
-        //sensors = store->get_sensors_by_external_id("External Id 3");
-        //BOOST_CHECK_EQUAL(0, sensors.size());
+        sensors = store->get_sensors_by_external_id("External Id 3");
+        BOOST_CHECK_EQUAL(0, sensors.size());
 
         store->dispose();
 

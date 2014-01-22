@@ -19,9 +19,6 @@ void RocksDBStore::initialize() {
 
     create_directory(_path.string());
     create_directory(compose_sensors_path());
-    create_directory(compose_indexes_path());
-    create_directory(compose_name_index_path());
-    create_directory(compose_external_id_index_path());
 }
 
 void RocksDBStore::dispose() {
@@ -49,9 +46,6 @@ void RocksDBStore::add_sensor(klio::Sensor::Ptr sensor) {
 
 void RocksDBStore::remove_sensor(const klio::Sensor::Ptr sensor) {
 
-    remove_external_id_index(sensor);
-    remove_name_index(sensor);
-
     bfs::remove_all(compose_sensor_path(sensor->uuid_string()));
 }
 
@@ -71,9 +65,6 @@ void RocksDBStore::put_sensor(const bool create, const Sensor::Ptr sensor) {
     put_value(db, "unit", sensor->unit());
     put_value(db, "timezone", sensor->timezone());
     close_db(db);
-
-    add_external_id_index(sensor);
-    add_name_index(sensor);
 }
 
 klio::Sensor::Ptr RocksDBStore::get_sensor(const klio::Sensor::uuid_t& uuid) {
@@ -94,32 +85,44 @@ klio::Sensor::Ptr RocksDBStore::get_sensor(const klio::Sensor::uuid_t& uuid) {
 
 std::vector<klio::Sensor::Ptr> RocksDBStore::get_sensors_by_external_id(const std::string& external_id) {
 
-    return get_sensors_by_index(compose_external_id_index_path(), external_id);
+    std::vector<klio::Sensor::Ptr> found;
+    std::vector<klio::Sensor::Ptr> sensors = get_sensors();
+    std::vector<klio::Sensor::Ptr>::iterator sensor;
+
+    for (sensor = sensors.begin(); sensor != sensors.end(); sensor++) {
+
+        if ((*sensor)->external_id() == external_id) {
+            found.push_back(*sensor);
+        }
+    }
+    return found;
 }
 
 std::vector<klio::Sensor::Ptr> RocksDBStore::get_sensors_by_name(const std::string& name) {
 
-    return get_sensors_by_index(compose_name_index_path(), name);
+    std::vector<klio::Sensor::Ptr> found;
+    std::vector<klio::Sensor::Ptr> sensors = get_sensors();
+    std::vector<klio::Sensor::Ptr>::iterator sensor;
+
+    for (sensor = sensors.begin(); sensor != sensors.end(); sensor++) {
+
+        if ((*sensor)->name() == name) {
+            found.push_back(*sensor);
+        }
+    }
+    return found;
 }
 
-std::vector<klio::Sensor::Ptr> RocksDBStore::get_sensors_by_index(const std::string& index_path, const std::string& key) {
+std::vector<klio::Sensor::Ptr> RocksDBStore::get_sensors() {
 
     std::vector<klio::Sensor::Ptr> sensors;
-    rocksdb::DB* db = open_db(true, false, index_path);
+    std::vector<klio::Sensor::uuid_t> uuids = get_sensor_uuids();
+    std::vector<klio::Sensor::uuid_t>::iterator uuid;
 
-    boost::uuids::uuid uuid;
-    try {
-        std::stringstream ss;
-        ss << get_value(db, key);
-        ss >> uuid;
+    for (uuid = uuids.begin(); uuid != uuids.end(); uuid++) {
 
-    } catch (klio::StoreException const& e) {
-        //TODO: get rid of this try...catch
+        sensors.push_back(get_sensor(*uuid));
     }
-    close_db(db);
-
-    sensors.push_back(get_sensor(uuid));
-
     return sensors;
 }
 
@@ -175,7 +178,7 @@ readings_t_Ptr RocksDBStore::get_all_readings(klio::Sensor::Ptr sensor) {
 
         std::string epoch = it->key().ToString();
         std::string value = it->value().ToString();
-        
+
         readings->insert(
                 std::pair<timestamp_t, double>(
                 tc->convert_from_epoch(atol(epoch.c_str())),
@@ -185,7 +188,7 @@ readings_t_Ptr RocksDBStore::get_all_readings(klio::Sensor::Ptr sensor) {
 
     delete it;
     close_db(db);
-    
+
     return readings;
 }
 
@@ -235,7 +238,7 @@ void RocksDBStore::close_db(const rocksdb::DB* db) {
 void RocksDBStore::put_value(rocksdb::DB* db, const std::string& key, const std::string& value) {
 
     rocksdb::Status status = db->Put(rocksdb::WriteOptions(), key, value);
-    
+
     if (!status.ok()) {
         throw StoreException(status.ToString());
     }
@@ -261,61 +264,6 @@ void RocksDBStore::delete_value(rocksdb::DB* db, const std::string& key) {
     if (!status.ok()) {
         throw StoreException(status.ToString());
     }
-}
-
-void RocksDBStore::add_external_id_index(klio::Sensor::Ptr sensor) {
-
-    add_index_key(compose_external_id_index_path(), sensor->external_id(), sensor->uuid_string());
-}
-
-void RocksDBStore::add_name_index(klio::Sensor::Ptr sensor) {
-
-    add_index_key(compose_name_index_path(), sensor->name(), sensor->uuid_string());
-}
-
-void RocksDBStore::remove_external_id_index(klio::Sensor::Ptr sensor) {
-
-    remove_index_key(compose_external_id_index_path(), sensor->external_id());
-}
-
-void RocksDBStore::remove_name_index(klio::Sensor::Ptr sensor) {
-
-    remove_index_key(compose_name_index_path(), sensor->name());
-}
-
-void RocksDBStore::add_index_key(const std::string& index_path, const std::string& key, const std::string& value) {
-
-    rocksdb::DB* db = open_db(true, false, index_path);
-    put_value(db, key, value);
-    close_db(db);
-}
-
-void RocksDBStore::remove_index_key(const std::string& index_path, const std::string& key) {
-
-    rocksdb::DB* db = open_db(false, false, index_path);
-    delete_value(db, key);
-    close_db(db);
-}
-
-const std::string RocksDBStore::compose_indexes_path() {
-
-    std::ostringstream str;
-    str << _path.string() << "/indexes";
-    return str.str();
-}
-
-const std::string RocksDBStore::compose_name_index_path() {
-
-    std::ostringstream str;
-    str << compose_indexes_path() << "/name";
-    return str.str();
-}
-
-const std::string RocksDBStore::compose_external_id_index_path() {
-
-    std::ostringstream str;
-    str << compose_indexes_path() << "/external_id";
-    return str.str();
 }
 
 const std::string RocksDBStore::compose_sensors_path() {

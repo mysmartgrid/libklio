@@ -36,13 +36,12 @@ BOOST_AUTO_TEST_CASE(check_create_rocksdb_storage) {
     std::cout << "Testing storage creation for RocksDB" << std::endl;
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
     bfs::path db(TEST_DB_PATH);
-    klio::Store::Ptr store;
+
+    std::cout << "Attempting to create " << db << std::endl;
+    klio::Store::Ptr store(store_factory->create_rocksdb_store(db));
+    std::cout << "Created: " << store->str() << std::endl;
 
     try {
-        std::cout << "Attempting to create " << db << std::endl;
-        klio::Store::Ptr store(store_factory->create_rocksdb_store(db));
-        std::cout << "Created database: " << store->str() << std::endl;
-
         store->open();
         store->initialize();
 
@@ -51,7 +50,7 @@ BOOST_AUTO_TEST_CASE(check_create_rocksdb_storage) {
 
         store->dispose();
 
-    } catch (klio::GenericException const& ex) {
+    } catch (std::exception const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
@@ -64,13 +63,12 @@ BOOST_AUTO_TEST_CASE(check_add_rocksdb_sensor) {
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
     bfs::path db(TEST_DB_PATH);
-    klio::Store::Ptr store;
+
+    std::cout << "Attempting to create " << db << std::endl;
+    klio::Store::Ptr store(store_factory->create_rocksdb_store(db));
+    std::cout << "Created: " << store->str() << std::endl;
 
     try {
-        std::cout << "Attempting to create " << db << std::endl;
-        store = store_factory->create_rocksdb_store(db);
-        std::cout << "Created database: " << store->str() << std::endl;
-
         store->open();
         store->initialize();
 
@@ -95,7 +93,7 @@ BOOST_AUTO_TEST_CASE(check_add_rocksdb_sensor) {
 
         store->dispose();
 
-    } catch (klio::GenericException const& ex) {
+    } catch (std::exception const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
@@ -108,13 +106,12 @@ BOOST_AUTO_TEST_CASE(check_update_rocksdb_sensor) {
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
     bfs::path db(TEST_DB_PATH);
-    klio::Store::Ptr store;
+
+    std::cout << "Attempting to create " << db << std::endl;
+    klio::Store::Ptr store(store_factory->create_rocksdb_store(db));
+    std::cout << "Created: " << store->str() << std::endl;
 
     try {
-        std::cout << "Attempting to create " << db << std::endl;
-        store = store_factory->create_rocksdb_store(db);
-        std::cout << "Created database: " << store->str() << std::endl;
-
         store->open();
         store->initialize();
 
@@ -145,7 +142,7 @@ BOOST_AUTO_TEST_CASE(check_update_rocksdb_sensor) {
 
         store->dispose();
 
-    } catch (klio::GenericException const& ex) {
+    } catch (std::exception const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
@@ -158,13 +155,12 @@ BOOST_AUTO_TEST_CASE(check_remove_rocksdb_sensor) {
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
     bfs::path db(TEST_DB_PATH);
-    klio::Store::Ptr store;
+
+    std::cout << "Attempting to create " << db << std::endl;
+    klio::Store::Ptr store(store_factory->create_rocksdb_store(db));
+    std::cout << "Created: " << store->str() << std::endl;
 
     try {
-        std::cout << "Attempting to create " << db << std::endl;
-        store = store_factory->create_rocksdb_store(db);
-        std::cout << "Created database: " << store->str() << std::endl;
-
         store->open();
         store->initialize();
 
@@ -190,7 +186,7 @@ BOOST_AUTO_TEST_CASE(check_remove_rocksdb_sensor) {
         }
         store->dispose();
 
-    } catch (klio::GenericException const& ex) {
+    } catch (std::exception const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
@@ -203,13 +199,12 @@ BOOST_AUTO_TEST_CASE(check_get_rocksdb_sensor) {
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
     bfs::path db(TEST_DB_PATH);
-    klio::Store::Ptr store;
+
+    std::cout << "Attempting to create " << db << std::endl;
+    klio::Store::Ptr store(store_factory->create_rocksdb_store(db));
+    std::cout << "Created: " << store->str() << std::endl;
 
     try {
-        std::cout << "Attempting to create " << db << std::endl;
-        store = store_factory->create_rocksdb_store(db);
-        std::cout << "Created database: " << store->str() << std::endl;
-
         store->open();
         store->initialize();
 
@@ -234,7 +229,6 @@ BOOST_AUTO_TEST_CASE(check_get_rocksdb_sensor) {
         try {
             //Non existent
             store->get_sensor(sensor->uuid());
-            store->dispose();
 
             BOOST_FAIL("An exception must be raised if the sensor is not found.");
 
@@ -244,7 +238,7 @@ BOOST_AUTO_TEST_CASE(check_get_rocksdb_sensor) {
 
         store->dispose();
 
-    } catch (klio::GenericException const& ex) {
+    } catch (std::exception const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
@@ -257,13 +251,12 @@ BOOST_AUTO_TEST_CASE(check_get_rocksdb_sensor_by_name) {
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
     bfs::path db(TEST_DB_PATH);
-    klio::Store::Ptr store;
+
+    std::cout << "Attempting to create " << db << std::endl;
+    klio::Store::Ptr store(store_factory->create_rocksdb_store(db));
+    std::cout << "Created: " << store->str() << std::endl;
 
     try {
-        std::cout << "Attempting to create " << db << std::endl;
-        store = store_factory->create_rocksdb_store(db);
-        std::cout << "Created database: " << store->str() << std::endl;
-
         store->open();
         store->initialize();
 
@@ -316,7 +309,7 @@ BOOST_AUTO_TEST_CASE(check_get_rocksdb_sensor_by_name) {
 
         store->dispose();
 
-    } catch (klio::GenericException const& ex) {
+    } catch (std::exception const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
@@ -329,13 +322,12 @@ BOOST_AUTO_TEST_CASE(check_get_rocksdb_sensors_by_external_id) {
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
     bfs::path db(TEST_DB_PATH);
-    klio::Store::Ptr store;
+
+    std::cout << "Attempting to create " << db << std::endl;
+    klio::Store::Ptr store(store_factory->create_rocksdb_store(db));
+    std::cout << "Created: " << store->str() << std::endl;
 
     try {
-        std::cout << "Attempting to create " << db << std::endl;
-        store = store_factory->create_rocksdb_store(db);
-        std::cout << "Created database: " << store->str() << std::endl;
-
         store->open();
         store->initialize();
 
@@ -379,7 +371,7 @@ BOOST_AUTO_TEST_CASE(check_get_rocksdb_sensors_by_external_id) {
 
         store->dispose();
 
-    } catch (klio::GenericException const& ex) {
+    } catch (std::exception const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
@@ -392,13 +384,12 @@ BOOST_AUTO_TEST_CASE(check_get_rocksdb_sensor_uuids) {
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
     bfs::path db(TEST_DB_PATH);
-    klio::Store::Ptr store;
+
+    std::cout << "Attempting to create " << db << std::endl;
+    klio::Store::Ptr store(store_factory->create_rocksdb_store(db));
+    std::cout << "Created: " << store->str() << std::endl;
 
     try {
-        std::cout << "Attempting to create " << db << std::endl;
-        store = store_factory->create_rocksdb_store(db);
-        std::cout << "Created database: " << store->str() << std::endl;
-
         store->open();
         store->initialize();
 
@@ -436,21 +427,21 @@ BOOST_AUTO_TEST_CASE(check_get_rocksdb_sensor_uuids) {
 
         store->dispose();
 
-    } catch (klio::GenericException const& ex) {
+    } catch (std::exception const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
     }
 }
 
-//TODO: add more tests
-/*
 BOOST_AUTO_TEST_CASE(check_add_retrieve_rocksdb_reading) {
 
     std::cout << std::endl << "Adding & retrieving a reading to/from a sensor." << std::endl;
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
     bfs::path db(TEST_DB_PATH);
+
+    std::cout << "Attempting to create " << db << std::endl;
     klio::Store::Ptr store(store_factory->create_rocksdb_store(db));
     std::cout << "Created: " << store->str() << std::endl;
 
@@ -468,11 +459,7 @@ BOOST_AUTO_TEST_CASE(check_add_retrieve_rocksdb_reading) {
         double reading = 23;
         store->add_reading(sensor, timestamp, reading);
 
-        // now, retrieve it and check.
         klio::readings_t_Ptr readings = store->get_all_readings(sensor);
-
-        // cleanup
-        store->dispose();
 
         std::map<klio::timestamp_t, double>::iterator it;
         for (it = readings->begin(); it != readings->end(); it++) {
@@ -485,7 +472,10 @@ BOOST_AUTO_TEST_CASE(check_add_retrieve_rocksdb_reading) {
             BOOST_CHECK_EQUAL(reading, val);
         }
 
-    } catch (klio::StoreException const& ex) {
+        // cleanup
+        store->dispose();
+
+    } catch (std::exception const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected store exception occurred during sensor test");
@@ -494,11 +484,12 @@ BOOST_AUTO_TEST_CASE(check_add_retrieve_rocksdb_reading) {
 
 BOOST_AUTO_TEST_CASE(check_rocksdb_num_readings) {
 
-
     std::cout << std::endl << "Checking number of readings." << std::endl;
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
     bfs::path db(TEST_DB_PATH);
+
+    std::cout << "Attempting to create " << db << std::endl;
     klio::Store::Ptr store(store_factory->create_rocksdb_store(db));
     std::cout << "Created: " << store->str() << std::endl;
 
@@ -515,8 +506,9 @@ BOOST_AUTO_TEST_CASE(check_rocksdb_num_readings) {
         klio::readings_t readings;
         size_t num_readings = 10;
 
+        klio::timestamp_t start = tc->get_timestamp();
         for (size_t i = 0; i < num_readings; i++) {
-            klio::timestamp_t timestamp = tc->get_timestamp() - i;
+            klio::timestamp_t timestamp = start - i;
             double reading = 23;
             klio::reading_t foo(timestamp, reading);
             readings.insert(foo);
@@ -524,20 +516,18 @@ BOOST_AUTO_TEST_CASE(check_rocksdb_num_readings) {
         std::cout << "Inserting " << readings.size() << " readings." << std::endl;
         store->add_readings(sensor, readings);
 
-        // now, retrieve it and check.
         size_t saved_readings = store->get_num_readings(sensor);
         std::cout << "Store contains " << saved_readings << " readings." << std::endl;
 
-        // cleanup
         store->dispose();
 
         BOOST_CHECK_EQUAL(num_readings, saved_readings);
 
-    } catch (klio::StoreException const& ex) {
+    } catch (std::exception const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected store exception occurred during sensor test");
     }
 }
-*/
+
 //BOOST_AUTO_TEST_SUITE_END()

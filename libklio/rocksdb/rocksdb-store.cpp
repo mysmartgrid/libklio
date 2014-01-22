@@ -173,17 +173,19 @@ readings_t_Ptr RocksDBStore::get_all_readings(klio::Sensor::Ptr sensor) {
 
     for (it->SeekToFirst(); it->Valid(); it->Next()) {
 
-        const char* epoch = it->key().ToString().c_str();
-        const char* value = it->value().ToString().c_str();
-
+        std::string epoch = it->key().ToString();
+        std::string value = it->value().ToString();
+        
         readings->insert(
                 std::pair<timestamp_t, double>(
-                tc->convert_from_epoch(atol(epoch)),
-                atof(value)
+                tc->convert_from_epoch(atol(epoch.c_str())),
+                atof(value.c_str())
                 ));
     }
-    close_db(db);
 
+    delete it;
+    close_db(db);
+    
     return readings;
 }
 
@@ -232,11 +234,8 @@ void RocksDBStore::close_db(const rocksdb::DB* db) {
 
 void RocksDBStore::put_value(rocksdb::DB* db, const std::string& key, const std::string& value) {
 
-    rocksdb::WriteOptions options;
-    options.sync = true;
-
-    rocksdb::Status status = db->Put(options, key, value);
-
+    rocksdb::Status status = db->Put(rocksdb::WriteOptions(), key, value);
+    
     if (!status.ok()) {
         throw StoreException(status.ToString());
     }

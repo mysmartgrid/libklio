@@ -67,24 +67,25 @@ namespace klio {
     private:
         RocksDBStore(const RocksDBStore& original);
         RocksDBStore& operator =(const RocksDBStore& rhs);
+        bfs::path _path;
+        std::map<std::string, rocksdb::DB*> _buffer;
 
         rocksdb::DB* open_db(const bool create_if_missing, const bool error_if_exists, const std::string& db_path);
-        void close_db(const rocksdb::DB* db);
+        void close_db(const std::string& db_path);
+        void remove_db(const std::string& db_path);
+
         void put_sensor(const bool create, const Sensor::Ptr sensor);
         void put_value(rocksdb::DB* db, const std::string& key, const std::string& value);
         std::string get_value(rocksdb::DB* db, const std::string& key);
         void delete_value(rocksdb::DB* db, const std::string& key);
-
         std::vector<klio::Sensor::Ptr> get_sensors();
-        
+
         const std::string compose_db_path();
         const std::string compose_sensors_path();
         const std::string compose_sensor_path(const std::string& uuid);
         const std::string compose_sensor_properties_path(const std::string& uuid);
         const std::string compose_sensor_readings_path(const std::string& uuid);
         void create_directory(const std::string& dir);
-
-        bfs::path _path;
     };
 };
 

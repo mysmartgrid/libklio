@@ -10,13 +10,31 @@
 using namespace klio;
 
 void RocksDBStore::open() {
+
+    if (bfs::exists(_path) && bfs::is_directory(_path) && _buffer.empty()) {
+
+        std::vector<klio::Sensor::uuid_t> uuids = get_sensor_uuids();
+
+        for (std::vector<klio::Sensor::uuid_t>::iterator uuid = uuids.begin(); uuid != uuids.end(); uuid++) {
+
+            const std::string uuid_str = boost::uuids::to_string(*uuid);
+            open_db(false, false, compose_sensor_properties_path(uuid_str));
+            open_db(true, false, compose_sensor_readings_path(uuid_str));
+        }
+    }
 }
 
 void RocksDBStore::close() {
+
+    for (std::map<std::string, rocksdb::DB*>::const_iterator it = _buffer.begin(); it != _buffer.end(); ++it) {
+        delete (*it).second;
+    }
+    _buffer.clear();
 }
 
 void RocksDBStore::initialize() {
 
+    bfs::remove_all(_path);
     create_directory(_path.string());
     create_directory(compose_sensors_path());
 }
@@ -46,6 +64,8 @@ void RocksDBStore::add_sensor(klio::Sensor::Ptr sensor) {
 
 void RocksDBStore::remove_sensor(const klio::Sensor::Ptr sensor) {
 
+    remove_db(compose_sensor_properties_path(sensor->uuid_string()));
+    remove_db(compose_sensor_readings_path(sensor->uuid_string()));
     bfs::remove_all(compose_sensor_path(sensor->uuid_string()));
 }
 
@@ -64,32 +84,36 @@ void RocksDBStore::put_sensor(const bool create, const Sensor::Ptr sensor) {
     put_value(db, "description", sensor->description());
     put_value(db, "unit", sensor->unit());
     put_value(db, "timezone", sensor->timezone());
-    close_db(db);
 }
 
 klio::Sensor::Ptr RocksDBStore::get_sensor(const klio::Sensor::uuid_t& uuid) {
 
-    rocksdb::DB* db = open_db(false, false,
-            compose_sensor_properties_path(to_string(uuid)));
+    const std::string uuid_str = boost::uuids::to_string(uuid);
+    const std::string db_path = compose_sensor_properties_path(uuid_str);
+    rocksdb::DB* db = _buffer[db_path];
 
-    const std::string external_id = get_value(db, "external_id");
-    const std::string name = get_value(db, "name");
-    const std::string description = get_value(db, "description");
-    const std::string unit = get_value(db, "unit");
-    const std::string timezone = get_value(db, "timezone");
-    close_db(db);
+    if (db) {
+        klio::SensorFactory::Ptr factory(new klio::SensorFactory());
+        return factory->createSensor(uuid,
+                get_value(db, "external_id"),
+                get_value(db, "name"),
+                get_value(db, "description"),
+                get_value(db, "unit"),
+                get_value(db, "timezone"));
 
-    klio::SensorFactory::Ptr factory(new klio::SensorFactory());
-    return factory->createSensor(uuid, external_id, name, description, unit, timezone);
+    } else {
+        std::ostringstream err;
+        err << "Sensor " << uuid_str << " could not be found.";
+        throw StoreException(err.str());
+    }
 }
 
 std::vector<klio::Sensor::Ptr> RocksDBStore::get_sensors_by_external_id(const std::string& external_id) {
 
     std::vector<klio::Sensor::Ptr> found;
     std::vector<klio::Sensor::Ptr> sensors = get_sensors();
-    std::vector<klio::Sensor::Ptr>::iterator sensor;
 
-    for (sensor = sensors.begin(); sensor != sensors.end(); sensor++) {
+    for (std::vector<klio::Sensor::Ptr>::iterator sensor = sensors.begin(); sensor != sensors.end(); sensor++) {
 
         if ((*sensor)->external_id() == external_id) {
             found.push_back(*sensor);
@@ -102,9 +126,8 @@ std::vector<klio::Sensor::Ptr> RocksDBStore::get_sensors_by_name(const std::stri
 
     std::vector<klio::Sensor::Ptr> found;
     std::vector<klio::Sensor::Ptr> sensors = get_sensors();
-    std::vector<klio::Sensor::Ptr>::iterator sensor;
 
-    for (sensor = sensors.begin(); sensor != sensors.end(); sensor++) {
+    for (std::vector<klio::Sensor::Ptr>::iterator sensor = sensors.begin(); sensor != sensors.end(); sensor++) {
 
         if ((*sensor)->name() == name) {
             found.push_back(*sensor);
@@ -117,9 +140,8 @@ std::vector<klio::Sensor::Ptr> RocksDBStore::get_sensors() {
 
     std::vector<klio::Sensor::Ptr> sensors;
     std::vector<klio::Sensor::uuid_t> uuids = get_sensor_uuids();
-    std::vector<klio::Sensor::uuid_t>::iterator uuid;
 
-    for (uuid = uuids.begin(); uuid != uuids.end(); uuid++) {
+    for (std::vector<klio::Sensor::uuid_t>::iterator uuid = uuids.begin(); uuid != uuids.end(); uuid++) {
 
         sensors.push_back(get_sensor(*uuid));
     }
@@ -149,7 +171,6 @@ void RocksDBStore::add_reading(klio::Sensor::Ptr sensor, timestamp_t timestamp, 
             compose_sensor_readings_path(sensor->uuid_string()));
 
     put_value(db, std::to_string(timestamp), std::to_string(value));
-    close_db(db);
 }
 
 void RocksDBStore::add_readings(klio::Sensor::Ptr sensor, const readings_t& readings) {
@@ -185,10 +206,7 @@ readings_t_Ptr RocksDBStore::get_all_readings(klio::Sensor::Ptr sensor) {
                 atof(value.c_str())
                 ));
     }
-
     delete it;
-    close_db(db);
-
     return readings;
 }
 
@@ -209,30 +227,43 @@ std::pair<timestamp_t, double> RocksDBStore::get_last_reading(klio::Sensor::Ptr 
     const char* epoch = it->key().ToString().c_str();
     const char* value = it->value().ToString().c_str();
 
-    close_db(db);
-
     klio::TimeConverter::Ptr tc(new klio::TimeConverter());
     return std::pair<timestamp_t, double>(tc->convert_from_epoch(atol(epoch)), atof(value));
 }
 
 rocksdb::DB* RocksDBStore::open_db(const bool create_if_missing, const bool error_if_exists, const std::string& db_path) {
 
-    rocksdb::DB* db;
-    rocksdb::Options options;
-    options.create_if_missing = create_if_missing;
-    options.error_if_exists = error_if_exists;
+    if (!_buffer[db_path]) {
 
-    rocksdb::Status status = rocksdb::DB::Open(options, db_path, &db);
+        rocksdb::DB* db;
+        rocksdb::Options options;
+        options.create_if_missing = create_if_missing;
+        options.error_if_exists = error_if_exists;
 
-    if (!status.ok()) {
-        throw StoreException(status.ToString());
+        rocksdb::Status status = rocksdb::DB::Open(options, db_path, &db);
+
+        if (!status.ok()) {
+            throw StoreException(status.ToString());
+        }
+        _buffer[db_path] = db;
     }
-    return db;
+    return _buffer[db_path];
 }
 
-void RocksDBStore::close_db(const rocksdb::DB* db) {
+void RocksDBStore::close_db(const std::string& db_path) {
 
-    delete db;
+    rocksdb::DB* db = _buffer[db_path];
+
+    if (db) {
+        _buffer.erase(db_path);
+        delete db;
+    }
+}
+
+void RocksDBStore::remove_db(const std::string& db_path) {
+
+    close_db(db_path);
+    bfs::remove_all(db_path);
 }
 
 void RocksDBStore::put_value(rocksdb::DB* db, const std::string& key, const std::string& value) {

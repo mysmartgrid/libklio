@@ -83,7 +83,7 @@ BOOST_AUTO_TEST_CASE(check_add_rocksdb_sensor) {
         store->add_sensor(sensor);
 
         klio::Sensor::Ptr retrieved = store->get_sensor(sensor->uuid());
-
+        
         BOOST_CHECK_EQUAL(sensor->uuid(), retrieved->uuid());
         BOOST_CHECK_EQUAL(sensor->name(), retrieved->name());
         BOOST_CHECK_EQUAL(sensor->external_id(), retrieved->external_id());
@@ -92,7 +92,7 @@ BOOST_AUTO_TEST_CASE(check_add_rocksdb_sensor) {
         BOOST_CHECK_EQUAL(sensor->timezone(), retrieved->timezone());
 
         store->dispose();
-
+        
     } catch (std::exception const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;

@@ -22,6 +22,7 @@
 
 #include <vector>
 #include <rocksdb/db.h>
+#include <rocksdb/cache.h>
 #include <boost/filesystem.hpp>
 #include <libklio/common.hpp>
 #include <libklio/store.hpp>
@@ -35,8 +36,14 @@ namespace klio {
     public:
         typedef std::tr1::shared_ptr<RocksDBStore> Ptr;
 
-        RocksDBStore(const bfs::path& path) :
-        _path(path) {
+        RocksDBStore(const bfs::path& path,
+                const std::map<std::string, std::string>& db_options,
+                const std::map<std::string, std::string>& read_options,
+                const std::map<std::string, std::string>& write_options) :
+        _path(path),
+        _db_options(db_options),
+        _read_options(read_options),
+        _write_options(write_options) {
         };
 
         virtual ~RocksDBStore() {
@@ -68,6 +75,9 @@ namespace klio {
         RocksDBStore(const RocksDBStore& original);
         RocksDBStore& operator =(const RocksDBStore& rhs);
         bfs::path _path;
+        std::map<std::string, std::string> _db_options;
+        std::map<std::string, std::string> _read_options;
+        std::map<std::string, std::string> _write_options;
         std::map<std::string, rocksdb::DB*> _buffer;
 
         rocksdb::DB* open_db(const bool create_if_missing, const bool error_if_exists, const std::string& db_path);

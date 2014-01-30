@@ -45,7 +45,8 @@ BOOST_AUTO_TEST_CASE(check_create_rocksdb_storage) {
         store->open();
         store->initialize();
 
-        klio::Store::Ptr loaded(store_factory->open_rocksdb_store(db));
+        klio::Store::Ptr loaded(store_factory->create_rocksdb_store(db));
+        loaded->open();
         std::cout << "Opened database: " << loaded->str() << std::endl;
 
         store->dispose();

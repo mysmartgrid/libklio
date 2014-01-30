@@ -26,14 +26,19 @@ SQLite3Store::Ptr StoreFactory::open_sqlite3_store(const bfs::path& path) {
 
 RocksDBStore::Ptr StoreFactory::create_rocksdb_store(const bfs::path& path) {
 
-    return RocksDBStore::Ptr(new RocksDBStore(path));
+    std::map<std::string, std::string> db_options;
+    std::map<std::string, std::string> read_options;
+    std::map<std::string, std::string> write_options;
+    
+    return create_rocksdb_store(path, db_options, read_options, write_options);
 }
 
-RocksDBStore::Ptr StoreFactory::open_rocksdb_store(const bfs::path& path) {
-
-    RocksDBStore::Ptr store = create_rocksdb_store(path);
-    store->open();
-    return store;
+RocksDBStore::Ptr StoreFactory::create_rocksdb_store(const bfs::path& path,
+                const std::map<std::string, std::string>& db_options,
+                const std::map<std::string, std::string>& read_options,
+                const std::map<std::string, std::string>& write_options) {
+    
+    return RocksDBStore::Ptr(new RocksDBStore(path, db_options, read_options, write_options));
 }
 
 MSGStore::Ptr StoreFactory::create_msg_store() {

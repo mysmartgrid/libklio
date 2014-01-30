@@ -22,6 +22,7 @@
 #include <map>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/test/unit_test.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <libklio/common.hpp>
 #include <libklio/store.hpp>
 #include <libklio/store-factory.hpp>
@@ -129,7 +130,7 @@ BOOST_AUTO_TEST_CASE(check_retrieve_last_reading) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_bulk_insert) {
+BOOST_AUTO_TEST_CASE(check_sqlite3_bulk_insert) {
 
     try {
         std::cout << std::endl << "*** bulk-inserting some readings." << std::endl;
@@ -150,7 +151,7 @@ BOOST_AUTO_TEST_CASE(check_bulk_insert) {
             // insert a reading.
             klio::TimeConverter::Ptr tc(new klio::TimeConverter());
             klio::readings_t readings;
-            size_t num_readings = 10;
+            size_t num_readings = 100;
             for (size_t i = 0; i < num_readings; i++) {
                 klio::timestamp_t timestamp = tc->get_timestamp() - i;
                 double reading = 23;
@@ -158,10 +159,92 @@ BOOST_AUTO_TEST_CASE(check_bulk_insert) {
                 readings.insert(foo);
             }
             std::cout << "Inserting " << readings.size() << " readings." << std::endl;
+            boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+
             store->add_readings(sensor, readings);
 
-            // now, retrieve it and check.
+            boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+            boost::posix_time::time_duration diff = t2 - t1;
+            std::cout << "Bulk insert duration for SQLite: " << diff.total_milliseconds() << " ms" << std::endl;
+
+            std::cout << "Loading " << readings.size() << " readings." << std::endl;
+            t1 = boost::posix_time::microsec_clock::local_time();
+
             klio::readings_t_Ptr loaded_readings = store->get_all_readings(sensor);
+
+            t2 = boost::posix_time::microsec_clock::local_time();
+            diff = t2 - t1;
+            std::cout << "Bulk load duration for SQLite: " << diff.total_milliseconds() << " ms" << std::endl;
+            std::cout << "Loaded " << loaded_readings->size() << " readings." << std::endl;
+
+            // cleanup
+            store->remove_sensor(sensor);
+
+            klio::readings_cit_t it;
+            size_t ret_size = 0;
+            for (it = loaded_readings->begin(); it != loaded_readings->end(); ++it) {
+                klio::timestamp_t ts1 = (*it).first;
+                double val1 = (*it).second;
+                std::cout << "Got timestamp " << ts1 << " -> value " << val1 << std::endl;
+                ret_size++;
+            }
+            BOOST_CHECK_EQUAL(num_readings, ret_size);
+
+        } catch (klio::StoreException const& ex) {
+            std::cout << "Caught invalid exception: " << ex.what() << std::endl;
+            BOOST_FAIL("Unexpected store exception occurred during sensor test");
+            //store->remove_sensor(sensor);
+        }
+    } catch (std::exception const& ex) {
+        BOOST_FAIL("Unexpected exception occurred during sensor test");
+    }
+}
+
+BOOST_AUTO_TEST_CASE(check_roksdb_bulk_insert) {
+
+    try {
+        std::cout << std::endl << "*** bulk-inserting some readings." << std::endl;
+        klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+        klio::Sensor::Ptr sensor(sensor_factory->createSensor("sensor", "sensor", "Watt", "Europe/Berlin"));
+        std::cout << "Created " << sensor->str() << std::endl;
+
+        klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
+        bfs::path db(TEST_DB_PATH);
+        klio::Store::Ptr store(store_factory->create_rocksdb_store(db));
+        std::cout << "Created: " << store->str() << std::endl;
+
+        try {
+            store->initialize();
+            store->add_sensor(sensor);
+            std::cout << "added to store: " << sensor->str() << std::endl;
+
+            // insert a reading.
+            klio::TimeConverter::Ptr tc(new klio::TimeConverter());
+            klio::readings_t readings;
+            size_t num_readings = 100;
+            for (size_t i = 0; i < num_readings; i++) {
+                klio::timestamp_t timestamp = tc->get_timestamp() - i;
+                double reading = 23;
+                klio::reading_t foo(timestamp, reading);
+                readings.insert(foo);
+            }
+            std::cout << "Inserting " << readings.size() << " readings." << std::endl;
+            boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+
+            store->add_readings(sensor, readings);
+
+            boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+            boost::posix_time::time_duration diff = t2 - t1;
+            std::cout << "Bulk insert duration for RocksDB: " << diff.total_milliseconds() << " ms" << std::endl;
+
+            std::cout << "Loading " << readings.size() << " readings." << std::endl;
+            t1 = boost::posix_time::microsec_clock::local_time();
+
+            klio::readings_t_Ptr loaded_readings = store->get_all_readings(sensor);
+
+            t2 = boost::posix_time::microsec_clock::local_time();
+            diff = t2 - t1;
+            std::cout << "Bulk load duration for RocksDB: " << diff.total_milliseconds() << " ms" << std::endl;
             std::cout << "Loaded " << loaded_readings->size() << " readings." << std::endl;
 
             // cleanup

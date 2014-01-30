@@ -239,6 +239,8 @@ rocksdb::DB* RocksDBStore::open_db(const bool create_if_missing, const bool erro
         rocksdb::Options options;
         options.create_if_missing = create_if_missing;
         options.error_if_exists = error_if_exists;
+        options.paranoid_checks = _db_options["paranoid_checks"] == "true";
+        options.disableDataSync = _db_options["disableDataSync"] == "true";
 
         rocksdb::Status status = rocksdb::DB::Open(options, db_path, &db);
 
@@ -268,7 +270,11 @@ void RocksDBStore::remove_db(const std::string& db_path) {
 
 void RocksDBStore::put_value(rocksdb::DB* db, const std::string& key, const std::string& value) {
 
-    rocksdb::Status status = db->Put(rocksdb::WriteOptions(), key, value);
+    rocksdb::WriteOptions options;
+    options.sync = _write_options["sync"] == "true";
+    options.disableWAL = _write_options["disableWAL"] == "true";
+
+    rocksdb::Status status = db->Put(options, key, value);
 
     if (!status.ok()) {
         throw StoreException(status.ToString());
@@ -277,8 +283,10 @@ void RocksDBStore::put_value(rocksdb::DB* db, const std::string& key, const std:
 
 std::string RocksDBStore::get_value(rocksdb::DB* db, const std::string& key) {
 
+    rocksdb::ReadOptions options;
+
     std::string value;
-    rocksdb::Status status = db->Get(rocksdb::ReadOptions(), key, &value);
+    rocksdb::Status status = db->Get(options, key, &value);
 
     if (status.ok()) {
         return value;

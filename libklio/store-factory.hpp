@@ -47,8 +47,13 @@ namespace klio {
 
         SQLite3Store::Ptr create_sqlite3_store(const bfs::path& path);
         SQLite3Store::Ptr open_sqlite3_store(const bfs::path& path);
+
         RocksDBStore::Ptr create_rocksdb_store(const bfs::path& path);
-        RocksDBStore::Ptr open_rocksdb_store(const bfs::path& path);
+        RocksDBStore::Ptr create_rocksdb_store(const bfs::path& path,
+                const std::map<std::string, std::string>& db_options,
+                const std::map<std::string, std::string>& read_options,
+                const std::map<std::string, std::string>& write_options);
+
         MSGStore::Ptr create_msg_store();
         MSGStore::Ptr create_msg_store(const std::string& id, const std::string& key);
         MSGStore::Ptr create_msg_store(const std::string& url, const std::string& id, const std::string& key, const std::string& description, const std::string& type);

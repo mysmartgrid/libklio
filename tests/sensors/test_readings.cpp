@@ -57,8 +57,7 @@ BOOST_AUTO_TEST_CASE(check_add_retrieve_reading) {
             // now, retrieve it and check.
             klio::readings_t_Ptr readings = store->get_all_readings(sensor);
 
-            // cleanup
-            store->remove_sensor(sensor);
+            BOOST_CHECK_EQUAL(1, readings->size());
 
             std::map<klio::timestamp_t, double>::iterator it;
             for (it = readings->begin(); it != readings->end(); it++) {
@@ -68,6 +67,14 @@ BOOST_AUTO_TEST_CASE(check_add_retrieve_reading) {
                 BOOST_CHECK_EQUAL(timestamp, ts1);
                 BOOST_CHECK_EQUAL(reading, val1);
             }
+
+            klio::reading_t retrieved = store->get_reading(sensor, timestamp);
+
+            BOOST_CHECK_EQUAL(timestamp, retrieved.first);
+            BOOST_CHECK_EQUAL(reading, retrieved.second);
+
+            // cleanup
+            store->remove_sensor(sensor);
 
         } catch (klio::StoreException const& ex) {
             //store->remove_sensor(sensor);
@@ -634,8 +641,8 @@ BOOST_AUTO_TEST_CASE(check_add_celsius_reading_msg) {
 
         std::cout << "Attempting to create MSG store " << url << std::endl;
         klio::Store::Ptr store(factory->create_msg_store(url,
-                "22c180742bcf890bdb7cc1281038adcb",
-                "22c180742bcf890bdb7cc1281038adcb",
+                "21c180742bcf890bdb7cc1281038adcb",
+                "21c180742bcf890bdb7cc1281038adcb",
                 "libklio test",
                 "libklio"));
 
@@ -650,7 +657,7 @@ BOOST_AUTO_TEST_CASE(check_add_celsius_reading_msg) {
             klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
             do {
                 klio::Sensor::Ptr sensor(sensor_factory->createSensor(
-                        "22c18074-2bcf-890b-db7c-c1281038adcb",
+                        "21c18074-2bcf-890b-db7c-c1281038adcb",
                         "Sensor1",
                         "Test",
                         "description",

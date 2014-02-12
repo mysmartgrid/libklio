@@ -363,7 +363,7 @@ static int get_last_reading_callback(void *pair, int argc, char **argv, char **a
     return 0;
 }
 
-std::pair<timestamp_t, double> SQLite3Store::get_last_reading(klio::Sensor::Ptr sensor) {
+reading_t SQLite3Store::get_last_reading(klio::Sensor::Ptr sensor) {
 
     LOG("Retrieving last readings of sensor " << sensor->str());
 

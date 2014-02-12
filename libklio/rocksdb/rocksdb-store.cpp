@@ -216,7 +216,7 @@ unsigned long int RocksDBStore::get_num_readings(klio::Sensor::Ptr sensor) {
     return get_all_readings(sensor)->size();
 }
 
-std::pair<timestamp_t, double> RocksDBStore::get_last_reading(klio::Sensor::Ptr sensor) {
+reading_t RocksDBStore::get_last_reading(klio::Sensor::Ptr sensor) {
 
     rocksdb::DB* db = open_db(true, false,
             compose_sensor_readings_path(sensor->uuid_string()));

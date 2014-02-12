@@ -289,7 +289,7 @@ unsigned long int MSGStore::get_num_readings(const Sensor::Ptr sensor) {
     }
 }
 
-std::pair<timestamp_t, double> MSGStore::get_last_reading(const Sensor::Ptr sensor) {
+reading_t MSGStore::get_last_reading(const Sensor::Ptr sensor) {
 
     json_object *jreadings = NULL;
 

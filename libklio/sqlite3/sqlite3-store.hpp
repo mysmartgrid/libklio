@@ -63,7 +63,7 @@ namespace klio {
         virtual void update_readings(Sensor::Ptr sensor, const readings_t& readings);
         virtual readings_t_Ptr get_all_readings(Sensor::Ptr sensor);
         virtual unsigned long int get_num_readings(Sensor::Ptr sensor);
-        virtual std::pair<timestamp_t, double> get_last_reading(Sensor::Ptr sensor);
+        virtual reading_t get_last_reading(Sensor::Ptr sensor);
 
     private:
         SQLite3Store(const SQLite3Store& original);

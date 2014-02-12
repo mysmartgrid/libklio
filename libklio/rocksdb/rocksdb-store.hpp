@@ -22,7 +22,6 @@
 
 #include <vector>
 #include <rocksdb/db.h>
-#include <rocksdb/cache.h>
 #include <boost/filesystem.hpp>
 #include <libklio/common.hpp>
 #include <libklio/store.hpp>

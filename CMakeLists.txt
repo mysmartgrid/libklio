@@ -85,11 +85,12 @@ FIND_PACKAGE(Boost 1.46.1
 
 # RocksDB
 include(FindRocksDB)
-if( NOT ROCKSDB_FOUND)
-  message(FATAL_ERROR "RocksDB is required.
-Install RocksDB or call cmake -DROCKSDB_HOME=path_to_rocksdb_install")
-endif( NOT ROCKSDB_FOUND)
-include_directories(${ROCKSDB_INCLUDE_DIR})
+if(ROCKSDB_FOUND)
+  include_directories(${ROCKSDB_INCLUDE_DIR})
+else(ROCKSDB_FOUND)
+  set(ROCKSDB_INCLUDE_DIR "")
+  message(STATUS "RocksDB support is disabled because the library is not found. Install RocksDB or call cmake -DROCKSDB_HOME=path_to_rocksdb_install in order to enable it.")
+endif(ROCKSDB_FOUND)
 
 # libjson
 include(FindJson)
@@ -99,7 +100,7 @@ Install json or call cmake -DJSON_HOME=path_to_json_install")
 endif( NOT JSON_FOUND)
 include_directories(${JSON_INCLUDE_DIR})
 
-# check for curl
+# Curl
 IF(WIN32)
   add_definitions(-DCURL_STATICLIB)
   include(FindCURL_WIN32)
@@ -108,6 +109,7 @@ else(WIN32)
   include(FindCurl)
   include(FindGnutls)
 endif(WIN32)
+
 find_package(OpenSSL)
 
 include_directories(${CMAKE_BINARY_DIR})

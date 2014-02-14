@@ -23,8 +23,9 @@
 #include <vector>
 #include <rocksdb/db.h>
 #include <boost/filesystem.hpp>
-#include <libklio/common.hpp>
 #include <libklio/store.hpp>
+
+#ifdef ENABLE_ROCKSDB
 
 
 namespace bfs = boost::filesystem;
@@ -97,5 +98,7 @@ namespace klio {
         void create_directory(const std::string& dir);
     };
 };
+
+#endif /* ENABLE_ROCKSDB */
 
 #endif /* LIBKLIO_ROCKSDB_ROCKSDBSTORE_HPP */

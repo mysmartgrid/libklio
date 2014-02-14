@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include <sstream>
 #include <cstdio>
@@ -6,6 +7,7 @@
 #include <libklio/sensor-factory.hpp>
 #include "rocksdb-store.hpp"
 
+#ifdef ENABLE_ROCKSDB
 
 using namespace klio;
 
@@ -342,3 +344,5 @@ void RocksDBStore::create_directory(const std::string& dir) {
         throw StoreException(str.str());
     }
 }
+
+#endif /* ENABLE_ROCKSDB */

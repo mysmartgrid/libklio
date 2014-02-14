@@ -18,19 +18,16 @@
  *
  */
 
-#include <libklio/common.hpp>
 #include <sstream>
-#include <libklio/store.hpp>
-#include <libklio/store-factory.hpp>
-#include <libklio/sensor.hpp>
-#include <libklio/sensor-factory.hpp>
-#include <libklio/exporter.hpp>
-#include <libklio/octave-exporter.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/program_options.hpp>
 #include <boost/program_options/positional_options.hpp>
 #include <boost/filesystem.hpp>
+#include <libklio/store-factory.hpp>
+#include <libklio/sensor-factory.hpp>
+#include <libklio/octave-exporter.hpp>
+
 namespace bfs = boost::filesystem; 
 namespace po = boost::program_options;
 

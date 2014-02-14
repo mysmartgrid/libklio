@@ -28,4 +28,6 @@
 
 #define INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}"
 
+#cmakedefine ENABLE_ROCKSDB 1
+
 #endif /* LIBKLIO_CONFIG_H_IN */

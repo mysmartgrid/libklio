@@ -2,15 +2,11 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/algorithm/string/erase.hpp>
-#include <libklio/sqlite3/sqlite3-store.hpp>
-#include <libklio/rocksdb/rocksdb-store.hpp>
-#include <libklio/msg/msg-store.hpp>
 #include "store-factory.hpp"
 
 
 using namespace boost::algorithm;
 using namespace klio;
-
 
 SQLite3Store::Ptr StoreFactory::create_sqlite3_store(const bfs::path& path) {
 
@@ -24,26 +20,11 @@ SQLite3Store::Ptr StoreFactory::open_sqlite3_store(const bfs::path& path) {
     return store;
 }
 
-RocksDBStore::Ptr StoreFactory::create_rocksdb_store(const bfs::path& path) {
-
-    std::map<std::string, std::string> db_options;
-    std::map<std::string, std::string> read_options;
-    std::map<std::string, std::string> write_options;
-    
-    return create_rocksdb_store(path, db_options, read_options, write_options);
-}
-
-RocksDBStore::Ptr StoreFactory::create_rocksdb_store(const bfs::path& path,
-                const std::map<std::string, std::string>& db_options,
-                const std::map<std::string, std::string>& read_options,
-                const std::map<std::string, std::string>& write_options) {
-    
-    return RocksDBStore::Ptr(new RocksDBStore(path, db_options, read_options, write_options));
-}
-
 MSGStore::Ptr StoreFactory::create_msg_store() {
 
-    return create_msg_store(to_string(_gen()), to_string(_gen()));
+    return create_msg_store(
+            boost::uuids::to_string(_gen()),
+            boost::uuids::to_string(_gen()));
 }
 
 MSGStore::Ptr StoreFactory::create_msg_store(const std::string& id, const std::string& key) {
@@ -64,3 +45,24 @@ MSGStore::Ptr StoreFactory::create_msg_store(
             description,
             type));
 }
+
+#ifdef ENABLE_ROCKSDB
+
+RocksDBStore::Ptr StoreFactory::create_rocksdb_store(const bfs::path& path) {
+
+    std::map<std::string, std::string> db_options;
+    std::map<std::string, std::string> read_options;
+    std::map<std::string, std::string> write_options;
+
+    return create_rocksdb_store(path, db_options, read_options, write_options);
+}
+
+RocksDBStore::Ptr StoreFactory::create_rocksdb_store(const bfs::path& path,
+        const std::map<std::string, std::string>& db_options,
+        const std::map<std::string, std::string>& read_options,
+        const std::map<std::string, std::string>& write_options) {
+
+   return RocksDBStore::Ptr(new RocksDBStore(path, db_options, read_options, write_options));
+}
+
+#endif /* ENABLE_ROCKSDB */

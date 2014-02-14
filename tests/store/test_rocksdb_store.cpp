@@ -17,12 +17,11 @@
  * along with libklio. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef ENABLE_ROCKSDB
+
 #include <iostream>
 #include <boost/test/unit_test.hpp>
 #include <boost/uuid/uuid_io.hpp>
-#include <libklio/common.hpp>
-#include <libklio/store.hpp>
-#include <libklio/rocksdb/rocksdb-store.hpp>
 #include <libklio/store-factory.hpp>
 #include <libklio/sensor-factory.hpp>
 #include <testconfig.h>
@@ -530,3 +529,5 @@ BOOST_AUTO_TEST_CASE(check_rocksdb_num_readings) {
 }
 
 //BOOST_AUTO_TEST_SUITE_END()
+
+#endif /* ENABLE_ROCKSDB */

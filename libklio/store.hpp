@@ -62,6 +62,7 @@ namespace klio {
         virtual reading_t get_last_reading(klio::Sensor::Ptr sensor) = 0;
         virtual reading_t get_reading(klio::Sensor::Ptr sensor, timestamp_t timestamp);
         virtual unsigned long int get_num_readings(klio::Sensor::Ptr sensor) = 0;
+        virtual void sync(klio::Store::Ptr store);
         virtual void sync_readings(klio::Sensor::Ptr sensor, klio::Store::Ptr store);
 
     private:

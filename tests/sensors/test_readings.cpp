@@ -23,10 +23,7 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <libklio/common.hpp>
-#include <libklio/store.hpp>
 #include <libklio/store-factory.hpp>
-#include <libklio/sensor.hpp>
 #include <libklio/sensor-factory.hpp>
 #include <testconfig.h>
 
@@ -207,6 +204,8 @@ BOOST_AUTO_TEST_CASE(check_sqlite3_bulk_insert) {
     }
 }
 
+#ifdef ENABLE_ROCKSDB
+
 BOOST_AUTO_TEST_CASE(check_roksdb_bulk_insert) {
 
     try {
@@ -276,6 +275,8 @@ BOOST_AUTO_TEST_CASE(check_roksdb_bulk_insert) {
         BOOST_FAIL("Unexpected exception occurred during sensor test");
     }
 }
+
+#endif /* ENABLE_ROCKSDB */
 
 BOOST_AUTO_TEST_CASE(check_bulk_insert_duplicates) {
 
@@ -489,12 +490,10 @@ BOOST_AUTO_TEST_CASE(check_sync_readings) {
             BOOST_CHECK_EQUAL(0, sync_readings.size());
 
             //Sensor 3 does not exist in store B
-            try {
-                storeB->sync_readings(sensor3, storeA);
-
-                BOOST_FAIL("Synchronization involving non existing sensors is not allowed.");
-            } catch (klio::StoreException const& ex) {
-            }
+            storeB->sync_readings(sensor3, storeA);
+            
+            sync_readings = *storeB->get_all_readings(sensor3);
+            BOOST_CHECK_EQUAL(readings.size(), sync_readings.size());
 
             // cleanup
             storeA->dispose();

@@ -155,7 +155,7 @@ klio::Sensor::Ptr SQLite3Store::get_sensor(const klio::Sensor::uuid_t& uuid) {
     LOG("Attempting to load sensor " << uuid);
 
     sqlite3_stmt* stmt = prepare(select_sensor_stmt);
-    sqlite3_bind_text(stmt, 1, to_string(uuid).c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 1, boost::uuids::to_string(uuid).c_str(), -1, SQLITE_TRANSIENT);
 
     execute(stmt, SQLITE_ROW);
     klio::Sensor::Ptr sensor = parse_sensor(stmt);

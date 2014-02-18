@@ -17,7 +17,9 @@ include_directories(${CMAKE_SOURCE_DIR}
                     ${SQLITE3_INCLUDE_DIR}
                     ${CURL_INCLUDE_DIR}
                     ${OPENSSL_INCLUDE_DIR}
-                    ${Boost_INCLUDE_DIRS})
+)
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+
 file(GLOB klio_src *.cpp *.hpp)
 file(GLOB klio_sqlite3_src sqlite3/*.cpp sqlite3/*.hpp)
 file(GLOB klio_msg_src msg/*.cpp msg/*.hpp)

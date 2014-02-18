@@ -1,7 +1,9 @@
+# -*- mode: cmake; -*-
 
-include_directories(${CMAKE_SOURCE_DIR}
-                    ${Boost_INCLUDE_DIRS})
-                  #file(GLOB all_timetest_src *.cpp *.hpp)
+include_directories(${CMAKE_SOURCE_DIR})
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+
+#file(GLOB all_timetest_src *.cpp *.hpp)
 set(timetest_src 
   test_time.cpp
   main.cpp

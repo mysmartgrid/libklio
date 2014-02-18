@@ -72,7 +72,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Werror")
 
 # always set these flags
-set(CMAKE_CXX_FLAGS "-Wall -std=gnu++11")
+set(CMAKE_CXX_FLAGS "-Wall")
 
 FIND_PACKAGE(Sqlite)
 # We depend on boost >= 1.46.1 because of the updated filesystem
@@ -87,13 +87,16 @@ FIND_PACKAGE(Boost 1.46.1
   COMPONENTS test_exec_monitor program_options filesystem system date_time)
 
 # RocksDB
-include(FindRocksDB)
-if(ROCKSDB_FOUND)
-  include_directories(${ROCKSDB_INCLUDE_DIR})
-else(ROCKSDB_FOUND)
-  set(ROCKSDB_INCLUDE_DIR "")
-  message(STATUS "RocksDB support is disabled because the library is not found. Install RocksDB or call cmake -DROCKSDB_HOME=path_to_rocksdb_install in order to enable it.")
-endif(ROCKSDB_FOUND)
+# check if the compiler version supports c++ 2011
+if( ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER "4.7")  
+  include(FindRocksDB)
+  if(ROCKSDB_FOUND)
+    include_directories(${ROCKSDB_INCLUDE_DIR})
+  else(ROCKSDB_FOUND)
+    set(ROCKSDB_INCLUDE_DIR "")
+    message(STATUS "RocksDB support is disabled because the library is not found. Install RocksDB or call cmake -DROCKSDB_HOME=path_to_rocksdb_install in order to enable it.")
+  endif(ROCKSDB_FOUND)
+endif()
 
 # libjson
 include(FindJson)

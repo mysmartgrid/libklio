@@ -18,7 +18,10 @@ install(FILES ${klio_msg_hdrs} DESTINATION include/libklio/msg)
 
 if(ROCKSDB_FOUND)
     file(GLOB klio_rocksdb_hdrs rocksdb/*.h rocksdb/*.hpp)
+    file(GLOB klio_rocksdb_src rocksdb/*.cpp rocksdb/*.hpp)
     install(FILES ${klio_rocksdb_hdrs} DESTINATION include/libklio/rocksdb)
+    set_source_files_properties(${klio_rocksdb_src} COMPILE_FLAGS "-std=gnu++11")
+    set_source_files_properties(store-factory.cpp COMPILE_FLAGS "-std=gnu++11")
 endif(ROCKSDB_FOUND)
 
 file(GLOB klio_algorithm_hdrs algorithm/*.h algorithm/*.hpp)
@@ -35,10 +38,6 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 file(GLOB klio_src *.cpp *.hpp)
 file(GLOB klio_sqlite3_src sqlite3/*.cpp sqlite3/*.hpp)
 file(GLOB klio_msg_src msg/*.cpp msg/*.hpp)
-
-if(ROCKSDB_FOUND)
-    file(GLOB klio_rocksdb_src rocksdb/*.cpp rocksdb/*.hpp)
-endif(ROCKSDB_FOUND)
 
 file(GLOB klio_algorithm_src algorithm/*.cpp algorithm/*.hpp)
 

@@ -17,6 +17,16 @@ add_executable(klio-sensor ${klio-sensor_src})
 add_executable(klio-store ${klio-store_src})
 add_executable(klio-export ${klio-export_src})
 
+
+if(ROCKSDB_FOUND)
+  set_source_files_properties(${klio-sensor_src} COMPILE_FLAGS "-std=gnu++11")
+  set_source_files_properties(${klio-store_src} COMPILE_FLAGS "-std=gnu++11")
+  set_source_files_properties(${klio-export_src} COMPILE_FLAGS "-std=gnu++11")
+  target_link_libraries(klio-sensor klio ${ROCKSDB_LIBRARY} snappy)
+  target_link_libraries(klio-store klio ${ROCKSDB_LIBRARY} snappy)
+  target_link_libraries(klio-export klio ${ROCKSDB_LIBRARY} snappy)
+endif(ROCKSDB_FOUND)
+
 #sensor_executable(foobar sourcetest.cpp)
 # Link the executable
 target_link_libraries(klio-sensor klio ${Boost_LIBRARIES})

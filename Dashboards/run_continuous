@@ -20,7 +20,7 @@ fi
 allBranches=`git branch -a | grep remotes | sed -e 's%remotes/origin/%%' | grep '.*[-_]dev$' `
 for branch in ${allBranches}
 do
-  ${CTEST} -V -VV -S ${TEST_SCRIPT},COMPILER=gcc,GIT_BRANCH=${branch}
+  ${CTEST} -V -VV -S ${TEST_SCRIPT},COMPILER=gcc,GIT_BRANCH=${branch},BOOST_VERSION=1.53
 
   for toolchain in `find ${HOME}/x-tools/ -name Toolchain-RaspberryPi.cmake`
   do

@@ -1,4 +1,5 @@
 
+#include <libklio/sensor-factory.hpp>
 #include "store.hpp"
 
 
@@ -32,29 +33,39 @@ void Store::sync(klio::Store::Ptr store) {
 
 void Store::sync_readings(klio::Sensor::Ptr sensor, klio::Store::Ptr store) {
 
+    klio::readings_t_Ptr readings = store->get_all_readings(sensor);
     std::vector<klio::Sensor::Ptr> sensors = get_sensors_by_external_id(sensor->external_id());
+    klio::Sensor::Ptr local_sensor;
 
     if (sensors.empty()) {
 
         add_sensor(sensor);
+        local_sensor = sensor;
 
     } else {
+        klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
 
-        for (std::vector<klio::Sensor::Ptr>::const_iterator it = sensors.begin(); it != sensors.end(); ++it) {
+        //Exactly one sensor is processed
+        for (std::vector<klio::Sensor::Ptr>::const_iterator found = sensors.begin(); found != sensors.end(); ++found) {
 
-            klio::Sensor::Ptr found = (*it);
-            
-            if (found->name() != sensor->name() ||
-                    found->description() != sensor->description() ||
-                    found->unit() != sensor->unit() ||
-                    found->timezone() != sensor->timezone()) {
+            local_sensor = sensor_factory->createSensor(
+                    (*found)->uuid(),
+                    sensor->external_id(),
+                    sensor->name(),
+                    sensor->description(),
+                    sensor->unit(),
+                    sensor->timezone());
 
-                update_sensor(sensor);
+            //Update sensor if any of its properties changed
+            if ((*found)->name() != sensor->name() ||
+                    (*found)->description() != sensor->description() ||
+                    (*found)->unit() != sensor->unit() ||
+                    (*found)->timezone() != sensor->timezone()) {
+
+                update_sensor(local_sensor);
             }
         }
     }
 
-    klio::readings_t_Ptr readings = store->get_all_readings(sensor);
-
-    update_readings(sensor, *readings);
+    update_readings(local_sensor, *readings);
 }

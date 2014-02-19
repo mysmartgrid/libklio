@@ -31,7 +31,7 @@
 
 klio::Store::Ptr generate_store() {
   klio::StoreFactory::Ptr factory(new klio::StoreFactory()); 
-  bfs::path db(TEST_DB_FILE);
+  bfs::path db(TEST_DB1_FILE);
   std::cout << "Attempting to create " << db << std::endl;
   klio::Store::Ptr store(factory->open_sqlite3_store(db));
   std::cout << "Created: " << store->str() << std::endl;

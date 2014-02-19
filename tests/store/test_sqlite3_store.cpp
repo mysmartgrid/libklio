@@ -50,7 +50,7 @@ BOOST_AUTO_TEST_CASE(check_create_sqlite3_storage) {
 
     std::cout << "Testing storage creation for SQLite3" << std::endl;
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
-    bfs::path db(TEST_DB_FILE);
+    bfs::path db(TEST_DB1_FILE);
     klio::Store::Ptr store;
 
     try {
@@ -78,7 +78,7 @@ BOOST_AUTO_TEST_CASE(check_add_sqlite3_sensor) {
     std::cout << "Testing sensor addition for SQLite3" << std::endl;
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-    bfs::path db(TEST_DB_FILE);
+    bfs::path db(TEST_DB1_FILE);
     klio::Store::Ptr store;
 
     try {
@@ -122,7 +122,7 @@ BOOST_AUTO_TEST_CASE(check_update_sqlite3_sensor) {
     std::cout << "Testing sensor update for SQLite3" << std::endl;
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-    bfs::path db(TEST_DB_FILE);
+    bfs::path db(TEST_DB1_FILE);
     klio::Store::Ptr store;
 
     try {
@@ -172,7 +172,7 @@ BOOST_AUTO_TEST_CASE(check_remove_sqlite3_sensor) {
     std::cout << "Testing sensor removal for SQLite3" << std::endl;
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-    bfs::path db(TEST_DB_FILE);
+    bfs::path db(TEST_DB1_FILE);
     klio::Store::Ptr store;
 
     try {
@@ -217,7 +217,7 @@ BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensor) {
     std::cout << "Testing sensor query by uuid for SQLite3" << std::endl;
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-    bfs::path db(TEST_DB_FILE);
+    bfs::path db(TEST_DB1_FILE);
     klio::Store::Ptr store;
 
     try {
@@ -271,7 +271,7 @@ BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensor_by_name) {
     std::cout << "Testing sensor query by name for SQLite3" << std::endl;
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-    bfs::path db(TEST_DB_FILE);
+    bfs::path db(TEST_DB1_FILE);
     klio::Store::Ptr store;
 
     try {
@@ -342,7 +342,7 @@ BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensors_by_external_id) {
     std::cout << "Testing sensor query by external id for SQLite3" << std::endl;
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-    bfs::path db(TEST_DB_FILE);
+    bfs::path db(TEST_DB1_FILE);
     klio::Store::Ptr store;
 
     try {
@@ -404,7 +404,7 @@ BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensor_uuids) {
     std::cout << "Testing sensor uuids query for SQLite3" << std::endl;
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-    bfs::path db(TEST_DB_FILE);
+    bfs::path db(TEST_DB1_FILE);
     klio::Store::Ptr store;
 
     try {

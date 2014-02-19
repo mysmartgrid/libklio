@@ -8,7 +8,9 @@ include_directories(${CMAKE_SOURCE_DIR}
                     ${CMAKE_CURRENT_SOURCE_DIR}
                     ${SQLITE3_INCLUDE_DIR}
                     ${CURL_INCLUDE_DIR}
-                    ${Boost_INCLUDE_DIRS})
+)
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+
 add_executable(klio-sensor ${klio-sensor_src})
 add_executable(klio-store ${klio-store_src})
 add_executable(klio-export ${klio-export_src})

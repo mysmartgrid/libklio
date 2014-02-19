@@ -170,6 +170,9 @@ Sensor::Ptr MSGStore::get_sensor(const Sensor::uuid_t& uuid) {
     }
 }
 
+/**
+ * @deprecated
+ */
 Sensor::Ptr MSGStore::get_sensor_by_external_id(const std::string& external_id) {
 
     for (std::map<Sensor::uuid_t, Sensor::Ptr>::const_iterator it = _sensors_buffer.begin(); it != _sensors_buffer.end(); ++it) {
@@ -183,6 +186,21 @@ Sensor::Ptr MSGStore::get_sensor_by_external_id(const std::string& external_id) 
     std::ostringstream err;
     err << "Sensor " << external_id << " could not be found.";
     throw StoreException(err.str());
+}
+
+std::vector<Sensor::Ptr> MSGStore::get_sensors_by_external_id(const std::string& external_id) {
+
+    std::vector<Sensor::Ptr> sensors;
+
+    for (std::map<Sensor::uuid_t, Sensor::Ptr>::const_iterator it = _sensors_buffer.begin(); it != _sensors_buffer.end(); ++it) {
+
+        Sensor::Ptr sensor = (*it).second;
+
+        if (external_id == sensor->external_id()) {
+            sensors.push_back(sensor);
+        }
+    }
+    return sensors;
 }
 
 std::vector<Sensor::Ptr> MSGStore::get_sensors_by_name(const std::string& name) {

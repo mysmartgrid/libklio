@@ -91,6 +91,7 @@ namespace klio {
         virtual void update_sensor(const Sensor::Ptr sensor);
         virtual Sensor::Ptr get_sensor(const Sensor::uuid_t& uuid);
         virtual Sensor::Ptr get_sensor_by_external_id(const std::string& external_id);
+        virtual std::vector<Sensor::Ptr> get_sensors_by_external_id(const std::string& external_id);
         virtual std::vector<Sensor::Ptr> get_sensors_by_name(const std::string& name);
         virtual std::vector<Sensor::uuid_t> get_sensor_uuids();
 

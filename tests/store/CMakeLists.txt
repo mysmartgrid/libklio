@@ -1,7 +1,8 @@
 # -*- mode: cmake; -*-
 
-include_directories(${CMAKE_SOURCE_DIR}
-                    ${Boost_INCLUDE_DIRS})
+include_directories(${CMAKE_SOURCE_DIR})
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+
 file(GLOB all_storetest_src *.cpp *.hpp)
 set(storetest_src ${all_storetest_src})
 add_executable(storetest ${storetest_src})

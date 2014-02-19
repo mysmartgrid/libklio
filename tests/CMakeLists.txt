@@ -5,7 +5,8 @@ include_directories(${CMAKE_SOURCE_DIR}
                     ${CMAKE_CURRENT_SOURCE_DIR}
                     ${SQLITE3_INCLUDE_DIR}
                     ${CURL_INCLUDE_DIR}
-                    ${Boost_INCLUDE_DIRS})
+)
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
 link_directories(${SQLITE3_LIBRARY_DIRS})
 add_subdirectory(store)

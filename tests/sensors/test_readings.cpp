@@ -491,9 +491,26 @@ BOOST_AUTO_TEST_CASE(check_sync_readings) {
 
             //Sensor 3 does not exist in store B
             storeB->sync_readings(sensor3, storeA);
-            
+
             sync_readings = *storeB->get_all_readings(sensor3);
             BOOST_CHECK_EQUAL(readings.size(), sync_readings.size());
+
+            klio::Sensor::Ptr changed3 = sensor_factory->createSensor(sensor3->uuid(), "Changed External id", "Changed Name", "Changed Description", "kWh", "Europe/Paris");
+            storeA->update_sensor(changed3);
+
+            storeB->sync_readings(changed3, storeA);
+
+            sync_readings = *storeB->get_all_readings(changed3);
+            BOOST_CHECK_EQUAL(readings.size(), sync_readings.size());
+
+            klio::Sensor::Ptr found = storeB->get_sensor(sensor3->uuid());
+
+            BOOST_CHECK_EQUAL(found->uuid(), sensor3->uuid());
+            BOOST_CHECK_EQUAL(found->external_id(), "Changed External id");
+            BOOST_CHECK_EQUAL(found->name(), "Changed Name");
+            BOOST_CHECK_EQUAL(found->description(), "Changed Description");
+            BOOST_CHECK_EQUAL(found->unit(), "kWh");
+            BOOST_CHECK_EQUAL(found->timezone(), "Europe/Paris");
 
             // cleanup
             storeA->dispose();

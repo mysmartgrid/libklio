@@ -492,10 +492,16 @@ BOOST_AUTO_TEST_CASE(check_sync_readings) {
             //Sensor 3 does not exist in store B
             storeB->sync_readings(sensor3, storeA);
 
-            sync_readings = *storeB->get_all_readings(sensor3);
-            BOOST_CHECK_EQUAL(readings.size(), sync_readings.size());
+            std::vector<klio::Sensor::Ptr> sensors = storeB->get_sensors_by_external_id(sensor3->external_id());
 
-            klio::Sensor::Ptr changed3 = sensor_factory->createSensor(sensor3->uuid(), "Changed External id", "Changed Name", "Changed Description", "kWh", "Europe/Paris");
+            for (std::vector<klio::Sensor::Ptr>::const_iterator it = sensors.begin(); it != sensors.end(); ++it) {
+
+                sensor3 = *it;
+                sync_readings = *storeB->get_all_readings(sensor3);
+                BOOST_CHECK_EQUAL(readings.size(), sync_readings.size());
+            }
+
+            klio::Sensor::Ptr changed3 = sensor_factory->createSensor(sensor3->uuid(), sensor3->external_id(), "Changed Name", "Changed Description", "kWh", "Europe/Paris");
             storeA->update_sensor(changed3);
 
             storeB->sync_readings(changed3, storeA);
@@ -503,14 +509,20 @@ BOOST_AUTO_TEST_CASE(check_sync_readings) {
             sync_readings = *storeB->get_all_readings(changed3);
             BOOST_CHECK_EQUAL(readings.size(), sync_readings.size());
 
-            klio::Sensor::Ptr found = storeB->get_sensor(sensor3->uuid());
+            sensors = storeB->get_sensors_by_external_id(sensor3->external_id());
 
-            BOOST_CHECK_EQUAL(found->uuid(), sensor3->uuid());
-            BOOST_CHECK_EQUAL(found->external_id(), "Changed External id");
-            BOOST_CHECK_EQUAL(found->name(), "Changed Name");
-            BOOST_CHECK_EQUAL(found->description(), "Changed Description");
-            BOOST_CHECK_EQUAL(found->unit(), "kWh");
-            BOOST_CHECK_EQUAL(found->timezone(), "Europe/Paris");
+            BOOST_CHECK_EQUAL(1, sensors.size());
+
+            for (std::vector<klio::Sensor::Ptr>::const_iterator it = sensors.begin(); it != sensors.end(); ++it) {
+
+                klio::Sensor::Ptr found = (*it);
+                BOOST_CHECK_EQUAL(found->uuid(), sensor3->uuid());
+                BOOST_CHECK_EQUAL(found->external_id(), sensor3->external_id());
+                BOOST_CHECK_EQUAL(found->name(), "Changed Name");
+                BOOST_CHECK_EQUAL(found->description(), "Changed Description");
+                BOOST_CHECK_EQUAL(found->unit(), "kWh");
+                BOOST_CHECK_EQUAL(found->timezone(), "Europe/Paris");
+            }
 
             // cleanup
             storeA->dispose();

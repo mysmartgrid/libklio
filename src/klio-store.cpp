@@ -131,6 +131,9 @@ int main(int argc, char** argv) {
                 target_store->sync(source_store);
                 std::cout << "Stores Synchronized." << std::endl;
 
+                source_store->close();
+                target_store->close();
+                
             } catch (klio::StoreException const& ex) {
                 std::cout << "Failed to synchronize stores. " << ex.what() << std::endl;
             }

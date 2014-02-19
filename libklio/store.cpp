@@ -32,23 +32,26 @@ void Store::sync(klio::Store::Ptr store) {
 
 void Store::sync_readings(klio::Sensor::Ptr sensor, klio::Store::Ptr store) {
 
-    try {
-        klio::Sensor::Ptr retrieved = get_sensor(sensor->uuid());
+    std::vector<klio::Sensor::Ptr> sensors = get_sensors_by_external_id(sensor->external_id());
 
-        if (retrieved->external_id() != sensor->external_id() ||
-                retrieved->name() != sensor->name() ||
-                retrieved->description() != sensor->description() ||
-                retrieved->unit() != sensor->unit() ||
-                retrieved->timezone() != sensor->timezone()) {
+    if (sensors.empty()) {
 
-            update_sensor(sensor);
-        }
-
-    } catch (klio::StoreException const& e) {
-
-        //TODO: no exception should be raised when a sensor is not found
-        
         add_sensor(sensor);
+
+    } else {
+
+        for (std::vector<klio::Sensor::Ptr>::const_iterator it = sensors.begin(); it != sensors.end(); ++it) {
+
+            klio::Sensor::Ptr found = (*it);
+            
+            if (found->name() != sensor->name() ||
+                    found->description() != sensor->description() ||
+                    found->unit() != sensor->unit() ||
+                    found->timezone() != sensor->timezone()) {
+
+                update_sensor(sensor);
+            }
+        }
     }
 
     klio::readings_t_Ptr readings = store->get_all_readings(sensor);

@@ -81,6 +81,7 @@ namespace klio {
 
         void open();
         void close();
+        void check_integrity();
         void initialize();
         void dispose();
         void flush();

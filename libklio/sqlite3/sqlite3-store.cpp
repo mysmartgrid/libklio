@@ -45,20 +45,70 @@ const std::string SQLite3Store::select_all_sensor_uuids_stmt(
         "SELECT uuid FROM sensors;"
         );
 
+const std::string SQLite3Store::integrity_check_stmt(
+        "PRAGMA integrity_check;"
+        );
+
 void SQLite3Store::open() {
 
     int rc = sqlite3_open(_path.c_str(), &db);
     if (rc) {
         std::ostringstream oss;
-        oss << "Can't open database: " << sqlite3_errmsg(db);
-        sqlite3_close(db);
+        oss << "Can't open database: ";
+
+        if (db) {
+            oss << sqlite3_errmsg(db);
+            close();
+
+        } else {
+            oss << "Not enough memory.";
+        }
         throw StoreException(oss.str());
     }
 }
 
 void SQLite3Store::close() {
 
-    sqlite3_close(db);
+    if (db) {
+        sqlite3_close(db);
+    }
+}
+
+void SQLite3Store::check_integrity() {
+
+    std::ostringstream oss;
+
+    try {
+        if (!bfs::exists(_path)) {
+            oss << _path << " does not exist.";
+
+        } else if (bfs::is_directory(_path)) {
+            oss << _path << " is a directory.";
+
+        } else if (!bfs::is_regular_file(_path)) {
+            oss << _path << " is not a regular file.";
+
+        } else if (bfs::file_size(_path) == 0) {
+            oss << _path << " is an empty file.";
+
+        } else {
+            sqlite3_stmt* stmt = prepare(integrity_check_stmt);
+            execute(stmt, SQLITE_ROW);
+            std::string result = std::string((char*) sqlite3_column_text(stmt, 0));
+            finalize(stmt);
+
+            if (result == "ok") {
+                return;
+
+            } else {
+                oss << "Database is corrupt.";
+            }
+        }
+
+    } catch (const bfs::filesystem_error& ex) {
+        oss << ex.what();
+    }
+    throw StoreException(oss.str());
 }
 
 void SQLite3Store::initialize() {

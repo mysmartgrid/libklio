@@ -65,6 +65,10 @@ void MSGStore::close() {
     flush(true);
 }
 
+void MSGStore::check_integrity() {
+    //TODO: implement this
+}
+
 void MSGStore::dispose() {
 
     //Tries to delete the remote store

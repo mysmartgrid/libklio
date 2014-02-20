@@ -37,8 +37,9 @@ BOOST_AUTO_TEST_CASE(check_add_retrieve_reading) {
 
         klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
         bfs::path db(TEST_DB1_FILE);
-        klio::Store::Ptr store(store_factory->open_sqlite3_store(db));
+        klio::Store::Ptr store(store_factory->create_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
+        store->open();
 
         try {
             store->initialize();
@@ -93,8 +94,9 @@ BOOST_AUTO_TEST_CASE(check_retrieve_last_reading) {
 
         klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
         bfs::path db(TEST_DB1_FILE);
-        klio::Store::Ptr store(store_factory->open_sqlite3_store(db));
+        klio::Store::Ptr store(store_factory->create_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
+        store->open();
 
         try {
             store->initialize();
@@ -144,8 +146,9 @@ BOOST_AUTO_TEST_CASE(check_sqlite3_bulk_insert) {
 
         klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
         bfs::path db(TEST_DB1_FILE);
-        klio::Store::Ptr store(store_factory->open_sqlite3_store(db));
+        klio::Store::Ptr store(store_factory->create_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
+        store->open();
 
         try {
             store->initialize();
@@ -289,8 +292,9 @@ BOOST_AUTO_TEST_CASE(check_bulk_insert_duplicates) {
         klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
         bfs::path db(TEST_DB1_FILE);
 
-        klio::Store::Ptr store(store_factory->open_sqlite3_store(db));
+        klio::Store::Ptr store(store_factory->create_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
+        store->open();
 
         try {
             store->initialize();
@@ -365,8 +369,9 @@ BOOST_AUTO_TEST_CASE(check_num_readings) {
 
         klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
         bfs::path db(TEST_DB1_FILE);
-        klio::Store::Ptr store(store_factory->open_sqlite3_store(db));
+        klio::Store::Ptr store(store_factory->create_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
+        store->open();
 
         try {
             store->initialize();
@@ -411,12 +416,14 @@ BOOST_AUTO_TEST_CASE(check_sync_readings) {
         klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
 
         bfs::path db1(TEST_DB1_FILE);
-        klio::Store::Ptr storeA(store_factory->open_sqlite3_store(db1));
+        klio::Store::Ptr storeA(store_factory->create_sqlite3_store(db1));
         std::cout << "Created: " << storeA->str() << std::endl;
+        storeA->open();
 
         bfs::path db2(TEST_DB2_FILE);
-        klio::Store::Ptr storeB(store_factory->open_sqlite3_store(db2));
+        klio::Store::Ptr storeB(store_factory->create_sqlite3_store(db2));
         std::cout << "Created: " << storeB->str() << std::endl;
+        storeB->open();
 
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
         klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "sensor1", "Watt", "Europe/Berlin"));
@@ -565,16 +572,19 @@ BOOST_AUTO_TEST_CASE(check_sync_store) {
         klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
 
         bfs::path db1(TEST_DB1_FILE);
-        klio::Store::Ptr source1(store_factory->open_sqlite3_store(db1));
+        klio::Store::Ptr source1(store_factory->create_sqlite3_store(db1));
         std::cout << "Created: " << source1->str() << std::endl;
+        source1->open();
 
         bfs::path db2(TEST_DB2_FILE);
-        klio::Store::Ptr source2(store_factory->open_sqlite3_store(db2));
+        klio::Store::Ptr source2(store_factory->create_sqlite3_store(db2));
         std::cout << "Created: " << source2->str() << std::endl;
+        source2->open();
 
         bfs::path db4(TEST_DB4_FILE);
-        klio::Store::Ptr target(store_factory->open_sqlite3_store(db4));
+        klio::Store::Ptr target(store_factory->create_sqlite3_store(db4));
         std::cout << "Created: " << target->str() << std::endl;
+        target->open();
 
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
         klio::Sensor::Ptr sensor1(sensor_factory->createSensor("same_external_id", "sensor1", "Watt", "Europe/Berlin"));

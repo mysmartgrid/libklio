@@ -46,6 +46,7 @@ namespace klio {
 
         void open();
         void close();
+        void check_integrity();
         void initialize();
         void dispose();
         const std::string str();
@@ -90,6 +91,7 @@ namespace klio {
         static const std::string select_sensor_by_external_id_stmt;
         static const std::string select_sensor_by_name_stmt;
         static const std::string select_all_sensor_uuids_stmt;
+        static const std::string integrity_check_stmt;
     };
 };
 

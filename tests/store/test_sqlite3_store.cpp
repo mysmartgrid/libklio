@@ -21,6 +21,8 @@
 #include <iostream>
 #include <boost/test/unit_test.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/iostreams/device/file.hpp>
+#include <boost/iostreams/stream.hpp>
 #include <libklio/store.hpp>
 #include <libklio/sqlite3/sqlite3-store.hpp>
 #include <libklio/store-factory.hpp>
@@ -70,6 +72,33 @@ BOOST_AUTO_TEST_CASE(check_create_sqlite3_storage) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
+    }
+}
+
+BOOST_AUTO_TEST_CASE(check_open_corrupt_sqlite3_file) {
+
+    std::cout << "Testing storage creation for SQLite3" << std::endl;
+    klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
+
+    bfs::path db = boost::filesystem::unique_path();
+
+    boost::iostreams::stream_buffer<boost::iostreams::file_sink> buf(db.string());
+    std::ostream out(&buf);
+    out << "";
+
+    klio::Store::Ptr store;
+
+    try {
+        std::cout << "Attempting to create " << db << std::endl;
+        klio::Store::Ptr store(store_factory->open_sqlite3_store(db));
+
+        store->dispose();
+
+        BOOST_FAIL("An exception is expected to be risen when a corrupt store is opened.");
+
+    } catch (klio::StoreException const& ex) {
+        //This exception is expected
+        bfs::remove(db);//TODO: use dispose() here
     }
 }
 

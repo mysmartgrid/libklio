@@ -34,6 +34,10 @@ void RocksDBStore::close() {
     _buffer.clear();
 }
 
+void RocksDBStore::check_integrity() {
+    //TODO: implement this
+}
+
 void RocksDBStore::initialize() {
 
     bfs::remove_all(_path);

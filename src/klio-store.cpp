@@ -86,7 +86,8 @@ int main(int argc, char** argv) {
             klio::StoreFactory::Ptr factory(new klio::StoreFactory());
             try {
                 std::cout << "Attempting to create " << db << std::endl;
-                klio::Store::Ptr store(factory->open_sqlite3_store(db));
+                klio::Store::Ptr store(factory->create_sqlite3_store(db));
+                store->open();
                 store->initialize();
                 std::cout << "Initialized store: " << store->str() << std::endl;
             } catch (klio::StoreException const& ex) {

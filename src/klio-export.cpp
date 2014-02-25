@@ -50,7 +50,7 @@ int main(int argc,char** argv) {
       ("action,a", po::value<std::string>(), "Valid actions: table, plaintable, octave, json, csv")
       ("storefile,s", po::value<std::string>(), "the data store to use")
       ("outputfile,o", po::value<std::string>(), "the output file to use")
-      ("id,i", po::value<std::string>(), "the id of the sensor")
+      ("id,i", po::value<std::string>(), "the internal id of the sensor (i.e. 3e3b6ef2-d960-4677-8845-1f52977b16d6)")
       ("lasthours,l", po::value<long>(), "export the last N hours of data")
       ;
     po::positional_options_description p;
@@ -117,7 +117,7 @@ int main(int argc,char** argv) {
 
     try {
       if ( !vm.count("id")  ) {
-        std::cout << "You must specify the id of the sensor." 
+        std::cout << "You must specify the internal id of the sensor." 
           << std::endl;
         return 2;
       }
@@ -129,8 +129,12 @@ int main(int argc,char** argv) {
       bool found_sensor=false;
       for(  it = uuids.begin(); it < uuids.end(); it++) {
         klio::Sensor::Ptr loadedSensor(store->get_sensor(*it));
-        if (boost::iequals(loadedSensor->name(), sensor_id)) {
+        // convert the uuid to a string representation
+        std::ostringstream oss;
+        oss << loadedSensor->uuid();
+        if (boost::iequals(oss.str(), sensor_id)) {
           found_sensor=true;
+          std::cout << "Found sensor \"" << loadedSensor->name() << "\"" << std::endl;
           klio::readings_t_Ptr readings = store->get_all_readings(loadedSensor);
 
 
@@ -141,6 +145,7 @@ int main(int argc,char** argv) {
               || boost::iequals(action, std::string("PLAINTABLE"))) {
             klio::readings_it_t it;
             if (boost::iequals(action, std::string("TABLE"))) {
+              std::cout << "Writing header to file." << std::endl;
               *outputstream << "timestamp\treading" << std::endl;
             }
             for(  it = readings->begin(); it != readings->end(); it++) {

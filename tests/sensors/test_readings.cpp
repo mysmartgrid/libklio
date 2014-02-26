@@ -702,6 +702,9 @@ BOOST_AUTO_TEST_CASE(check_add_watt_reading_msg) {
                 BOOST_CHECK_EQUAL(17, round((*it).second));
             }
 
+        } catch (klio::CommunicationException const& ce) {
+            //Ignore this kind of exception
+
         } catch (klio::GenericException const& ex) {
             store->dispose();
             std::cout << "Caught invalid exception: " << ex.what() << std::endl;
@@ -764,6 +767,9 @@ BOOST_AUTO_TEST_CASE(check_add_kwh_reading_msg) {
                 BOOST_CHECK_EQUAL(timestamp - (i-- * 60), (*it).first);
                 BOOST_CHECK_EQUAL(0.0000115, (*it).second);
             }
+
+        } catch (klio::CommunicationException const& ce) {
+            //Ignore this kind of exception
 
         } catch (klio::GenericException const& ex) {
             store->dispose();
@@ -836,6 +842,9 @@ BOOST_AUTO_TEST_CASE(check_add_celsius_reading_msg) {
             } while (value > -27);
 
             store->dispose();
+
+        } catch (klio::CommunicationException const& ce) {
+            //Ignore this kind of exception
 
         } catch (klio::GenericException const& ex) {
             store->dispose();

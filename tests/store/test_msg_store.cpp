@@ -95,11 +95,17 @@ BOOST_AUTO_TEST_CASE(check_create_msg_storage) {
             }
             store->dispose();
 
+        } catch (klio::CommunicationException const& ce) {
+            std::cout << "The MSGStore tests have been partially disabled. Please make sure that: " << std::endl;
+            std::cout << "1 - the server dev3-api.mysmartgrid.de is reachable from your machine, and " << std::endl;
+            std::cout << "2 - the mSG CA certificate is installed on your environment, as explained here: http://developer.mysmartgrid.de/doku.php?id=webserviceinterface2." << std::endl;
+
         } catch (klio::GenericException const& ex) {
             store->dispose();
             std::cout << "Caught invalid exception: " << ex.what() << std::endl;
             BOOST_FAIL("Unexpected exception occurred for initialize request");
         }
+
     } catch (std::exception const& ex) {
         BOOST_FAIL("Unexpected exception occurred during MSGStore test");
     }
@@ -180,11 +186,18 @@ BOOST_AUTO_TEST_CASE(check_add_msg_sensor) {
 
             store->dispose();
 
+        } catch (klio::CommunicationException const& ce) {
+            //Ignore this kind of exception
+
         } catch (klio::GenericException const& ex) {
             store->dispose();
             std::cout << "Caught invalid exception: " << ex.what() << std::endl;
             BOOST_FAIL("Unexpected exception occurred for initialize request");
         }
+
+    } catch (klio::CommunicationException const& ce) {
+        //Ignore this kind of exception
+
     } catch (std::exception const& ex) {
         BOOST_FAIL("Unexpected exception occurred during MSGStore test");
     }
@@ -241,11 +254,15 @@ BOOST_AUTO_TEST_CASE(check_update_msg_sensor) {
 
             store->dispose();
 
+        } catch (klio::CommunicationException const& ce) {
+            //Ignore this kind of exception
+
         } catch (klio::GenericException const& ex) {
             store->dispose();
             std::cout << "Caught invalid exception: " << ex.what() << std::endl;
             BOOST_FAIL("Unexpected exception occurred for initialize request");
         }
+
     } catch (std::exception const& ex) {
         BOOST_FAIL("Unexpected exception occurred during MSGStore test");
     }
@@ -317,7 +334,7 @@ BOOST_AUTO_TEST_CASE(check_move_msg_sensor_to_new_store) {
             store1->close();
             store1->open();
             store1->initialize();
-            
+
             std::vector<klio::Sensor::Ptr> sensors = store1->get_sensors_by_external_id(external_id);
 
             BOOST_CHECK_EQUAL(1, sensors.size());
@@ -377,12 +394,16 @@ BOOST_AUTO_TEST_CASE(check_move_msg_sensor_to_new_store) {
             store1->dispose();
             store2->dispose();
 
+        } catch (klio::CommunicationException const& ce) {
+            //Ignore this kind of exception
+
         } catch (klio::GenericException const& ex) {
             store1->dispose();
             store2->dispose();
             std::cout << "Caught invalid exception: " << ex.what() << std::endl;
             BOOST_FAIL("Unexpected exception occurred for initialize request");
         }
+
     } catch (std::exception const& ex) {
         BOOST_FAIL("Unexpected exception occurred during MSGStore test");
     }
@@ -430,11 +451,15 @@ BOOST_AUTO_TEST_CASE(check_remove_msg_sensor) {
             }
             store->dispose();
 
+        } catch (klio::CommunicationException const& ce) {
+            //Ignore this kind of exception
+
         } catch (klio::GenericException const& ex) {
             store->dispose();
             std::cout << "Caught invalid exception: " << ex.what() << std::endl;
             BOOST_FAIL("Unexpected exception occurred for initialize request");
         }
+
     } catch (std::exception const& ex) {
         BOOST_FAIL("Unexpected exception occurred during MSGStore test");
     }
@@ -502,10 +527,14 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor) {
 
             store->dispose();
 
+        } catch (klio::CommunicationException const& ce) {
+            //Ignore this kind of exception
+
         } catch (klio::GenericException const& ex) {
             std::cout << "Caught invalid exception: " << ex.what() << std::endl;
             BOOST_FAIL("Unexpected exception occurred for initialize request");
         }
+
     } catch (std::exception const& ex) {
         BOOST_FAIL("Unexpected exception occurred during MSGStore test");
     }
@@ -579,11 +608,15 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor_by_name) {
 
             store->dispose();
 
+        } catch (klio::CommunicationException const& ce) {
+            //Ignore this kind of exception
+
         } catch (klio::GenericException const& ex) {
             store->dispose();
             std::cout << "Caught invalid exception: " << ex.what() << std::endl;
             BOOST_FAIL("Unexpected exception occurred for initialize request");
         }
+
     } catch (std::exception const& ex) {
         BOOST_FAIL("Unexpected exception occurred during MSGStore test");
     }
@@ -648,11 +681,15 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensors_by_external_id) {
 
             store->dispose();
 
+        } catch (klio::CommunicationException const& ce) {
+            //Ignore this kind of exception
+
         } catch (klio::GenericException const& ex) {
             store->dispose();
             std::cout << "Caught invalid exception: " << ex.what() << std::endl;
             BOOST_FAIL("Unexpected exception occurred for initialize request");
         }
+
     } catch (std::exception const& ex) {
         BOOST_FAIL("Unexpected exception occurred during MSGStore test");
     }
@@ -712,11 +749,15 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor_uuids) {
 
             store->dispose();
 
+        } catch (klio::CommunicationException const& ce) {
+            //Ignore this kind of exception
+
         } catch (klio::GenericException const& ex) {
             store->dispose();
             std::cout << "Caught invalid exception: " << ex.what() << std::endl;
             BOOST_FAIL("Unexpected exception occurred for initialize request");
         }
+
     } catch (std::exception const& ex) {
         BOOST_FAIL("Unexpected exception occurred during MSGStore test");
     }

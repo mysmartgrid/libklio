@@ -345,6 +345,27 @@ readings_t_Ptr SQLite3Store::get_all_readings(klio::Sensor::Ptr sensor) {
     return readings;
 }
 
+
+readings_t_Ptr SQLite3Store::get_timeframe_readings(klio::Sensor::Ptr sensor, 
+    timestamp_t begin, timestamp_t end)
+{
+    LOG("Retrieving readings of sensor " << sensor->str() <<
+        "between " << begin << " and " << end);
+
+    readings_t_Ptr readings(new readings_t());
+
+    std::ostringstream oss;
+    oss << "SELECT timestamp, value FROM '" << sensor->uuid_string() << "'";
+    oss << "WHERE (timestamp > " << begin << " AND timestamp < " << end << ")";
+    oss << ";";
+
+    execute(oss.str(), get_all_readings_callback, readings.get());
+
+    return readings;
+
+
+}
+
 static int get_num_readings_callback(void *num, int argc, char **argv, char **azColName) {
 
     long int* numreadings = (long int*) num;

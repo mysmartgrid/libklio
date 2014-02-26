@@ -78,10 +78,10 @@ BOOST_AUTO_TEST_CASE(check_add_retrieve_reading) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_retrieve_last_reading) {
+BOOST_AUTO_TEST_CASE(check_retrieve_reading_timeframe) {
 
     try {
-        std::cout << std::endl << "*** retrieving the last reading from a sensor." << std::endl;
+        std::cout << std::endl << "*** Adding & retrieving a timeframe of readings to/from a sensor." << std::endl;
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
         klio::Sensor::Ptr sensor(sensor_factory->createSensor("sensor", "sensor", "Watt", "Europe/Berlin"));
         std::cout << "Created " << sensor->str() << std::endl;
@@ -96,522 +96,587 @@ BOOST_AUTO_TEST_CASE(check_retrieve_last_reading) {
             store->add_sensor(sensor);
             std::cout << "added to store: " << sensor->str() << std::endl;
 
+            klio::timestamp_t marker_begin = 1393418290;
+            klio::timestamp_t marker_end = 1393418296;
             // insert a reading.
-            klio::TimeConverter::Ptr tc(new klio::TimeConverter());
-            klio::timestamp_t timestamp = tc->get_timestamp();
-            klio::timestamp_t timestamp2 = (tc->get_timestamp() - 100);
-            double reading = 23;
-            store->add_reading(sensor, timestamp, reading);
-            store->add_reading(sensor, timestamp2, reading);
-            std::cout << "Inserted two readings of " << reading << "value, "
-                    "using timestamps " << timestamp << " and " << timestamp2 << std::endl;
+            // Create a pattern in the database: lets have 23....42....23....
+            for(klio::timestamp_t ts = 1393418246; ts < marker_begin; ts += 1) {
+              store->add_reading(sensor, ts, 23);
+            }
+            // five times 42 in the middle!
+            for(klio::timestamp_t ts = marker_begin; ts < marker_end; ts += 1) {
+              store->add_reading(sensor, ts, 42);
+            }
+            for(klio::timestamp_t ts = marker_end; ts < 1393418396; ts += 1) {
+              store->add_reading(sensor, ts, 23);
+            }
 
-            // now, retrieve it and check.
-            klio::reading_t last_reading = store->get_last_reading(sensor);
-            klio::timestamp_t ts1 = last_reading.first;
-            double val1 = last_reading.second;
-            std::cout << "Got timestamp " << ts1 << " -> value " << val1 << std::endl;
+            // Now check if we can retrieve the 42s.
+            klio::readings_t_Ptr readings = store->get_timeframe_readings(sensor, marker_begin, marker_end);
 
             // cleanup
             store->remove_sensor(sensor);
 
-            BOOST_CHECK_EQUAL(timestamp, ts1);
-            BOOST_REQUIRE(timestamp2 != ts1);
-            BOOST_CHECK_EQUAL(reading, val1);
+            uint32_t result_counter = 0;
+            std::map<klio::timestamp_t, double>::iterator it;
+            for (it = readings->begin(); it != readings->end(); it++) {
+              klio::timestamp_t ts1 = (*it).first;
+              double val1 = (*it).second;
+              std::cout << "Got timestamp " << ts1 << " -> value " << val1 << std::endl;
+              BOOST_CHECK_EQUAL(42, val1);
+              result_counter++;
+            }
+            BOOST_CHECK_EQUAL(5, result_counter);
 
         } catch (klio::StoreException const& ex) {
-            std::cout << "Caught invalid exception: " << ex.what() << std::endl;
-            BOOST_FAIL("Unexpected store exception occurred during sensor test");
-            //store->remove_sensor(sensor1);
+          //store->remove_sensor(sensor);
+          std::cout << "Caught invalid exception: " << ex.what() << std::endl;
+          BOOST_FAIL("Unexpected store exception occurred during sensor test");
         }
     } catch (std::exception const& ex) {
-        BOOST_FAIL("Unexpected exception occurred during sensor test");
+      BOOST_FAIL("Unexpected exception occurred during sensor test");
     }
+}
+
+
+
+
+
+
+BOOST_AUTO_TEST_CASE(check_retrieve_last_reading) {
+
+  try {
+    std::cout << std::endl << "*** retrieving the last reading from a sensor." << std::endl;
+    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+    klio::Sensor::Ptr sensor(sensor_factory->createSensor("sensor", "sensor", "Watt", "Europe/Berlin"));
+    std::cout << "Created " << sensor->str() << std::endl;
+
+    klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
+    bfs::path db(TEST_DB_FILE);
+    klio::Store::Ptr store(store_factory->open_sqlite3_store(db));
+    std::cout << "Created: " << store->str() << std::endl;
+
+    try {
+      store->initialize();
+      store->add_sensor(sensor);
+      std::cout << "added to store: " << sensor->str() << std::endl;
+
+      // insert a reading.
+      klio::TimeConverter::Ptr tc(new klio::TimeConverter());
+      klio::timestamp_t timestamp = tc->get_timestamp();
+      klio::timestamp_t timestamp2 = (tc->get_timestamp() - 100);
+      double reading = 23;
+      store->add_reading(sensor, timestamp, reading);
+      store->add_reading(sensor, timestamp2, reading);
+      std::cout << "Inserted two readings of " << reading << "value, "
+        "using timestamps " << timestamp << " and " << timestamp2 << std::endl;
+
+      // now, retrieve it and check.
+      klio::reading_t last_reading = store->get_last_reading(sensor);
+      klio::timestamp_t ts1 = last_reading.first;
+      double val1 = last_reading.second;
+      std::cout << "Got timestamp " << ts1 << " -> value " << val1 << std::endl;
+
+      // cleanup
+      store->remove_sensor(sensor);
+
+      BOOST_CHECK_EQUAL(timestamp, ts1);
+      BOOST_REQUIRE(timestamp2 != ts1);
+      BOOST_CHECK_EQUAL(reading, val1);
+
+    } catch (klio::StoreException const& ex) {
+      std::cout << "Caught invalid exception: " << ex.what() << std::endl;
+      BOOST_FAIL("Unexpected store exception occurred during sensor test");
+      //store->remove_sensor(sensor1);
+    }
+  } catch (std::exception const& ex) {
+    BOOST_FAIL("Unexpected exception occurred during sensor test");
+  }
 }
 
 BOOST_AUTO_TEST_CASE(check_bulk_insert) {
 
+  try {
+    std::cout << std::endl << "*** bulk-inserting some readings." << std::endl;
+    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+    klio::Sensor::Ptr sensor(sensor_factory->createSensor("sensor", "sensor", "Watt", "Europe/Berlin"));
+    std::cout << "Created " << sensor->str() << std::endl;
+
+    klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
+    bfs::path db(TEST_DB_FILE);
+    klio::Store::Ptr store(store_factory->open_sqlite3_store(db));
+    std::cout << "Created: " << store->str() << std::endl;
+
     try {
-        std::cout << std::endl << "*** bulk-inserting some readings." << std::endl;
-        klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-        klio::Sensor::Ptr sensor(sensor_factory->createSensor("sensor", "sensor", "Watt", "Europe/Berlin"));
-        std::cout << "Created " << sensor->str() << std::endl;
+      store->initialize();
+      store->add_sensor(sensor);
+      std::cout << "added to store: " << sensor->str() << std::endl;
 
-        klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
-        bfs::path db(TEST_DB_FILE);
-        klio::Store::Ptr store(store_factory->open_sqlite3_store(db));
-        std::cout << "Created: " << store->str() << std::endl;
+      // insert a reading.
+      klio::TimeConverter::Ptr tc(new klio::TimeConverter());
+      klio::readings_t readings;
+      size_t num_readings = 10;
+      for (size_t i = 0; i < num_readings; i++) {
+        klio::timestamp_t timestamp = tc->get_timestamp() - i;
+        double reading = 23;
+        klio::reading_t foo(timestamp, reading);
+        readings.insert(foo);
+      }
+      std::cout << "Inserting " << readings.size() << " readings." << std::endl;
+      store->add_readings(sensor, readings);
 
-        try {
-            store->initialize();
-            store->add_sensor(sensor);
-            std::cout << "added to store: " << sensor->str() << std::endl;
+      // now, retrieve it and check.
+      klio::readings_t_Ptr loaded_readings = store->get_all_readings(sensor);
+      std::cout << "Loaded " << loaded_readings->size() << " readings." << std::endl;
 
-            // insert a reading.
-            klio::TimeConverter::Ptr tc(new klio::TimeConverter());
-            klio::readings_t readings;
-            size_t num_readings = 10;
-            for (size_t i = 0; i < num_readings; i++) {
-                klio::timestamp_t timestamp = tc->get_timestamp() - i;
-                double reading = 23;
-                klio::reading_t foo(timestamp, reading);
-                readings.insert(foo);
-            }
-            std::cout << "Inserting " << readings.size() << " readings." << std::endl;
-            store->add_readings(sensor, readings);
+      // cleanup
+      store->remove_sensor(sensor);
 
-            // now, retrieve it and check.
-            klio::readings_t_Ptr loaded_readings = store->get_all_readings(sensor);
-            std::cout << "Loaded " << loaded_readings->size() << " readings." << std::endl;
+      klio::readings_cit_t it;
+      size_t ret_size = 0;
+      for (it = loaded_readings->begin(); it != loaded_readings->end(); ++it) {
+        klio::timestamp_t ts1 = (*it).first;
+        double val1 = (*it).second;
+        std::cout << "Got timestamp " << ts1 << " -> value " << val1 << std::endl;
+        ret_size++;
+      }
+      BOOST_CHECK_EQUAL(num_readings, ret_size);
 
-            // cleanup
-            store->remove_sensor(sensor);
-
-            klio::readings_cit_t it;
-            size_t ret_size = 0;
-            for (it = loaded_readings->begin(); it != loaded_readings->end(); ++it) {
-                klio::timestamp_t ts1 = (*it).first;
-                double val1 = (*it).second;
-                std::cout << "Got timestamp " << ts1 << " -> value " << val1 << std::endl;
-                ret_size++;
-            }
-            BOOST_CHECK_EQUAL(num_readings, ret_size);
-
-        } catch (klio::StoreException const& ex) {
-            std::cout << "Caught invalid exception: " << ex.what() << std::endl;
-            BOOST_FAIL("Unexpected store exception occurred during sensor test");
-            //store->remove_sensor(sensor);
-        }
-    } catch (std::exception const& ex) {
-        BOOST_FAIL("Unexpected exception occurred during sensor test");
+    } catch (klio::StoreException const& ex) {
+      std::cout << "Caught invalid exception: " << ex.what() << std::endl;
+      BOOST_FAIL("Unexpected store exception occurred during sensor test");
+      //store->remove_sensor(sensor);
     }
+  } catch (std::exception const& ex) {
+    BOOST_FAIL("Unexpected exception occurred during sensor test");
+  }
 }
 
 BOOST_AUTO_TEST_CASE(check_bulk_insert_duplicates) {
 
+  try {
+    std::cout << std::endl << "*** bulk-inserting readings with duplicates." << std::endl;
+    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+    klio::Sensor::Ptr sensor(sensor_factory->createSensor("sensor", "sensor", "Watt", "Europe/Berlin"));
+    std::cout << "Created " << sensor->str() << std::endl;
+
+    klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
+    bfs::path db(TEST_DB_FILE);
+
+    klio::Store::Ptr store(store_factory->open_sqlite3_store(db));
+    std::cout << "Created: " << store->str() << std::endl;
+
     try {
-        std::cout << std::endl << "*** bulk-inserting readings with duplicates." << std::endl;
-        klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-        klio::Sensor::Ptr sensor(sensor_factory->createSensor("sensor", "sensor", "Watt", "Europe/Berlin"));
-        std::cout << "Created " << sensor->str() << std::endl;
+      store->initialize();
+      store->add_sensor(sensor);
+      std::cout << "added to store: " << sensor->str() << std::endl;
 
-        klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
-        bfs::path db(TEST_DB_FILE);
+      // Insert some readings.
+      klio::TimeConverter::Ptr tc(new klio::TimeConverter());
+      klio::timestamp_t start_time = tc->get_timestamp();
 
-        klio::Store::Ptr store(store_factory->open_sqlite3_store(db));
-        std::cout << "Created: " << store->str() << std::endl;
+      klio::readings_t readings;
+      size_t num_readings = 10;
 
-        try {
-            store->initialize();
-            store->add_sensor(sensor);
-            std::cout << "added to store: " << sensor->str() << std::endl;
+      for (size_t i = 0; i < num_readings; i++) {
 
-            // Insert some readings.
-            klio::TimeConverter::Ptr tc(new klio::TimeConverter());
-            klio::timestamp_t start_time = tc->get_timestamp();
+        klio::timestamp_t timestamp = start_time - i;
+        klio::reading_t foo(timestamp, 23);
+        readings.insert(foo);
+      }
+      std::cout << "Inserting " << readings.size() << " readings." << std::endl;
+      store->add_readings(sensor, readings);
 
-            klio::readings_t readings;
-            size_t num_readings = 10;
+      // Now, generate some readings with overlapping timestamps.
+      readings.clear();
+      int num_overlapping = num_readings / 2;
+      for (size_t i = 0; i < num_readings; i++) {
 
-            for (size_t i = 0; i < num_readings; i++) {
+        klio::timestamp_t timestamp = start_time - i + num_overlapping;
+        klio::reading_t foo(timestamp, 42);
+        readings.insert(foo);
+      }
 
-                klio::timestamp_t timestamp = start_time - i;
-                klio::reading_t foo(timestamp, 23);
-                readings.insert(foo);
-            }
-            std::cout << "Inserting " << readings.size() << " readings." << std::endl;
-            store->add_readings(sensor, readings);
+      std::cout << "Inserting " << readings.size() << " readings with "
+        << num_overlapping << "overlapping timestamps." << std::endl;
 
-            // Now, generate some readings with overlapping timestamps.
-            readings.clear();
-            int num_overlapping = num_readings / 2;
-            for (size_t i = 0; i < num_readings; i++) {
+      store->update_readings(sensor, readings);
 
-                klio::timestamp_t timestamp = start_time - i + num_overlapping;
-                klio::reading_t foo(timestamp, 42);
-                readings.insert(foo);
-            }
+      // Now, retrieve them and check.
+      klio::readings_t_Ptr loaded_readings = store->get_all_readings(sensor);
+      std::cout << "Loaded " << loaded_readings->size() << " readings." << std::endl;
 
-            std::cout << "Inserting " << readings.size() << " readings with "
-                    << num_overlapping << "overlapping timestamps." << std::endl;
+      // cleanup
+      store->remove_sensor(sensor);
 
-            store->update_readings(sensor, readings);
+      klio::readings_cit_t it;
+      size_t ret_size = 0;
+      for (it = loaded_readings->begin(); it != loaded_readings->end(); ++it) {
+        klio::timestamp_t ts1 = (*it).first;
+        double val1 = (*it).second;
+        std::cout << "Got timestamp " << ts1 << " -> value " << val1 << std::endl;
+        ret_size++;
+      }
+      BOOST_CHECK_EQUAL(num_readings + num_overlapping, ret_size);
 
-            // Now, retrieve them and check.
-            klio::readings_t_Ptr loaded_readings = store->get_all_readings(sensor);
-            std::cout << "Loaded " << loaded_readings->size() << " readings." << std::endl;
-
-            // cleanup
-            store->remove_sensor(sensor);
-
-            klio::readings_cit_t it;
-            size_t ret_size = 0;
-            for (it = loaded_readings->begin(); it != loaded_readings->end(); ++it) {
-                klio::timestamp_t ts1 = (*it).first;
-                double val1 = (*it).second;
-                std::cout << "Got timestamp " << ts1 << " -> value " << val1 << std::endl;
-                ret_size++;
-            }
-            BOOST_CHECK_EQUAL(num_readings + num_overlapping, ret_size);
-
-        } catch (klio::StoreException const& ex) {
-            //store->remove_sensor(sensor);
-            std::cout << "Caught invalid exception: " << ex.what() << std::endl;
-            BOOST_FAIL("Unexpected store exception occurred during sensor test");
-        }
-    } catch (std::exception const& ex) {
-        BOOST_FAIL("Unexpected exception occurred during sensor test");
+    } catch (klio::StoreException const& ex) {
+      //store->remove_sensor(sensor);
+      std::cout << "Caught invalid exception: " << ex.what() << std::endl;
+      BOOST_FAIL("Unexpected store exception occurred during sensor test");
     }
+  } catch (std::exception const& ex) {
+    BOOST_FAIL("Unexpected exception occurred during sensor test");
+  }
 }
 
 BOOST_AUTO_TEST_CASE(check_num_readings) {
 
+  try {
+    std::cout << std::endl << "*** checking number of readings." << std::endl;
+    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+    klio::Sensor::Ptr sensor(sensor_factory->createSensor("sensor", "sensor", "Watt", "Europe/Berlin"));
+    std::cout << "Created " << sensor->str() << std::endl;
+
+    klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
+    bfs::path db(TEST_DB_FILE);
+    klio::Store::Ptr store(store_factory->open_sqlite3_store(db));
+    std::cout << "Created: " << store->str() << std::endl;
+
     try {
-        std::cout << std::endl << "*** checking number of readings." << std::endl;
-        klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-        klio::Sensor::Ptr sensor(sensor_factory->createSensor("sensor", "sensor", "Watt", "Europe/Berlin"));
-        std::cout << "Created " << sensor->str() << std::endl;
+      store->initialize();
+      store->add_sensor(sensor);
+      std::cout << "added to store: " << sensor->str() << std::endl;
 
-        klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
-        bfs::path db(TEST_DB_FILE);
-        klio::Store::Ptr store(store_factory->open_sqlite3_store(db));
-        std::cout << "Created: " << store->str() << std::endl;
+      // insert a reading.
+      klio::TimeConverter::Ptr tc(new klio::TimeConverter());
+      klio::readings_t readings;
+      size_t num_readings = 10;
 
-        try {
-            store->initialize();
-            store->add_sensor(sensor);
-            std::cout << "added to store: " << sensor->str() << std::endl;
+      for (size_t i = 0; i < num_readings; i++) {
+        klio::timestamp_t timestamp = tc->get_timestamp() - i;
+        double reading = 23;
+        klio::reading_t foo(timestamp, reading);
+        readings.insert(foo);
+      }
+      std::cout << "Inserting " << readings.size() << " readings." << std::endl;
+      store->add_readings(sensor, readings);
 
-            // insert a reading.
-            klio::TimeConverter::Ptr tc(new klio::TimeConverter());
-            klio::readings_t readings;
-            size_t num_readings = 10;
+      // now, retrieve it and check.
+      size_t saved_readings = store->get_num_readings(sensor);
+      std::cout << "Store contains " << saved_readings << " readings." << std::endl;
 
-            for (size_t i = 0; i < num_readings; i++) {
-                klio::timestamp_t timestamp = tc->get_timestamp() - i;
-                double reading = 23;
-                klio::reading_t foo(timestamp, reading);
-                readings.insert(foo);
-            }
-            std::cout << "Inserting " << readings.size() << " readings." << std::endl;
-            store->add_readings(sensor, readings);
+      // cleanup
+      store->remove_sensor(sensor);
 
-            // now, retrieve it and check.
-            size_t saved_readings = store->get_num_readings(sensor);
-            std::cout << "Store contains " << saved_readings << " readings." << std::endl;
+      BOOST_CHECK_EQUAL(num_readings, saved_readings);
 
-            // cleanup
-            store->remove_sensor(sensor);
-
-            BOOST_CHECK_EQUAL(num_readings, saved_readings);
-
-        } catch (klio::StoreException const& ex) {
-            std::cout << "Caught invalid exception: " << ex.what() << std::endl;
-            BOOST_FAIL("Unexpected store exception occurred during sensor test");
-        }
-    } catch (std::exception const& ex) {
-        BOOST_FAIL("Unexpected exception occurred during sensor test");
+    } catch (klio::StoreException const& ex) {
+      std::cout << "Caught invalid exception: " << ex.what() << std::endl;
+      BOOST_FAIL("Unexpected store exception occurred during sensor test");
     }
+  } catch (std::exception const& ex) {
+    BOOST_FAIL("Unexpected exception occurred during sensor test");
+  }
 }
 
 BOOST_AUTO_TEST_CASE(check_sync_readings) {
 
+  try {
+    klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
+
+    bfs::path db1(TEST_DB_FILE);
+    klio::Store::Ptr storeA(store_factory->open_sqlite3_store(db1));
+    std::cout << "Created: " << storeA->str() << std::endl;
+
+    bfs::path db2(TEST_DB2_FILE);
+    klio::Store::Ptr storeB(store_factory->open_sqlite3_store(db2));
+    std::cout << "Created: " << storeB->str() << std::endl;
+
+    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+    klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "sensor1", "Watt", "Europe/Berlin"));
+    std::cout << "Created " << sensor1->str() << std::endl;
+
+    klio::Sensor::Ptr sensor2(sensor_factory->createSensor("sensor2", "sensor2", "Watt", "Europe/Berlin"));
+    std::cout << "Created " << sensor2->str() << std::endl;
+
+    klio::Sensor::Ptr sensor3(sensor_factory->createSensor("sensor3", "sensor3", "Watt", "Europe/Berlin"));
+    std::cout << "Created " << sensor3->str() << std::endl;
+
     try {
-        klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
+      storeA->initialize();
+      std::cout << "Initialized: " << storeA->str() << std::endl;
 
-        bfs::path db1(TEST_DB_FILE);
-        klio::Store::Ptr storeA(store_factory->open_sqlite3_store(db1));
-        std::cout << "Created: " << storeA->str() << std::endl;
+      storeB->initialize();
+      std::cout << "Initialized: " << storeB->str() << std::endl;
 
-        bfs::path db2(TEST_DB2_FILE);
-        klio::Store::Ptr storeB(store_factory->open_sqlite3_store(db2));
-        std::cout << "Created: " << storeB->str() << std::endl;
+      storeA->add_sensor(sensor1);
+      storeA->add_sensor(sensor2);
+      storeA->add_sensor(sensor3);
 
-        klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-        klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "sensor1", "Watt", "Europe/Berlin"));
-        std::cout << "Created " << sensor1->str() << std::endl;
+      storeB->add_sensor(sensor1);
+      storeB->add_sensor(sensor2);
 
-        klio::Sensor::Ptr sensor2(sensor_factory->createSensor("sensor2", "sensor2", "Watt", "Europe/Berlin"));
-        std::cout << "Created " << sensor2->str() << std::endl;
+      //Add readings to sensor 1 and 3 at store A
+      klio::TimeConverter::Ptr tc(new klio::TimeConverter());
+      klio::readings_t readings;
+      size_t num_readings = 10;
 
-        klio::Sensor::Ptr sensor3(sensor_factory->createSensor("sensor3", "sensor3", "Watt", "Europe/Berlin"));
-        std::cout << "Created " << sensor3->str() << std::endl;
+      for (size_t i = 0; i < num_readings; i++) {
+        klio::timestamp_t timestamp = tc->get_timestamp() - i;
+        double reading = 23;
+        klio::reading_t foo(timestamp, reading);
+        readings.insert(foo);
+      }
+      std::cout << "Inserting " << readings.size() << " readings to sensor 1 and 3." << std::endl;
+      storeA->add_readings(sensor1, readings);
+      storeA->add_readings(sensor3, readings);
 
-        try {
-            storeA->initialize();
-            std::cout << "Initialized: " << storeA->str() << std::endl;
+      std::cout << "Synchronize sensor1 readings." << std::endl;
+      storeB->sync_readings(sensor1, storeA);
+      std::cout << "Synchronized." << std::endl;
 
-            storeB->initialize();
-            std::cout << "Initialized: " << storeB->str() << std::endl;
+      klio::readings_t sync_readings = *storeB->get_all_readings(sensor1);
+      BOOST_CHECK_EQUAL(readings.size(), sync_readings.size());
 
-            storeA->add_sensor(sensor1);
-            storeA->add_sensor(sensor2);
-            storeA->add_sensor(sensor3);
+      std::map<klio::timestamp_t, double>::iterator it1;
+      std::map<klio::timestamp_t, double>::iterator it2 = readings.begin();
 
-            storeB->add_sensor(sensor1);
-            storeB->add_sensor(sensor2);
+      for (it1 = sync_readings.begin(); it1 != sync_readings.end(); ++it1) {
 
-            //Add readings to sensor 1 and 3 at store A
-            klio::TimeConverter::Ptr tc(new klio::TimeConverter());
-            klio::readings_t readings;
-            size_t num_readings = 10;
+        klio::timestamp_t ts1 = (*it1).first;
+        klio::timestamp_t ts2 = (*it2).first;
+        double val1 = (*it1).second;
+        double val2 = (*it2).second;
+        ++it2;
 
-            for (size_t i = 0; i < num_readings; i++) {
-                klio::timestamp_t timestamp = tc->get_timestamp() - i;
-                double reading = 23;
-                klio::reading_t foo(timestamp, reading);
-                readings.insert(foo);
-            }
-            std::cout << "Inserting " << readings.size() << " readings to sensor 1 and 3." << std::endl;
-            storeA->add_readings(sensor1, readings);
-            storeA->add_readings(sensor3, readings);
+        BOOST_CHECK_EQUAL(ts1, ts2);
+        BOOST_CHECK_EQUAL(val1, val2);
+      }
 
-            std::cout << "Synchronize sensor1 readings." << std::endl;
-            storeB->sync_readings(sensor1, storeA);
-            std::cout << "Synchronized." << std::endl;
+      //Repeat synchronization
+      storeB->sync_readings(sensor1, storeA);
 
-            klio::readings_t sync_readings = *storeB->get_all_readings(sensor1);
-            BOOST_CHECK_EQUAL(readings.size(), sync_readings.size());
+      sync_readings = *storeB->get_all_readings(sensor1);
+      BOOST_CHECK_EQUAL(readings.size(), sync_readings.size());
 
-            std::map<klio::timestamp_t, double>::iterator it1;
-            std::map<klio::timestamp_t, double>::iterator it2 = readings.begin();
+      //Sensor 2 has no readings
+      sync_readings = *storeB->get_all_readings(sensor2);
+      BOOST_CHECK_EQUAL(0, sync_readings.size());
 
-            for (it1 = sync_readings.begin(); it1 != sync_readings.end(); ++it1) {
+      //Sensor 3 does not exist in store B
+      try {
+        storeB->sync_readings(sensor3, storeA);
 
-                klio::timestamp_t ts1 = (*it1).first;
-                klio::timestamp_t ts2 = (*it2).first;
-                double val1 = (*it1).second;
-                double val2 = (*it2).second;
-                ++it2;
+        BOOST_FAIL("Synchronization involving non existing sensors is not allowed.");
+      } catch (klio::StoreException const& ex) {
+      }
 
-                BOOST_CHECK_EQUAL(ts1, ts2);
-                BOOST_CHECK_EQUAL(val1, val2);
-            }
+      // cleanup
+      storeA->dispose();
+      storeB->dispose();
 
-            //Repeat synchronization
-            storeB->sync_readings(sensor1, storeA);
-
-            sync_readings = *storeB->get_all_readings(sensor1);
-            BOOST_CHECK_EQUAL(readings.size(), sync_readings.size());
-
-            //Sensor 2 has no readings
-            sync_readings = *storeB->get_all_readings(sensor2);
-            BOOST_CHECK_EQUAL(0, sync_readings.size());
-
-            //Sensor 3 does not exist in store B
-            try {
-                storeB->sync_readings(sensor3, storeA);
-
-                BOOST_FAIL("Synchronization involving non existing sensors is not allowed.");
-            } catch (klio::StoreException const& ex) {
-            }
-
-            // cleanup
-            storeA->dispose();
-            storeB->dispose();
-
-        } catch (klio::StoreException const& ex) {
-            std::cout << "Caught invalid exception: " << ex.what() << std::endl;
-            BOOST_FAIL("Unexpected store exception occurred during sensor test");
-        }
-    } catch (std::exception const& ex) {
-        BOOST_FAIL("Unexpected exception occurred during sensor test");
+    } catch (klio::StoreException const& ex) {
+      std::cout << "Caught invalid exception: " << ex.what() << std::endl;
+      BOOST_FAIL("Unexpected store exception occurred during sensor test");
     }
+  } catch (std::exception const& ex) {
+    BOOST_FAIL("Unexpected exception occurred during sensor test");
+  }
 }
 
 BOOST_AUTO_TEST_CASE(check_add_watt_reading_msg) {
 
+  try {
+    std::cout << "Testing add_reading for MSG (Watt)" << std::endl;
+    klio::StoreFactory::Ptr factory(new klio::StoreFactory());
+    std::string url = "https://dev3-api.mysmartgrid.de:8443";
+
+    std::cout << "Attempting to create MSG store " << url << std::endl;
+    klio::Store::Ptr store(factory->create_msg_store(url,
+          "72c160748bcf890bdb7cc1281032adcb",
+          "72c160748bcf890bdb7cc1281038adcb",
+          "libklio test",
+          "libklio"));
+
+    std::cout << "Created: " << store->str() << std::endl;
+
     try {
-        std::cout << "Testing add_reading for MSG (Watt)" << std::endl;
-        klio::StoreFactory::Ptr factory(new klio::StoreFactory());
-        std::string url = "https://dev3-api.mysmartgrid.de:8443";
+      store->open();
+      store->initialize();
 
-        std::cout << "Attempting to create MSG store " << url << std::endl;
-        klio::Store::Ptr store(factory->create_msg_store(url,
-                "72c160748bcf890bdb7cc1281032adcb",
-                "72c160748bcf890bdb7cc1281038adcb",
-                "libklio test",
-                "libklio"));
+      klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+      klio::Sensor::Ptr sensor(sensor_factory->createSensor(
+            "72c160748bcf890bdb7cc1281032adcb",
+            "Sensor1",
+            "Test",
+            "description",
+            "watt",
+            "Europe/Berlin"));
 
-        std::cout << "Created: " << store->str() << std::endl;
+      store->add_sensor(sensor);
 
-        try {
-            store->open();
-            store->initialize();
+      klio::timestamp_t timestamp = time(0) - 3000;
+      timestamp -= timestamp % 60;
 
-            klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-            klio::Sensor::Ptr sensor(sensor_factory->createSensor(
-                    "72c160748bcf890bdb7cc1281032adcb",
-                    "Sensor1",
-                    "Test",
-                    "description",
-                    "watt",
-                    "Europe/Berlin"));
+      for (int i = 0; i < 12; i++) {
+        store->add_reading(sensor, timestamp + (i * 60), i * 1000);
+      }
 
-            store->add_sensor(sensor);
+      klio::readings_t readings = *store->get_all_readings(sensor);
+      store->dispose();
 
-            klio::timestamp_t timestamp = time(0) - 3000;
-            timestamp -= timestamp % 60;
+      BOOST_CHECK_EQUAL(11, readings.size());
 
-            for (int i = 0; i < 12; i++) {
-                store->add_reading(sensor, timestamp + (i * 60), i * 1000);
-            }
+      int i = 1;
+      for (klio::readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
 
-            klio::readings_t readings = *store->get_all_readings(sensor);
-            store->dispose();
+        BOOST_CHECK_EQUAL(timestamp + (i++ * 60), (*it).first);
+        BOOST_CHECK_EQUAL(17, round((*it).second));
+      }
 
-            BOOST_CHECK_EQUAL(11, readings.size());
-
-            int i = 1;
-            for (klio::readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
-
-                BOOST_CHECK_EQUAL(timestamp + (i++ * 60), (*it).first);
-                BOOST_CHECK_EQUAL(17, round((*it).second));
-            }
-
-        } catch (klio::GenericException const& ex) {
-            store->dispose();
-            std::cout << "Caught invalid exception: " << ex.what() << std::endl;
-            BOOST_FAIL("Unexpected exception occurred for initialize request");
-        }
-    } catch (std::exception const& ex) {
-        BOOST_FAIL("Unexpected exception occurred during sensor test");
+    } catch (klio::GenericException const& ex) {
+      store->dispose();
+      std::cout << "Caught invalid exception: " << ex.what() << std::endl;
+      BOOST_FAIL("Unexpected exception occurred for initialize request");
     }
+  } catch (std::exception const& ex) {
+    BOOST_FAIL("Unexpected exception occurred during sensor test");
+  }
 }
 
 BOOST_AUTO_TEST_CASE(check_add_kwh_reading_msg) {
 
+  try {
+    std::cout << "Testing add_reading for MSG (kWh)" << std::endl;
+    klio::StoreFactory::Ptr factory(new klio::StoreFactory());
+    std::string url = "https://dev3-api.mysmartgrid.de:8443";
+
+    std::cout << "Attempting to create MSG store " << url << std::endl;
+    klio::Store::Ptr store(factory->create_msg_store(url,
+          "28c180728bcf890bdb7cc1281038adcb",
+          "28c180728bcf890bdb7cc1281038adcb",
+          "libklio test",
+          "libklio"));
+
+    std::cout << "Created: " << store->str() << std::endl;
+
     try {
-        std::cout << "Testing add_reading for MSG (kWh)" << std::endl;
-        klio::StoreFactory::Ptr factory(new klio::StoreFactory());
-        std::string url = "https://dev3-api.mysmartgrid.de:8443";
+      store->open();
+      store->initialize();
 
-        std::cout << "Attempting to create MSG store " << url << std::endl;
-        klio::Store::Ptr store(factory->create_msg_store(url,
-                "28c180728bcf890bdb7cc1281038adcb",
-                "28c180728bcf890bdb7cc1281038adcb",
-                "libklio test",
-                "libklio"));
+      klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+      klio::Sensor::Ptr sensor(sensor_factory->createSensor(
+            "28c18072-8bcf-890b-db7c-c1281038adcb",
+            "Sensor1",
+            "Test",
+            "description",
+            "kwh",
+            "Europe/Berlin"));
 
-        std::cout << "Created: " << store->str() << std::endl;
+      store->add_sensor(sensor);
 
-        try {
-            store->open();
-            store->initialize();
+      klio::timestamp_t timestamp = time(0);
+      timestamp -= timestamp % 60;
+      klio::readings_t readings;
 
-            klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-            klio::Sensor::Ptr sensor(sensor_factory->createSensor(
-                    "28c18072-8bcf-890b-db7c-c1281038adcb",
-                    "Sensor1",
-                    "Test",
-                    "description",
-                    "kwh",
-                    "Europe/Berlin"));
+      for (int i = 0; i < 72; i++) {
+        klio::reading_t reading(timestamp - (i * 20), 2.113237 - 0.00023 * (1 + i));
+        readings.insert(reading);
+      }
+      store->add_readings(sensor, readings);
 
-            store->add_sensor(sensor);
+      readings = *store->get_all_readings(sensor);
+      store->dispose();
 
-            klio::timestamp_t timestamp = time(0);
-            timestamp -= timestamp % 60;
-            klio::readings_t readings;
+      BOOST_CHECK_EQUAL(24, readings.size());
 
-            for (int i = 0; i < 72; i++) {
-                klio::reading_t reading(timestamp - (i * 20), 2.113237 - 0.00023 * (1 + i));
-                readings.insert(reading);
-            }
-            store->add_readings(sensor, readings);
+      int i = 23;
+      for (klio::readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
 
-            readings = *store->get_all_readings(sensor);
-            store->dispose();
+        BOOST_CHECK_EQUAL(timestamp - (i-- * 60), (*it).first);
+        BOOST_CHECK_EQUAL(0.0000115, (*it).second);
+      }
 
-            BOOST_CHECK_EQUAL(24, readings.size());
-
-            int i = 23;
-            for (klio::readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
-
-                BOOST_CHECK_EQUAL(timestamp - (i-- * 60), (*it).first);
-                BOOST_CHECK_EQUAL(0.0000115, (*it).second);
-            }
-
-        } catch (klio::GenericException const& ex) {
-            store->dispose();
-            std::cout << "Caught invalid exception: " << ex.what() << std::endl;
-            BOOST_FAIL("Unexpected exception occurred for initialize request");
-        }
-    } catch (std::exception const& ex) {
-        BOOST_FAIL("Unexpected exception occurred during sensor test");
+    } catch (klio::GenericException const& ex) {
+      store->dispose();
+      std::cout << "Caught invalid exception: " << ex.what() << std::endl;
+      BOOST_FAIL("Unexpected exception occurred for initialize request");
     }
+  } catch (std::exception const& ex) {
+    BOOST_FAIL("Unexpected exception occurred during sensor test");
+  }
 }
 
 BOOST_AUTO_TEST_CASE(check_add_celsius_reading_msg) {
 
+  try {
+    std::cout << "Testing add_reading for MSG (°C)" << std::endl;
+    klio::StoreFactory::Ptr factory(new klio::StoreFactory());
+    std::string url = "https://dev3-api.mysmartgrid.de:8443";
+
+    std::cout << "Attempting to create MSG store " << url << std::endl;
+    klio::Store::Ptr store(factory->create_msg_store(url,
+          "22c180742bcf890bdb7cc1281038adcb",
+          "22c180742bcf890bdb7cc1281038adcb",
+          "libklio test",
+          "libklio"));
+
+    std::cout << "Created: " << store->str() << std::endl;
+
     try {
-        std::cout << "Testing add_reading for MSG (°C)" << std::endl;
-        klio::StoreFactory::Ptr factory(new klio::StoreFactory());
-        std::string url = "https://dev3-api.mysmartgrid.de:8443";
+      store->open();
+      store->initialize();
 
-        std::cout << "Attempting to create MSG store " << url << std::endl;
-        klio::Store::Ptr store(factory->create_msg_store(url,
-                "22c180742bcf890bdb7cc1281038adcb",
-                "22c180742bcf890bdb7cc1281038adcb",
-                "libklio test",
-                "libklio"));
+      double value = 26.7938;
 
-        std::cout << "Created: " << store->str() << std::endl;
+      do {
+        klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+        klio::Sensor::Ptr sensor(sensor_factory->createSensor(
+              "22c18074-2bcf-890b-db7c-c1281038adcb",
+              "Sensor1",
+              "Test",
+              "description",
+              "degC",
+              "Europe/Berlin"));
 
-        try {
-            store->open();
-            store->initialize();
+        store->add_sensor(sensor);
 
-            double value = 26.7938;
+        klio::timestamp_t timestamp = time(0);
+        timestamp -= timestamp % 60;
+        klio::readings_t readings;
 
-            do {
-                klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-                klio::Sensor::Ptr sensor(sensor_factory->createSensor(
-                        "22c18074-2bcf-890b-db7c-c1281038adcb",
-                        "Sensor1",
-                        "Test",
-                        "description",
-                        "degC",
-                        "Europe/Berlin"));
-
-                store->add_sensor(sensor);
-
-                klio::timestamp_t timestamp = time(0);
-                timestamp -= timestamp % 60;
-                klio::readings_t readings;
-
-                for (int i = 0; i < 72; i++) {
-                    klio::reading_t reading(timestamp - (i * 20), value);
-                    readings.insert(reading);
-                }
-                store->add_readings(sensor, readings);
-
-                readings = *store->get_all_readings(sensor);
-
-                BOOST_CHECK_EQUAL(24, readings.size());
-
-                int i = 23;
-                for (klio::readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
-
-                    BOOST_CHECK_EQUAL(timestamp - (i-- * 60), (*it).first);
-                    BOOST_CHECK_EQUAL(value, (*it).second);
-                }
-
-                store->remove_sensor(sensor);
-                value -= 26.7938;
-
-            } while (value > -27);
-
-            store->dispose();
-
-        } catch (klio::GenericException const& ex) {
-            store->dispose();
-            std::cout << "Caught invalid exception: " << ex.what() << std::endl;
-            BOOST_FAIL("Unexpected exception occurred for initialize request");
+        for (int i = 0; i < 72; i++) {
+          klio::reading_t reading(timestamp - (i * 20), value);
+          readings.insert(reading);
         }
-    } catch (std::exception const& ex) {
-        BOOST_FAIL("Unexpected exception occurred during sensor test");
+        store->add_readings(sensor, readings);
+
+        readings = *store->get_all_readings(sensor);
+
+        BOOST_CHECK_EQUAL(24, readings.size());
+
+        int i = 23;
+        for (klio::readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
+
+          BOOST_CHECK_EQUAL(timestamp - (i-- * 60), (*it).first);
+          BOOST_CHECK_EQUAL(value, (*it).second);
+        }
+
+        store->remove_sensor(sensor);
+        value -= 26.7938;
+
+      } while (value > -27);
+
+      store->dispose();
+
+    } catch (klio::GenericException const& ex) {
+      store->dispose();
+      std::cout << "Caught invalid exception: " << ex.what() << std::endl;
+      BOOST_FAIL("Unexpected exception occurred for initialize request");
     }
+  } catch (std::exception const& ex) {
+    BOOST_FAIL("Unexpected exception occurred during sensor test");
+  }
 }
 
 //BOOST_AUTO_TEST_SUITE_END()

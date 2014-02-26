@@ -516,6 +516,6 @@ BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensor_uuids) {
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
     }
-}
+} 
 
 //BOOST_AUTO_TEST_SUITE_END()

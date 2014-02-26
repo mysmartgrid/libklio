@@ -30,7 +30,6 @@
 
 
 namespace klio {
-
     // We use unix timestamps to represent time in this library.
     typedef time_t timestamp_t;
 

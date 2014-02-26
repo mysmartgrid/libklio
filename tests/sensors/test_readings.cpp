@@ -138,11 +138,6 @@ BOOST_AUTO_TEST_CASE(check_retrieve_reading_timeframe) {
     }
 }
 
-
-
-
-
-
 BOOST_AUTO_TEST_CASE(check_retrieve_last_reading) {
 
   try {

@@ -135,8 +135,20 @@ int main(int argc,char** argv) {
         if (boost::iequals(oss.str(), sensor_id)) {
           found_sensor=true;
           std::cout << "Found sensor \"" << loadedSensor->name() << "\"" << std::endl;
-          klio::readings_t_Ptr readings = store->get_all_readings(loadedSensor);
 
+          klio::readings_t_Ptr readings;
+          if (! vm.count("lasthours")) {
+            readings = store->get_all_readings(loadedSensor);
+          } else {
+            uint32_t num_last_hours=vm["lasthours"].as<long>();
+            uint32_t num_last_seconds = num_last_hours * 60 * 60;
+            klio::reading_t last_reading = store->get_last_reading(loadedSensor);
+            klio::timestamp_t last_timestamp = last_reading.first;
+            klio::timestamp_t first_timestamp = last_timestamp - num_last_seconds;
+            std::cout << "Retrieving last " << num_last_hours << " hours of data from the store ([" 
+              << first_timestamp << ", " << last_timestamp << "])" << std::endl;
+            readings = store->get_timeframe_readings(loadedSensor, first_timestamp, last_timestamp);
+          }
 
           /**
            * Dump sensor reading command
@@ -145,7 +157,7 @@ int main(int argc,char** argv) {
               || boost::iequals(action, std::string("PLAINTABLE"))) {
             klio::readings_it_t it;
             if (boost::iequals(action, std::string("TABLE"))) {
-              std::cout << "Writing header to file." << std::endl;
+              std::cout << "Writing header to output file." << std::endl;
               *outputstream << "timestamp\treading" << std::endl;
             }
             for(  it = readings->begin(); it != readings->end(); it++) {

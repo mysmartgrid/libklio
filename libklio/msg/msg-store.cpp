@@ -366,8 +366,8 @@ void MSGStore::flush(bool force) {
     TimeConverter tc;
     timestamp_t now = tc.get_timestamp();
 
-    //Send measurements every 5 minutes
-    if (force || now - _last_sync > 300) {
+    //Send measurements every 10 minutes
+    if (force || now - _last_sync > 600) {
 
         for (std::map<Sensor::uuid_t, Sensor::Ptr>::const_iterator it = _sensors_buffer.begin(); it != _sensors_buffer.end(); ++it) {
 

@@ -54,13 +54,15 @@ void Store::sync_readings(klio::Sensor::Ptr sensor, klio::Store::Ptr store) {
                     sensor->name(),
                     sensor->description(),
                     sensor->unit(),
-                    sensor->timezone());
+                    sensor->timezone(),
+                    sensor->device_type());
 
             //Update sensor if any of its properties changed
             if ((*found)->name() != sensor->name() ||
                     (*found)->description() != sensor->description() ||
                     (*found)->unit() != sensor->unit() ||
-                    (*found)->timezone() != sensor->timezone()) {
+                    (*found)->timezone() != sensor->timezone() ||
+                    (*found)->device_type() != sensor->device_type()) {
 
                 update_sensor(local_sensor);
             }

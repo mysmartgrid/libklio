@@ -14,7 +14,8 @@ const std::string Sensor::uuid_string() const {
 const std::string Sensor::str() {
     std::ostringstream oss;
     oss << _name << "(" << to_string(_uuid) << "), unit: "
-            << _unit << ", tz: " << _timezone << ", description: " << _description;
+            << _unit << ", tz: " << _timezone << ", description: " << _description
+            << ", device type: " << _device_type;
     return oss.str();
 }
 
@@ -24,7 +25,7 @@ const std::string Sensor::uuid_short() const {
 }
 
 bool Sensor::operator ==(const Sensor& rhs) {
-    return _uuid == rhs.uuid() && _name == rhs.name() && _unit == rhs.unit() && _timezone == rhs.timezone();
+    return _uuid == rhs.uuid() && _name == rhs.name() && _unit == rhs.unit() && _timezone == rhs.timezone() && _device_type == rhs.device_type();
 }
 
 bool Sensor::operator !=(const Sensor& rhs) {

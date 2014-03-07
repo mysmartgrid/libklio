@@ -14,11 +14,11 @@ using namespace klio;
 //Database statements
 //TODO: Declare prepared statements
 const std::string SQLite3Store::create_sensors_table_stmt(
-        "CREATE TABLE IF NOT EXISTS sensors(uuid VARCHAR(16) PRIMARY KEY, external_id VARCHAR(32), name VARCHAR(100), description VARCHAR(255), unit VARCHAR(20), timezone INTEGER);"
+        "CREATE TABLE IF NOT EXISTS sensors(uuid VARCHAR(16) PRIMARY KEY, external_id VARCHAR(32), name VARCHAR(100), description VARCHAR(255), unit VARCHAR(20), timezone INTEGER, device_type_id INTEGER);"
         );
 
 const std::string SQLite3Store::insert_sensor_stmt(
-        "INSERT INTO sensors (uuid, external_id, name, description, unit, timezone) VALUES (?1, ?2, ?3, ?4, ?5, ?6);"
+        "INSERT INTO sensors (uuid, external_id, name, description, unit, timezone, device_type_id) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7);"
         );
 
 const std::string SQLite3Store::remove_sensor_stmt(
@@ -26,19 +26,19 @@ const std::string SQLite3Store::remove_sensor_stmt(
         );
 
 const std::string SQLite3Store::update_sensor_stmt(
-        "UPDATE sensors SET external_id = ?2, name = ?3, description = ?4, unit = ?5, timezone = ?6 WHERE uuid = ?1;"
+        "UPDATE sensors SET external_id = ?2, name = ?3, description = ?4, unit = ?5, timezone = ?6, device_type_id = ?7 WHERE uuid = ?1;"
         );
 
 const std::string SQLite3Store::select_sensor_stmt(
-        "SELECT uuid, external_id, name, description, unit, timezone FROM sensors WHERE uuid = ?1;"
+        "SELECT uuid, external_id, name, description, unit, timezone, device_type_id FROM sensors WHERE uuid = ?1;"
         );
 
 const std::string SQLite3Store::select_sensor_by_external_id_stmt(
-        "SELECT uuid, external_id, name, description, unit, timezone FROM sensors WHERE external_id = ?1;"
+        "SELECT uuid, external_id, name, description, unit, timezone, device_type_id FROM sensors WHERE external_id = ?1;"
         );
 
 const std::string SQLite3Store::select_sensor_by_name_stmt(
-        "SELECT uuid, external_id, name, description, unit, timezone FROM sensors WHERE name = ?1;"
+        "SELECT uuid, external_id, name, description, unit, timezone, device_type_id FROM sensors WHERE name = ?1;"
         );
 
 const std::string SQLite3Store::select_all_sensor_uuids_stmt(
@@ -144,6 +144,7 @@ void SQLite3Store::add_sensor(klio::Sensor::Ptr sensor) {
     sqlite3_bind_text(stmt, 4, sensor->description().c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 5, sensor->unit().c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 6, sensor->timezone().c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int(stmt, 7, sensor->device_type()->id());
 
     execute(stmt, SQLITE_DONE);
     reset(stmt);
@@ -193,6 +194,7 @@ void SQLite3Store::update_sensor(klio::Sensor::Ptr sensor) {
     sqlite3_bind_text(stmt, 4, sensor->description().c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 5, sensor->unit().c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 6, sensor->timezone().c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int(stmt, 7, sensor->device_type()->id());
 
     execute(stmt, SQLITE_DONE);
     finalize(stmt);
@@ -499,5 +501,6 @@ klio::Sensor::Ptr SQLite3Store::parse_sensor(sqlite3_stmt* stmt) {
             std::string((char*) sqlite3_column_text(stmt, 2)), //name
             std::string((char*) sqlite3_column_text(stmt, 3)), //description
             std::string((char*) sqlite3_column_text(stmt, 4)), //unit
-            std::string((char*) sqlite3_column_text(stmt, 5)));
+            std::string((char*) sqlite3_column_text(stmt, 5)), //timezone
+            DeviceType::get_by_id(sqlite3_column_int(stmt, 6)));//device type
 }

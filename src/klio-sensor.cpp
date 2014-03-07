@@ -35,6 +35,18 @@ int main(int argc,char** argv) {
 
   try {
     std::ostringstream oss;
+    oss << "the device being measured by the sensor" << std::endl;
+    
+    std::map<int, klio::DeviceType::Ptr> types = klio::DeviceType::get_all();
+    std::map<int, klio::DeviceType::Ptr>::const_iterator it;
+
+    for (it = types.begin(); it != types.end(); it++) {
+        klio::DeviceType::Ptr type = (*it).second;
+        oss << type->id() << " - " << type->name() << std::endl;
+    }
+    std::string device_type_help = std::string(oss.str());
+    
+    oss.str(std::string());
     oss << "Usage: " << argv[0] << " ACTION [additional options]";
     po::options_description desc(oss.str());
     desc.add_options()
@@ -46,6 +58,7 @@ int main(int argc,char** argv) {
       ("unit,u", po::value<std::string>(), "the unit of the sensor")
       ("timezone,z", po::value<std::string>(), "the timezone of the sensor")
       ("description,d", po::value<std::string>(), "the description of the sensor")
+      ("devicetype,c", po::value<int>(), device_type_help.c_str())
       ("reading,r", po::value<double>(), "the reading to add")
       ("timestamp,t", po::value<long>(), "a timestamp to use for the reading")
       ("sourcestorefile,y", po::value<std::string>(), "the data store to use as synchronization source")
@@ -109,12 +122,14 @@ int main(int argc,char** argv) {
       std::string sensor_id(vm["id"].as<std::string>());
       std::string sensor_unit(vm["unit"].as<std::string>());
       std::string sensor_timezone(vm["timezone"].as<std::string>());
+      int device_type_id(vm["devicetype"].as<int>());
+      
       if (vm.count("description") > 0) {
         //FIXME: vm["description"].as<std::string>()
       }
 
       klio::Sensor::Ptr new_sensor(sensor_factory->createSensor(
-            sensor_id, sensor_id, sensor_unit, sensor_timezone)); 
+            sensor_id, sensor_id, sensor_unit, sensor_timezone, klio::DeviceType::get_by_id(device_type_id))); 
       try {
         klio::Store::Ptr store(factory->open_sqlite3_store(db));
         std::cout << "opened store: " << store->str() << std::endl;
@@ -168,6 +183,7 @@ int main(int argc,char** argv) {
             std::cout << " * uuid:" << loadedSensor->uuid() << std::endl;
             std::cout << " * unit:" << loadedSensor->unit() << std::endl;
             std::cout << " * timezone:" << loadedSensor->timezone() << std::endl;
+            std::cout << " * device type:" << loadedSensor->device_type() << std::endl;
             std::cout << " * " <<  store->get_num_readings(loadedSensor)  
               << " readings stored" << std::endl;
           }

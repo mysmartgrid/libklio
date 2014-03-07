@@ -25,6 +25,7 @@
 #include <iostream>
 #include <boost/uuid/uuid.hpp>
 #include <libklio/common.hpp>
+#include <libklio/device-type.hpp>
 
 namespace klio {
     const static std::string DEFAULT_SENSOR_DESCRIPTION = "Unknown";
@@ -39,13 +40,15 @@ namespace klio {
                 const std::string& name,
                 const std::string& description,
                 const std::string& unit,
-                const std::string& timezone) :
+                const std::string& timezone,
+                const klio::DeviceType::Ptr device_type) :
         _uuid(uuid),
         _external_id(external_id),
         _name(name),
         _description(description),
         _unit(unit),
-        _timezone(timezone) {
+        _timezone(timezone),
+        _device_type(device_type) {
         };
 
         virtual ~Sensor() {
@@ -77,6 +80,10 @@ namespace klio {
             return _timezone;
         };
 
+        const klio::DeviceType::Ptr device_type() const {
+            return _device_type;
+        };
+
         void external_id(const std::string& external_id) {
             _external_id = external_id;
         }
@@ -96,6 +103,10 @@ namespace klio {
         void timezone(const std::string& timezone) {
             _timezone = timezone;
         }
+        
+        void device_type(const klio::DeviceType::Ptr device_type) {
+            _device_type = device_type;
+        }
 
         const std::string str();
         const std::string uuid_string() const;
@@ -114,6 +125,7 @@ namespace klio {
         std::string _description;
         std::string _unit;
         std::string _timezone;
+        klio::DeviceType::Ptr _device_type;
     };
 };
 

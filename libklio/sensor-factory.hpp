@@ -24,6 +24,7 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <libklio/common.hpp>
 #include <libklio/sensor.hpp>
+#include <libklio/device-type.hpp>
 
 namespace klio {
 
@@ -40,6 +41,14 @@ namespace klio {
                 const std::string& unit,
                 const std::string& timezone
                 );
+        
+        klio::Sensor::Ptr createSensor(
+                const std::string& external_id,
+                const std::string& name,
+                const std::string& unit,
+                const std::string& timezone,
+                const klio::DeviceType::Ptr device_type
+                );
 
         klio::Sensor::Ptr createSensor(
                 const std::string& uuid_string,
@@ -48,9 +57,28 @@ namespace klio {
                 const std::string& unit,
                 const std::string& timezone
                 );
+        
+        klio::Sensor::Ptr createSensor(
+                const std::string& uuid_string,
+                const std::string& external_id,
+                const std::string& name,
+                const std::string& description,
+                const std::string& unit,
+                const std::string& timezone
+                );
 
         klio::Sensor::Ptr createSensor(
                 const std::string& uuid_string,
+                const std::string& external_id,
+                const std::string& name,
+                const std::string& description,
+                const std::string& unit,
+                const std::string& timezone,
+                const klio::DeviceType::Ptr device_type
+                );
+        
+        klio::Sensor::Ptr createSensor(
+                const Sensor::uuid_t& uuid,
                 const std::string& external_id,
                 const std::string& name,
                 const std::string& description,
@@ -64,7 +92,8 @@ namespace klio {
                 const std::string& name,
                 const std::string& description,
                 const std::string& unit,
-                const std::string& timezone
+                const std::string& timezone,
+                const klio::DeviceType::Ptr device_type
                 );
 
         virtual ~SensorFactory() {

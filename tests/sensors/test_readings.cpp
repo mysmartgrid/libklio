@@ -513,7 +513,7 @@ BOOST_AUTO_TEST_CASE(check_sync_readings) {
                 BOOST_CHECK_EQUAL(readings.size(), sync_readings.size());
             }
 
-            klio::Sensor::Ptr changed3 = sensor_factory->createSensor(sensor3->uuid(), sensor3->external_id(), "Changed Name", "Changed Description", "kWh", "Europe/Paris");
+            klio::Sensor::Ptr changed3 = sensor_factory->createSensor(sensor3->uuid(), sensor3->external_id(), "Changed Name", "Changed Description", "kWh", "Europe/Paris", klio::DeviceType::DRIER);
             storeA->update_sensor(changed3);
 
             storeB->sync_readings(changed3, storeA);
@@ -533,6 +533,7 @@ BOOST_AUTO_TEST_CASE(check_sync_readings) {
                 BOOST_CHECK_EQUAL(found->description(), "Changed Description");
                 BOOST_CHECK_EQUAL(found->unit(), "kWh");
                 BOOST_CHECK_EQUAL(found->timezone(), "Europe/Paris");
+                BOOST_CHECK_EQUAL(found->device_type(), klio::DeviceType::DRIER);
             }
 
             //Same external id, different uuids
@@ -759,7 +760,7 @@ BOOST_AUTO_TEST_CASE(check_add_kwh_reading_msg) {
             readings = *store->get_all_readings(sensor);
             store->dispose();
 
-            BOOST_CHECK_EQUAL(24, readings.size());
+            BOOST_CHECK_EQUAL(23, readings.size());
 
             int i = 23;
             for (klio::readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
@@ -790,8 +791,8 @@ BOOST_AUTO_TEST_CASE(check_add_celsius_reading_msg) {
 
         std::cout << "Attempting to create MSG store " << url << std::endl;
         klio::Store::Ptr store(factory->create_msg_store(url,
-                "21c180742bcf890bdb7cc1281038adcb",
-                "21c180742bcf890bdb7cc1281038adcb",
+                "21c180742bcf888bdb7cc1221038adcb",
+                "21c180742bcf888bdb7cc1221038adcb",
                 "libklio test",
                 "libklio"));
 
@@ -806,7 +807,7 @@ BOOST_AUTO_TEST_CASE(check_add_celsius_reading_msg) {
             klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
             do {
                 klio::Sensor::Ptr sensor(sensor_factory->createSensor(
-                        "21c18074-2bcf-890b-db7c-c1281038adcb",
+                        "21c18074-2bcf-888b-db7c-c1221038adcb",
                         "Sensor1",
                         "Test",
                         "description",
@@ -827,7 +828,7 @@ BOOST_AUTO_TEST_CASE(check_add_celsius_reading_msg) {
 
                 readings = *store->get_all_readings(sensor);
 
-                BOOST_CHECK_EQUAL(24, readings.size());
+                BOOST_CHECK_EQUAL(23, readings.size());
 
                 int i = 23;
                 for (klio::readings_cit_t it = readings.begin(); it != readings.end(); ++it) {

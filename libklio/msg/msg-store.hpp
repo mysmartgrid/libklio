@@ -94,7 +94,8 @@ namespace klio {
         virtual std::vector<Sensor::Ptr> get_sensors_by_external_id(const std::string& external_id);
         virtual std::vector<Sensor::Ptr> get_sensors_by_name(const std::string& name);
         virtual std::vector<Sensor::uuid_t> get_sensor_uuids();
-
+        virtual std::vector<Sensor::Ptr> get_sensors();
+        
         virtual void add_reading(const Sensor::Ptr sensor, timestamp_t timestamp, double value);
         virtual void add_readings(const Sensor::Ptr sensor, const readings_t& readings);
         virtual void update_readings(const Sensor::Ptr sensor, const readings_t& readings);
@@ -122,7 +123,6 @@ namespace klio {
         void flush(bool force);
         void flush(Sensor::Ptr sensor);
         void heartbeat();
-        std::vector<Sensor::Ptr> get_sensors();
 
         const std::string format_uuid_string(const std::string& meter);
         const std::string compose_device_url();

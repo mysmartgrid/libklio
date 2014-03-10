@@ -142,18 +142,6 @@ std::vector<klio::Sensor::Ptr> RocksDBStore::get_sensors_by_name(const std::stri
     return found;
 }
 
-std::vector<klio::Sensor::Ptr> RocksDBStore::get_sensors() {
-
-    std::vector<klio::Sensor::Ptr> sensors;
-    std::vector<klio::Sensor::uuid_t> uuids = get_sensor_uuids();
-
-    for (std::vector<klio::Sensor::uuid_t>::iterator uuid = uuids.begin(); uuid != uuids.end(); uuid++) {
-
-        sensors.push_back(get_sensor(*uuid));
-    }
-    return sensors;
-}
-
 std::vector<klio::Sensor::uuid_t> RocksDBStore::get_sensor_uuids() {
 
     std::vector<klio::Sensor::uuid_t> uuids;
@@ -169,6 +157,18 @@ std::vector<klio::Sensor::uuid_t> RocksDBStore::get_sensor_uuids() {
         uuids.push_back(u);
     }
     return uuids;
+}
+
+std::vector<klio::Sensor::Ptr> RocksDBStore::get_sensors() {
+
+    std::vector<klio::Sensor::Ptr> sensors;
+    std::vector<klio::Sensor::uuid_t> uuids = get_sensor_uuids();
+
+    for (std::vector<klio::Sensor::uuid_t>::iterator uuid = uuids.begin(); uuid != uuids.end(); uuid++) {
+
+        sensors.push_back(get_sensor(*uuid));
+    }
+    return sensors;
 }
 
 void RocksDBStore::add_reading(klio::Sensor::Ptr sensor, timestamp_t timestamp, double value) {

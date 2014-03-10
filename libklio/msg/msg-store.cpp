@@ -215,6 +215,41 @@ std::vector<Sensor::uuid_t> MSGStore::get_sensor_uuids() {
     return uuids;
 }
 
+std::vector<Sensor::Ptr> MSGStore::get_sensors() {
+
+    struct json_object *jobject = NULL;
+
+    try {
+        std::string url = compose_device_url();
+        jobject = perform_http_get(url, _key);
+
+        std::vector<Sensor::Ptr> sensors;
+        json_object *jsensors = json_object_object_get(jobject, "sensors");
+
+        for (int i = 0; i < json_object_array_length(jsensors); i++) {
+
+            json_object *jsensor = json_object_array_get_idx(jsensors, i);
+            json_object *jmeter = json_object_object_get(jsensor, "meter");
+            const char* meter = json_object_get_string(jmeter);
+
+            sensors.push_back(parse_sensor(
+                    format_uuid_string(meter),
+                    jsensor));
+        }
+        destroy_object(jobject);
+
+        return sensors;
+
+    } catch (GenericException const& e) {
+        destroy_object(jobject);
+        throw;
+
+    } catch (std::exception const& e) {
+        destroy_object(jobject);
+        throw EnvironmentException(e.what());
+    }
+}
+
 void MSGStore::add_reading(const Sensor::Ptr sensor, timestamp_t timestamp, double value) {
 
     set_buffers(sensor);
@@ -444,41 +479,6 @@ void MSGStore::heartbeat() {
             destroy_object(jresponse);
             destroy_object(jobject);
         }
-
-    } catch (GenericException const& e) {
-        destroy_object(jobject);
-        throw;
-
-    } catch (std::exception const& e) {
-        destroy_object(jobject);
-        throw EnvironmentException(e.what());
-    }
-}
-
-std::vector<Sensor::Ptr> MSGStore::get_sensors() {
-
-    struct json_object *jobject = NULL;
-
-    try {
-        std::string url = compose_device_url();
-        jobject = perform_http_get(url, _key);
-
-        std::vector<Sensor::Ptr> sensors;
-        json_object *jsensors = json_object_object_get(jobject, "sensors");
-
-        for (int i = 0; i < json_object_array_length(jsensors); i++) {
-
-            json_object *jsensor = json_object_array_get_idx(jsensors, i);
-            json_object *jmeter = json_object_object_get(jsensor, "meter");
-            const char* meter = json_object_get_string(jmeter);
-
-            sensors.push_back(parse_sensor(
-                    format_uuid_string(meter),
-                    jsensor));
-        }
-        destroy_object(jobject);
-
-        return sensors;
 
     } catch (GenericException const& e) {
         destroy_object(jobject);

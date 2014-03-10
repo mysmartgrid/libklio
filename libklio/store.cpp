@@ -23,11 +23,11 @@ reading_t Store::get_reading(klio::Sensor::Ptr sensor, timestamp_t timestamp) {
 
 void Store::sync(klio::Store::Ptr store) {
 
-    std::vector<klio::Sensor::uuid_t> uuids = store->get_sensor_uuids();
+    const std::vector<klio::Sensor::Ptr> sensors = store->get_sensors();
 
-    for (std::vector<klio::Sensor::uuid_t>::const_iterator uuid = uuids.begin(); uuid != uuids.end(); ++uuid) {
+    for (std::vector<klio::Sensor::Ptr>::const_iterator sensor = sensors.begin(); sensor != sensors.end(); ++sensor) {
 
-        sync_readings(store->get_sensor(*uuid), store);
+        sync_readings(*sensor, store);
     }
 }
 

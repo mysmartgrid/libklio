@@ -26,6 +26,7 @@
 #include <boost/filesystem.hpp>
 #include <libklio/common.hpp>
 #include <libklio/store.hpp>
+#include <libklio/sensor-factory.hpp>
 
 
 namespace bfs = boost::filesystem;
@@ -58,6 +59,7 @@ namespace klio {
         virtual std::vector<Sensor::Ptr> get_sensors_by_external_id(const std::string& external_id);
         virtual std::vector<Sensor::Ptr> get_sensors_by_name(const std::string& sensor_id);
         virtual std::vector<Sensor::uuid_t> get_sensor_uuids();
+        virtual std::vector<Sensor::Ptr> get_sensors();
 
         virtual void add_reading(Sensor::Ptr sensor, timestamp_t timestamp, double value);
         virtual void add_readings(Sensor::Ptr sensor, const readings_t& readings);
@@ -73,7 +75,7 @@ namespace klio {
         bool has_table(std::string name);
         void insert_reading_record(Sensor::Ptr sensor, timestamp_t timestamp, double value);
 
-        sqlite3_stmt *prepare(const std::string stmt_str);
+        sqlite3_stmt *prepare(const std::string& stmt_str);
         int execute(sqlite3_stmt *stmt, int expected_code);
         void reset(sqlite3_stmt *stmt);
         void finalize(sqlite3_stmt *stmt);
@@ -83,15 +85,17 @@ namespace klio {
         sqlite3 *db;
         bfs::path _path;
 
-        static const std::string create_sensors_table_stmt;
-        static const std::string insert_sensor_stmt;
-        static const std::string remove_sensor_stmt;
-        static const std::string update_sensor_stmt;
-        static const std::string select_sensor_stmt;
-        static const std::string select_sensor_by_external_id_stmt;
-        static const std::string select_sensor_by_name_stmt;
-        static const std::string select_all_sensor_uuids_stmt;
-        static const std::string integrity_check_stmt;
+        sqlite3_stmt* insert_sensor_stmt;
+        sqlite3_stmt* remove_sensor_stmt;
+        sqlite3_stmt* update_sensor_stmt;
+        sqlite3_stmt* select_sensor_stmt;
+        sqlite3_stmt* select_sensor_by_external_id_stmt;
+        sqlite3_stmt* select_sensor_by_name_stmt;
+        sqlite3_stmt* select_sensors_stmt;
+        sqlite3_stmt* select_all_sensor_uuids_stmt;
+        
+        static const klio::SensorFactory::Ptr sensor_factory;
+        static const klio::TimeConverter::Ptr time_converter;
     };
 };
 

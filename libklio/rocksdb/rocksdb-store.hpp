@@ -21,12 +21,12 @@
 #define LIBKLIO_ROCKSDB_ROCKSDBSTORE_HPP 1
 
 #include <vector>
-#include <rocksdb/db.h>
 #include <boost/filesystem.hpp>
 #include <libklio/store.hpp>
 
 #ifdef ENABLE_ROCKSDB
 
+#include <rocksdb/db.h>
 
 namespace bfs = boost::filesystem;
 
@@ -64,6 +64,7 @@ namespace klio {
         virtual std::vector<Sensor::Ptr> get_sensors_by_external_id(const std::string& external_id);
         virtual std::vector<Sensor::Ptr> get_sensors_by_name(const std::string& name);
         virtual std::vector<Sensor::uuid_t> get_sensor_uuids();
+        virtual std::vector<Sensor::Ptr> get_sensors();
 
         virtual void add_reading(const Sensor::Ptr sensor, timestamp_t timestamp, double value);
         virtual void add_readings(const Sensor::Ptr sensor, const readings_t& readings);
@@ -89,7 +90,6 @@ namespace klio {
         void put_value(rocksdb::DB* db, const std::string& key, const std::string& value);
         std::string get_value(rocksdb::DB* db, const std::string& key);
         void delete_value(rocksdb::DB* db, const std::string& key);
-        std::vector<klio::Sensor::Ptr> get_sensors();
 
         const std::string compose_db_path();
         const std::string compose_sensors_path();

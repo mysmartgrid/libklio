@@ -13,7 +13,6 @@ using namespace klio;
 const klio::SensorFactory::Ptr SQLite3Store::sensor_factory(new klio::SensorFactory());
 const klio::TimeConverter::Ptr SQLite3Store::time_converter(new klio::TimeConverter());
 
-
 void SQLite3Store::open() {
 
     int rc = sqlite3_open(_path.c_str(), &db);
@@ -36,6 +35,21 @@ void SQLite3Store::close() {
 
     if (db) {
         sqlite3_close(db);
+    }
+}
+
+void SQLite3Store::start_transaction() {
+
+    if (_sub_transactions++ == 0) {
+        _transaction = klio::Transaction::Ptr(new Transaction(db));
+    }
+}
+
+void SQLite3Store::commit_transaction() {
+
+    if (--_sub_transactions == 0) {
+        _transaction->commit();
+        _transaction->~Transaction();
     }
 }
 
@@ -103,7 +117,7 @@ void SQLite3Store::dispose() {
     finalize(select_sensor_by_name_stmt);
     finalize(select_sensors_stmt);
     finalize(select_all_sensor_uuids_stmt);
-    
+
     close();
     bfs::remove(_path);
 }
@@ -119,7 +133,7 @@ void SQLite3Store::add_sensor(klio::Sensor::Ptr sensor) {
 
     LOG("Adding sensor: " << sensor->str());
 
-    Transaction transaction(db);
+    start_transaction();
 
     sqlite3_bind_text(insert_sensor_stmt, 1, sensor->uuid_string().c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(insert_sensor_stmt, 2, sensor->external_id().c_str(), -1, SQLITE_TRANSIENT);
@@ -139,14 +153,14 @@ void SQLite3Store::add_sensor(klio::Sensor::Ptr sensor) {
     execute(stmt, SQLITE_DONE);
     finalize(stmt);
 
-    transaction.commit();
+    commit_transaction();
 }
 
 void SQLite3Store::remove_sensor(const klio::Sensor::Ptr sensor) {
 
     LOG("Removing sensor: " << sensor->str());
 
-    Transaction transaction(db);
+    start_transaction();
 
     sqlite3_bind_text(remove_sensor_stmt, 1, sensor->uuid_string().c_str(), -1, SQLITE_TRANSIENT);
     execute(remove_sensor_stmt, SQLITE_DONE);
@@ -159,14 +173,14 @@ void SQLite3Store::remove_sensor(const klio::Sensor::Ptr sensor) {
     execute(stmt, SQLITE_DONE);
     finalize(stmt);
 
-    transaction.commit();
+    commit_transaction();
 }
 
 void SQLite3Store::update_sensor(klio::Sensor::Ptr sensor) {
 
     LOG("Updating sensor: " << sensor->str());
 
-    Transaction transaction(db);
+    start_transaction();
 
     sqlite3_bind_text(update_sensor_stmt, 1, sensor->uuid_string().c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(update_sensor_stmt, 2, sensor->external_id().c_str(), -1, SQLITE_TRANSIENT);
@@ -179,7 +193,7 @@ void SQLite3Store::update_sensor(klio::Sensor::Ptr sensor) {
     execute(update_sensor_stmt, SQLITE_DONE);
     reset(update_sensor_stmt);
 
-    transaction.commit();
+    commit_transaction();
 }
 
 klio::Sensor::Ptr SQLite3Store::get_sensor(const klio::Sensor::uuid_t& uuid) {
@@ -273,16 +287,16 @@ static int empty_callback(void *not_used, int argc, char **argv, char **az_col_n
 
 void SQLite3Store::add_reading(klio::Sensor::Ptr sensor, timestamp_t timestamp, double value) {
 
-    Transaction transaction(db);
+    start_transaction();
 
     insert_reading_record(sensor, timestamp, value);
 
-    transaction.commit();
+    commit_transaction();
 }
 
 void SQLite3Store::add_readings(klio::Sensor::Ptr sensor, const readings_t& readings) {
 
-    Transaction transaction(db);
+    start_transaction();
 
     for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
 
@@ -291,7 +305,7 @@ void SQLite3Store::add_readings(klio::Sensor::Ptr sensor, const readings_t& read
 
         insert_reading_record(sensor, timestamp, value);
     }
-    transaction.commit();
+    commit_transaction();
 }
 
 void SQLite3Store::insert_reading_record(klio::Sensor::Ptr sensor, timestamp_t timestamp, double value) {
@@ -307,7 +321,7 @@ void SQLite3Store::insert_reading_record(klio::Sensor::Ptr sensor, timestamp_t t
 
 void SQLite3Store::update_readings(klio::Sensor::Ptr sensor, const readings_t& readings) {
 
-    Transaction transaction(db);
+    start_transaction();
 
     for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
 
@@ -316,20 +330,12 @@ void SQLite3Store::update_readings(klio::Sensor::Ptr sensor, const readings_t& r
 
         std::ostringstream oss;
 
-        // see http://stackoverflow.com/questions/2717590/sqlite-upsert-on-duplicate-key-update
-        // The SQL statement is constructed as two:
-        // 1. If the timestamp exists, the "or ignore" part of stmt 1 silently ignores the insert statement.
-        oss << "INSERT OR IGNORE INTO '" << sensor->uuid_string() << "' (timestamp, value) ";
+        oss << "INSERT OR REPLACE INTO '" << sensor->uuid_string() << "' (timestamp, value) ";
         oss << "VALUES (" << time_converter->convert_to_epoch(timestamp) << ", " << value << ");";
-
-        // 2. Instead, the update statement inserts the last received value.
-        oss << "UPDATE '" << sensor->uuid_string() << "' ";
-        oss << "SET value='" << value << "' WHERE timestamp LIKE '";
-        oss << time_converter->convert_to_epoch(timestamp) << "';";
 
         execute(oss.str(), empty_callback, NULL);
     }
-    transaction.commit();
+    commit_transaction();
 }
 
 static int get_all_readings_callback(void *store, int argc, char **argv, char **az_col_name) {

@@ -49,7 +49,6 @@ void SQLite3Store::commit_transaction() {
 
     if (--_sub_transactions == 0) {
         _transaction->commit();
-        _transaction->~Transaction();
     }
 }
 
@@ -133,6 +132,9 @@ void SQLite3Store::add_sensor(klio::Sensor::Ptr sensor) {
 
     LOG("Adding sensor: " << sensor->str());
 
+    std::ostringstream oss;
+    oss << "CREATE TABLE '" << sensor->uuid_string() << "'(timestamp INTEGER PRIMARY KEY, value DOUBLE);";
+
     start_transaction();
 
     sqlite3_bind_text(insert_sensor_stmt, 1, sensor->uuid_string().c_str(), -1, SQLITE_TRANSIENT);
@@ -146,9 +148,6 @@ void SQLite3Store::add_sensor(klio::Sensor::Ptr sensor) {
     execute(insert_sensor_stmt, SQLITE_DONE);
     reset(insert_sensor_stmt);
 
-    std::ostringstream oss;
-    oss << "CREATE TABLE '" << sensor->uuid_string() << "'(timestamp INTEGER PRIMARY KEY, value DOUBLE);";
-
     sqlite3_stmt* stmt = prepare(oss.str());
     execute(stmt, SQLITE_DONE);
     finalize(stmt);
@@ -160,14 +159,14 @@ void SQLite3Store::remove_sensor(const klio::Sensor::Ptr sensor) {
 
     LOG("Removing sensor: " << sensor->str());
 
+    std::ostringstream oss;
+    oss << "DROP TABLE '" << sensor->uuid_string() << "'";
+
     start_transaction();
 
     sqlite3_bind_text(remove_sensor_stmt, 1, sensor->uuid_string().c_str(), -1, SQLITE_TRANSIENT);
     execute(remove_sensor_stmt, SQLITE_DONE);
     reset(remove_sensor_stmt);
-
-    std::ostringstream oss;
-    oss << "DROP TABLE '" << sensor->uuid_string() << "'";
 
     sqlite3_stmt* stmt = prepare(oss.str());
     execute(stmt, SQLITE_DONE);
@@ -272,19 +271,6 @@ std::vector<klio::Sensor::Ptr> SQLite3Store::get_sensors() {
     return sensors;
 }
 
-/**
- * Dummy helper for sqlite3_exec - dumps the return values.
- */
-static int empty_callback(void *not_used, int argc, char **argv, char **az_col_name) {
-
-    for (int i = 0; i < argc; i++) {
-        printf("%s,\t", argv[i]);
-    }
-    printf("\n");
-
-    return 0;
-}
-
 void SQLite3Store::add_reading(klio::Sensor::Ptr sensor, timestamp_t timestamp, double value) {
 
     start_transaction();
@@ -300,10 +286,7 @@ void SQLite3Store::add_readings(klio::Sensor::Ptr sensor, const readings_t& read
 
     for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
 
-        klio::timestamp_t timestamp = (*it).first;
-        double value = (*it).second;
-
-        insert_reading_record(sensor, timestamp, value);
+        insert_reading_record(sensor, (*it).first, (*it).second);
     }
     commit_transaction();
 }
@@ -313,68 +296,75 @@ void SQLite3Store::insert_reading_record(klio::Sensor::Ptr sensor, timestamp_t t
     LOG("Adding to sensor: " << sensor->str() << " time=" << timestamp << " value=" << value);
 
     std::ostringstream oss;
-    oss << "INSERT INTO '" << sensor->uuid_string() << "' (timestamp, value) ";
-    oss << "VALUES (" << time_converter->convert_to_epoch(timestamp) << ", " << value << ");";
+    oss << "INSERT INTO '" << sensor->uuid_string() << "' (timestamp, value) VALUES (?, ?);";
 
-    execute(oss.str(), empty_callback, NULL);
+    sqlite3_stmt* stmt = prepare(oss.str());
+    sqlite3_bind_int(stmt, 1, time_converter->convert_to_epoch(timestamp));
+    sqlite3_bind_double(stmt, 2, value);
+
+    try {
+        execute(stmt, SQLITE_DONE);
+        finalize(stmt);
+
+    } catch (klio::StoreException e) {
+        finalize(stmt);
+        throw;
+    }
 }
 
 void SQLite3Store::update_readings(klio::Sensor::Ptr sensor, const readings_t& readings) {
+
+    std::ostringstream oss;
+    oss << "INSERT OR REPLACE INTO '" << sensor->uuid_string() << "' (timestamp, value) VALUES (?, ?);";
 
     start_transaction();
 
     for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
 
-        klio::timestamp_t timestamp = (*it).first;
-        double value = (*it).second;
+        sqlite3_stmt* stmt = prepare(oss.str());
+        sqlite3_bind_int(stmt, 1, time_converter->convert_to_epoch((*it).first));
+        sqlite3_bind_double(stmt, 2, (*it).second);
 
-        std::ostringstream oss;
+        try {
+            execute(stmt, SQLITE_DONE);
+            finalize(stmt);
 
-        oss << "INSERT OR REPLACE INTO '" << sensor->uuid_string() << "' (timestamp, value) ";
-        oss << "VALUES (" << time_converter->convert_to_epoch(timestamp) << ", " << value << ");";
-
-        execute(oss.str(), empty_callback, NULL);
+        } catch (klio::StoreException e) {
+            finalize(stmt);
+            throw;
+        }
     }
     commit_transaction();
-}
-
-static int get_all_readings_callback(void *store, int argc, char **argv, char **az_col_name) {
-
-    std::map<timestamp_t, double>* datastore;
-    datastore = reinterpret_cast<std::map<timestamp_t, double>*> (store);
-    klio::TimeConverter::Ptr tc(new klio::TimeConverter());
-    long epoch = atol(argv[0]);
-    double value = atof(argv[1]);
-
-    datastore->insert(
-            std::pair<timestamp_t, double>(
-            tc->convert_from_epoch(epoch),
-            value
-            ));
-
-    return 0;
 }
 
 readings_t_Ptr SQLite3Store::get_all_readings(klio::Sensor::Ptr sensor) {
 
     LOG("Retrieving all readings of sensor " << sensor->str());
 
-    readings_t_Ptr readings(new readings_t());
-
     std::ostringstream oss;
     oss << "SELECT timestamp, value FROM '" << sensor->uuid_string() << "';";
 
-    execute(oss.str(), get_all_readings_callback, readings.get());
+    readings_t_Ptr readings(new readings_t());
+    sqlite3_stmt* stmt = prepare(oss.str());
 
+    try {
+        while (SQLITE_ROW == sqlite3_step(stmt)) {
+
+            int epoch = sqlite3_column_int(stmt, 0);
+            double value = sqlite3_column_double(stmt, 1);
+            readings->insert(
+                    std::pair<timestamp_t, double>(
+                    time_converter->convert_from_epoch(epoch),
+                    value
+                    ));
+        }
+        finalize(stmt);
+
+    } catch (klio::StoreException e) {
+        finalize(stmt);
+        throw;
+    }
     return readings;
-}
-
-static int get_num_readings_callback(void *num, int argc, char **argv, char **azColName) {
-
-    long int* numreadings = (long int*) num;
-    *numreadings = atol(argv[0]);
-
-    return 0;
 }
 
 unsigned long int SQLite3Store::get_num_readings(klio::Sensor::Ptr sensor) {
@@ -384,25 +374,17 @@ unsigned long int SQLite3Store::get_num_readings(klio::Sensor::Ptr sensor) {
     std::ostringstream oss;
     oss << "SELECT count(*) FROM '" << sensor->uuid_string() << "';";
 
-    //FIXME: use the other execute()
-    long int num;
-    execute(oss.str(), get_num_readings_callback, &num);
+    sqlite3_stmt* stmt = prepare(oss.str());
 
-    return num;
-}
+    try {
+        int num = sqlite3_step(stmt) == SQLITE_ROW ? sqlite3_column_int(stmt, 0) : 0;
+        finalize(stmt);
+        return num;
 
-static int get_last_reading_callback(void *pair, int argc, char **argv, char **azColName) {
-
-    std::pair<timestamp_t, double>* datastore;
-    datastore = reinterpret_cast<std::pair <timestamp_t, double> *> (pair);
-    klio::TimeConverter::Ptr tc(new klio::TimeConverter());
-
-    long epoch = atol(argv[0]);
-    double value = atof(argv[1]);
-    datastore->first = tc->convert_from_epoch(epoch);
-    datastore->second = value;
-
-    return 0;
+    } catch (std::exception const& e) {
+        finalize(stmt);
+        throw;
+    }
 }
 
 reading_t SQLite3Store::get_last_reading(klio::Sensor::Ptr sensor) {
@@ -410,13 +392,27 @@ reading_t SQLite3Store::get_last_reading(klio::Sensor::Ptr sensor) {
     LOG("Retrieving last readings of sensor " << sensor->str());
 
     std::ostringstream oss;
-    oss << "SELECT timestamp, value FROM '" << sensor->uuid_string() << "' ";
-    oss << "ORDER BY timestamp DESC LIMIT 1;";
+    oss << "SELECT timestamp, value FROM '" << sensor->uuid_string() << "' " <<
+            "ORDER BY timestamp DESC LIMIT 1;";
 
     std::pair<timestamp_t, double> reading;
-    execute(oss.str(), get_last_reading_callback, &reading);
+    sqlite3_stmt* stmt = prepare(oss.str());
 
-    return reading;
+    try {
+        if (sqlite3_step(stmt) == SQLITE_ROW) {
+
+            reading = std::pair<timestamp_t, double>(
+                    time_converter->convert_from_epoch(sqlite3_column_int(stmt, 0)),
+                    sqlite3_column_double(stmt, 1)
+                    );
+        }
+        finalize(stmt);
+        return reading;
+
+    } catch (std::exception const& e) {
+        finalize(stmt);
+        throw;
+    }
 }
 
 sqlite3_stmt *SQLite3Store::prepare(const std::string& stmt_str) {

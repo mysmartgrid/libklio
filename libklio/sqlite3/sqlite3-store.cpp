@@ -273,43 +273,50 @@ std::vector<klio::Sensor::Ptr> SQLite3Store::get_sensors() {
 
 void SQLite3Store::add_reading(klio::Sensor::Ptr sensor, timestamp_t timestamp, double value) {
 
+    LOG("Adding to sensor: " << sensor->str() << " time=" << timestamp << " value=" << value);
+
+    std::ostringstream oss;
+    oss << "INSERT INTO '" << sensor->uuid_string() << "' (timestamp, value) VALUES (?, ?);";
+
     start_transaction();
 
-    insert_reading_record(sensor, timestamp, value);
+    sqlite3_stmt* stmt = prepare(oss.str());
+
+    try {
+        insert_reading_record(stmt, timestamp, value);
+
+    } catch (klio::StoreException e) {
+        finalize(stmt);
+        throw;
+    }
+    finalize(stmt);
 
     commit_transaction();
 }
 
 void SQLite3Store::add_readings(klio::Sensor::Ptr sensor, const readings_t& readings) {
 
-    start_transaction();
-
-    for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
-
-        insert_reading_record(sensor, (*it).first, (*it).second);
-    }
-    commit_transaction();
-}
-
-void SQLite3Store::insert_reading_record(klio::Sensor::Ptr sensor, timestamp_t timestamp, double value) {
-
-    LOG("Adding to sensor: " << sensor->str() << " time=" << timestamp << " value=" << value);
+    LOG("Adding " << readings->size() << " readings to sensor: " << sensor->str());
 
     std::ostringstream oss;
     oss << "INSERT INTO '" << sensor->uuid_string() << "' (timestamp, value) VALUES (?, ?);";
 
+    start_transaction();
+
     sqlite3_stmt* stmt = prepare(oss.str());
-    sqlite3_bind_int(stmt, 1, time_converter->convert_to_epoch(timestamp));
-    sqlite3_bind_double(stmt, 2, value);
 
     try {
-        execute(stmt, SQLITE_DONE);
-        finalize(stmt);
+        for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
 
+            insert_reading_record(stmt, (*it).first, (*it).second);
+        }
     } catch (klio::StoreException e) {
         finalize(stmt);
         throw;
     }
+    finalize(stmt);
+
+    commit_transaction();
 }
 
 void SQLite3Store::update_readings(klio::Sensor::Ptr sensor, const readings_t& readings) {
@@ -319,22 +326,29 @@ void SQLite3Store::update_readings(klio::Sensor::Ptr sensor, const readings_t& r
 
     start_transaction();
 
-    for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
+    sqlite3_stmt* stmt = prepare(oss.str());
 
-        sqlite3_stmt* stmt = prepare(oss.str());
-        sqlite3_bind_int(stmt, 1, time_converter->convert_to_epoch((*it).first));
-        sqlite3_bind_double(stmt, 2, (*it).second);
+    try {
+        for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
 
-        try {
-            execute(stmt, SQLITE_DONE);
-            finalize(stmt);
-
-        } catch (klio::StoreException e) {
-            finalize(stmt);
-            throw;
+            insert_reading_record(stmt, (*it).first, (*it).second);
         }
+
+    } catch (klio::StoreException e) {
+        finalize(stmt);
+        throw;
     }
+    finalize(stmt);
+
     commit_transaction();
+}
+
+void SQLite3Store::insert_reading_record(sqlite3_stmt* stmt, timestamp_t timestamp, double value) {
+
+    sqlite3_bind_int(stmt, 1, time_converter->convert_to_epoch(timestamp));
+    sqlite3_bind_double(stmt, 2, value);
+    execute(stmt, SQLITE_DONE);
+    reset(stmt);
 }
 
 readings_t_Ptr SQLite3Store::get_all_readings(klio::Sensor::Ptr sensor) {

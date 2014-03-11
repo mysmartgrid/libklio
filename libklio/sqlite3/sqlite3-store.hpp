@@ -77,7 +77,7 @@ namespace klio {
         void start_transaction();
         void commit_transaction();
         bool has_table(std::string name);
-        void insert_reading_record(Sensor::Ptr sensor, timestamp_t timestamp, double value);
+        void insert_reading_record(sqlite3_stmt* stmt, timestamp_t timestamp, double value);
         sqlite3_stmt *prepare(const std::string& stmt_str);
         int execute(sqlite3_stmt *stmt, int expected_code);
         void reset(sqlite3_stmt *stmt);

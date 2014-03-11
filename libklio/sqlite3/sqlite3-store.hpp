@@ -88,7 +88,7 @@ namespace klio {
         sqlite3 *db;
         bfs::path _path;
         Transaction::Ptr _transaction;
-        int _sub_transactions = 0;
+        int _sub_transactions;
         sqlite3_stmt* insert_sensor_stmt;
         sqlite3_stmt* remove_sensor_stmt;
         sqlite3_stmt* update_sensor_stmt;

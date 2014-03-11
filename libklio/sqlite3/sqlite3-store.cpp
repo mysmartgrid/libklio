@@ -104,6 +104,7 @@ void SQLite3Store::initialize() {
     select_sensor_by_name_stmt = prepare("SELECT uuid, external_id, name, description, unit, timezone, device_type_id FROM sensors WHERE name = ?1;");
     select_sensors_stmt = prepare("SELECT uuid, external_id, name, description, unit, timezone, device_type_id FROM sensors;");
     select_all_sensor_uuids_stmt = prepare("SELECT uuid FROM sensors;");
+    _sub_transactions = 0;
 }
 
 void SQLite3Store::dispose() {

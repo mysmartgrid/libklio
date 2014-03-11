@@ -85,18 +85,18 @@ namespace klio {
         int execute(std::string stmt, int (*callback)(void*, int, char**, char**), void *arg);
         Sensor::Ptr parse_sensor(sqlite3_stmt* stmt);
 
-        sqlite3 *db;
+        sqlite3 *_db;
         bfs::path _path;
         Transaction::Ptr _transaction;
         int _sub_transactions;
-        sqlite3_stmt* insert_sensor_stmt;
-        sqlite3_stmt* remove_sensor_stmt;
-        sqlite3_stmt* update_sensor_stmt;
-        sqlite3_stmt* select_sensor_stmt;
-        sqlite3_stmt* select_sensor_by_external_id_stmt;
-        sqlite3_stmt* select_sensor_by_name_stmt;
-        sqlite3_stmt* select_sensors_stmt;
-        sqlite3_stmt* select_all_sensor_uuids_stmt;
+        sqlite3_stmt* _insert_sensor_stmt;
+        sqlite3_stmt* _remove_sensor_stmt;
+        sqlite3_stmt* _update_sensor_stmt;
+        sqlite3_stmt* _select_sensor_stmt;
+        sqlite3_stmt* _select_sensor_by_external_id_stmt;
+        sqlite3_stmt* _select_sensor_by_name_stmt;
+        sqlite3_stmt* _select_sensors_stmt;
+        sqlite3_stmt* _select_all_sensor_uuids_stmt;
         
         static const klio::SensorFactory::Ptr sensor_factory;
         static const klio::TimeConverter::Ptr time_converter;

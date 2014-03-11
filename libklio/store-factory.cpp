@@ -18,6 +18,7 @@ SQLite3Store::Ptr StoreFactory::open_sqlite3_store(const bfs::path& path) {
     SQLite3Store::Ptr store = create_sqlite3_store(path);
     store->open();
     store->check_integrity();
+    store->initialize();
     return store;
 }
 

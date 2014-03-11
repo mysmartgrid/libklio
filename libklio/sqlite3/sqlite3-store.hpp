@@ -79,10 +79,10 @@ namespace klio {
         bool has_table(std::string name);
         void insert_reading_record(sqlite3_stmt* stmt, timestamp_t timestamp, double value);
         sqlite3_stmt *prepare(const std::string& stmt_str);
+        void prepare_statements();
         int execute(sqlite3_stmt *stmt, int expected_code);
         void reset(sqlite3_stmt *stmt);
         void finalize(sqlite3_stmt *stmt);
-        int execute(std::string stmt, int (*callback)(void*, int, char**, char**), void *arg);
         Sensor::Ptr parse_sensor(sqlite3_stmt* stmt);
 
         sqlite3 *_db;

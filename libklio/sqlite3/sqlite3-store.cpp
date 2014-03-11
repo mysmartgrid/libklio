@@ -92,23 +92,29 @@ void SQLite3Store::check_integrity() {
 void SQLite3Store::initialize() {
 
     //Create table sensors if it does not exist
-    sqlite3_stmt* stmt = prepare("CREATE TABLE IF NOT EXISTS sensors(uuid VARCHAR(16) PRIMARY KEY, external_id VARCHAR(32), name VARCHAR(100), description VARCHAR(255), unit VARCHAR(20), timezone INTEGER, device_type_id INTEGER);");
+    sqlite3_stmt* stmt = prepare("CREATE TABLE IF NOT EXISTS sensors(uuid VARCHAR(16) PRIMARY KEY, external_id VARCHAR(32), name VARCHAR(100), description VARCHAR(255), unit VARCHAR(20), timezone INTEGER, device_type_id INTEGER)");
     execute(stmt, SQLITE_DONE);
     finalize(stmt);
 
-    _insert_sensor_stmt = prepare("INSERT INTO sensors (uuid, external_id, name, description, unit, timezone, device_type_id) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7);");
+    prepare_statements();
+}
+
+void SQLite3Store::prepare_statements() {
+
+    _insert_sensor_stmt = prepare("INSERT INTO sensors (uuid, external_id, name, description, unit, timezone, device_type_id) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)");
     _remove_sensor_stmt = prepare("DELETE FROM sensors WHERE uuid = ?1");
-    _update_sensor_stmt = prepare("UPDATE sensors SET external_id = ?2, name = ?3, description = ?4, unit = ?5, timezone = ?6, device_type_id = ?7 WHERE uuid = ?1;");
-    _select_sensor_stmt = prepare("SELECT uuid, external_id, name, description, unit, timezone, device_type_id FROM sensors WHERE uuid = ?1;");
-    _select_sensor_by_external_id_stmt = prepare("SELECT uuid, external_id, name, description, unit, timezone, device_type_id FROM sensors WHERE external_id = ?1;");
-    _select_sensor_by_name_stmt = prepare("SELECT uuid, external_id, name, description, unit, timezone, device_type_id FROM sensors WHERE name = ?1;");
-    _select_sensors_stmt = prepare("SELECT uuid, external_id, name, description, unit, timezone, device_type_id FROM sensors;");
-    _select_all_sensor_uuids_stmt = prepare("SELECT uuid FROM sensors;");
+    _update_sensor_stmt = prepare("UPDATE sensors SET external_id = ?2, name = ?3, description = ?4, unit = ?5, timezone = ?6, device_type_id = ?7 WHERE uuid = ?1");
+    _select_sensor_stmt = prepare("SELECT uuid, external_id, name, description, unit, timezone, device_type_id FROM sensors WHERE uuid = ?1");
+    _select_sensor_by_external_id_stmt = prepare("SELECT uuid, external_id, name, description, unit, timezone, device_type_id FROM sensors WHERE external_id = ?1");
+    _select_sensor_by_name_stmt = prepare("SELECT uuid, external_id, name, description, unit, timezone, device_type_id FROM sensors WHERE name = ?1");
+    _select_sensors_stmt = prepare("SELECT uuid, external_id, name, description, unit, timezone, device_type_id FROM sensors");
+    _select_all_sensor_uuids_stmt = prepare("SELECT uuid FROM sensors");
     _sub_transactions = 0;
 }
 
 void SQLite3Store::dispose() {
 
+    //FIXME: move this block to close()
     finalize(_insert_sensor_stmt);
     finalize(_remove_sensor_stmt);
     finalize(_update_sensor_stmt);
@@ -120,6 +126,15 @@ void SQLite3Store::dispose() {
 
     close();
     bfs::remove(_path);
+}
+
+bool SQLite3Store::has_table(std::string name) {
+
+    sqlite3_stmt* stmt = prepare("SELECT name FROM sqlite_master WHERE type='table' AND name=?");
+    sqlite3_bind_text(stmt, 1, name.c_str(), -1, SQLITE_TRANSIENT);
+    bool found = (sqlite3_step(stmt) == SQLITE_ROW);
+    finalize(stmt);
+    return found;
 }
 
 const std::string SQLite3Store::str() {
@@ -477,19 +492,6 @@ void SQLite3Store::finalize(sqlite3_stmt *stmt) {
 
     reset(stmt);
     sqlite3_finalize(stmt);
-}
-
-int SQLite3Store::execute(std::string stmt, int (*callback)(void*, int, char**, char**), void *arg) {
-
-    char* err_msg = 0;
-    int rc = sqlite3_exec(_db, stmt.c_str(), callback, arg, &err_msg);
-
-    if (rc != SQLITE_OK) {
-        std::ostringstream oss;
-        oss << "Can't execute statement: " << stmt << " error: " << err_msg << ", error code " << rc;
-        throw StoreException(oss.str());
-    }
-    return rc;
 }
 
 klio::Sensor::Ptr SQLite3Store::parse_sensor(sqlite3_stmt* stmt) {

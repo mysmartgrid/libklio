@@ -46,6 +46,7 @@ namespace klio {
         virtual void check_integrity() = 0;
         virtual void initialize() = 0;
         virtual void dispose() = 0;
+        virtual void prepare();
         virtual const std::string str() = 0;
 
         virtual void add_sensor(klio::Sensor::Ptr sensor) = 0;

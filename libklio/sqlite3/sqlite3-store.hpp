@@ -40,7 +40,17 @@ namespace klio {
         typedef std::tr1::shared_ptr<SQLite3Store> Ptr;
 
         SQLite3Store(const bfs::path& path) :
-        _path(path) {
+        _path(path),
+        _db(NULL),
+        _sub_transactions(0),
+        _insert_sensor_stmt(NULL),
+        _remove_sensor_stmt(NULL),
+        _update_sensor_stmt(NULL),
+        _select_sensor_stmt(NULL),
+        _select_sensor_by_external_id_stmt(NULL),
+        _select_sensor_by_name_stmt(NULL),
+        _select_sensors_stmt(NULL),
+        _select_all_sensor_uuids_stmt(NULL) {
         };
 
         virtual ~SQLite3Store() {
@@ -51,6 +61,7 @@ namespace klio {
         void close();
         void check_integrity();
         void initialize();
+        void prepare();
         void dispose();
         const std::string str();
 
@@ -79,14 +90,13 @@ namespace klio {
         bool has_table(std::string name);
         void insert_reading_record(sqlite3_stmt* stmt, timestamp_t timestamp, double value);
         sqlite3_stmt *prepare(const std::string& stmt_str);
-        void prepare_statements();
         int execute(sqlite3_stmt *stmt, int expected_code);
         void reset(sqlite3_stmt *stmt);
         void finalize(sqlite3_stmt *stmt);
         Sensor::Ptr parse_sensor(sqlite3_stmt* stmt);
 
-        sqlite3 *_db;
         bfs::path _path;
+        sqlite3 *_db;
         Transaction::Ptr _transaction;
         int _sub_transactions;
         sqlite3_stmt* _insert_sensor_stmt;

@@ -57,11 +57,8 @@ BOOST_AUTO_TEST_CASE(check_create_sqlite3_storage) {
 
     try {
         std::cout << "Attempting to create " << db << std::endl;
-        klio::Store::Ptr store(store_factory->create_sqlite3_store(db));
+        store = store_factory->create_sqlite3_store(db);
         std::cout << "Created database: " << store->str() << std::endl;
-
-        store->open();
-        store->initialize();
 
         klio::Store::Ptr loaded(store_factory->open_sqlite3_store(db));
         std::cout << "Opened database: " << loaded->str() << std::endl;
@@ -115,9 +112,6 @@ BOOST_AUTO_TEST_CASE(check_add_sqlite3_sensor) {
         store = store_factory->create_sqlite3_store(db);
         std::cout << "Created database: " << store->str() << std::endl;
 
-        store->open();
-        store->initialize();
-
         klio::Sensor::Ptr sensor(sensor_factory->createSensor(
                 "89c18074-8bcf-240b-db7c-c1281038adcb",
                 "Test",
@@ -158,9 +152,6 @@ BOOST_AUTO_TEST_CASE(check_update_sqlite3_sensor) {
         std::cout << "Attempting to create " << db << std::endl;
         store = store_factory->create_sqlite3_store(db);
         std::cout << "Created database: " << store->str() << std::endl;
-
-        store->open();
-        store->initialize();
 
         klio::Sensor::Ptr sensor(sensor_factory->createSensor(
                 "92c18074-8bcf-240b-db7c-c1281038adcb",
@@ -209,9 +200,6 @@ BOOST_AUTO_TEST_CASE(check_remove_sqlite3_sensor) {
         store = store_factory->create_sqlite3_store(db);
         std::cout << "Created database: " << store->str() << std::endl;
 
-        store->open();
-        store->initialize();
-
         klio::Sensor::Ptr sensor(sensor_factory->createSensor(
                 "89c18074-8bcf-890b-db7c-c1281038adcb",
                 "Test",
@@ -253,9 +241,6 @@ BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensor) {
         std::cout << "Attempting to create " << db << std::endl;
         store = store_factory->create_sqlite3_store(db);
         std::cout << "Created database: " << store->str() << std::endl;
-
-        store->open();
-        store->initialize();
 
         klio::Sensor::Ptr sensor(sensor_factory->createSensor(
                 "98c18074-8bcf-890b-db7c-c1281038adcb",
@@ -307,9 +292,6 @@ BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensor_by_name) {
         std::cout << "Attempting to create " << db << std::endl;
         store = store_factory->create_sqlite3_store(db);
         std::cout << "Created database: " << store->str() << std::endl;
-
-        store->open();
-        store->initialize();
 
         klio::Sensor::Ptr sensor1(sensor_factory->createSensor(
                 "98c18074-8bcf-890b-db7c-c1281038adcb",
@@ -379,9 +361,6 @@ BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensors_by_external_id) {
         store = store_factory->create_sqlite3_store(db);
         std::cout << "Created database: " << store->str() << std::endl;
 
-        store->open();
-        store->initialize();
-
         klio::Sensor::Ptr sensor1(sensor_factory->createSensor(
                 "82c18074-8bcf-890b-db7c-c1281038adcb",
                 "External Id 1",
@@ -440,9 +419,6 @@ BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensor_uuids) {
         std::cout << "Attempting to create " << db << std::endl;
         store = store_factory->create_sqlite3_store(db);
         std::cout << "Created database: " << store->str() << std::endl;
-
-        store->open();
-        store->initialize();
 
         klio::Sensor::Ptr sensor1(sensor_factory->createSensor(
                 "98c17480-8bcf-890b-db7c-c1081038adcb",

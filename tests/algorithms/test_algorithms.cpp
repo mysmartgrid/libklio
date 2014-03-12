@@ -35,8 +35,6 @@ klio::Store::Ptr generate_store() {
   std::cout << "Attempting to create " << db << std::endl;
   klio::Store::Ptr store(factory->create_sqlite3_store(db));
   std::cout << "Created: " << store->str() << std::endl;
-  store->open(); // Second call to open - should not break
-  store->initialize();
   return store;
 }
 

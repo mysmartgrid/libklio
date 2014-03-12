@@ -75,8 +75,6 @@ BOOST_AUTO_TEST_CASE(check_create_sensor_sqlite3) {
         std::cout << "Created: " << store->str() << std::endl;
 
         try {
-            store->open();
-            store->initialize();
             store->add_sensor(sensor1);
             std::cout << "added: " << sensor1->str() << std::endl;
 
@@ -133,10 +131,8 @@ BOOST_AUTO_TEST_CASE(check_update_sensor) {
         bfs::remove(db);
         klio::Store::Ptr store(factory->create_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
-        store->open();
 
         try {
-            store->initialize();
             store->add_sensor(sensor);
 
             sensor->external_id("Changed External id");
@@ -198,10 +194,8 @@ BOOST_AUTO_TEST_CASE(check_retrieve_sensor_by_uuid) {
         bfs::remove(db);
         klio::Store::Ptr store(factory->create_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
-        store->open();
 
         try {
-            store->initialize();
             store->add_sensor(sensor);
 
             klio::Sensor::Ptr retrieved = store->get_sensor(sensor->uuid());
@@ -241,10 +235,8 @@ BOOST_AUTO_TEST_CASE(check_retrieve_sensor_by_name) {
         bfs::remove(db);
         klio::Store::Ptr store(factory->create_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
-        store->open();
 
         try {
-            store->initialize();
             store->add_sensor(sensor1);
             store->add_sensor(sensor2a);
             store->add_sensor(sensor2b);
@@ -294,10 +286,8 @@ BOOST_AUTO_TEST_CASE(check_retrieve_sensor_uuids_sqlite3) {
         bfs::remove(db);
         klio::Store::Ptr store(factory->create_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
-        store->open();
 
         try {
-            store->initialize();
             store->add_sensor(sensor1);
             store->add_sensor(sensor2);
             std::cout << "added: " << sensor1->str() << std::endl;
@@ -342,10 +332,8 @@ BOOST_AUTO_TEST_CASE(check_remove_sensor_sqlite3) {
         bfs::remove(db);
         klio::Store::Ptr store(factory->create_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
-        store->open();
 
         try {
-            store->initialize();
             store->add_sensor(sensor1);
             std::cout << "added: " << sensor1->str() << std::endl;
 

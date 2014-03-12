@@ -71,3 +71,6 @@ void Store::sync_readings(klio::Sensor::Ptr sensor, klio::Store::Ptr store) {
 
     update_readings(local_sensor, *readings);
 }
+
+void Store::prepare() {
+}

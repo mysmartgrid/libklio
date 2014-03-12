@@ -333,7 +333,7 @@ BOOST_AUTO_TEST_CASE(check_move_msg_sensor_to_new_store) {
 
             store1->close();
             store1->open();
-            store1->initialize();
+            store1->prepare();
 
             std::vector<klio::Sensor::Ptr> sensors = store1->get_sensors_by_external_id(external_id);
 
@@ -366,7 +366,7 @@ BOOST_AUTO_TEST_CASE(check_move_msg_sensor_to_new_store) {
 
             store1->close();
             store1->open();
-            store1->initialize();
+            store1->prepare();
 
             sensors = store1->get_sensors_by_external_id(external_id);
 
@@ -483,6 +483,7 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor) {
         try {
             store->open();
             store->initialize();
+            store->prepare();
             klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
 
             klio::Sensor::Ptr sensor1(sensor_factory->createSensor(
@@ -640,6 +641,7 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensors_by_external_id) {
         try {
             store->open();
             store->initialize();
+            store->prepare();
             klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
 
             klio::Sensor::Ptr sensor1(sensor_factory->createSensor(

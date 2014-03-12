@@ -39,10 +39,8 @@ BOOST_AUTO_TEST_CASE(check_add_retrieve_reading) {
         bfs::path db(TEST_DB1_FILE);
         klio::Store::Ptr store(store_factory->create_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
-        store->open();
 
         try {
-            store->initialize();
             store->add_sensor(sensor);
             std::cout << "added to store: " << sensor->str() << std::endl;
 
@@ -96,10 +94,8 @@ BOOST_AUTO_TEST_CASE(check_retrieve_last_reading) {
         bfs::path db(TEST_DB1_FILE);
         klio::Store::Ptr store(store_factory->create_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
-        store->open();
 
         try {
-            store->initialize();
             store->add_sensor(sensor);
             std::cout << "added to store: " << sensor->str() << std::endl;
 
@@ -148,10 +144,8 @@ BOOST_AUTO_TEST_CASE(check_sqlite3_bulk_insert) {
         bfs::path db(TEST_DB1_FILE);
         klio::Store::Ptr store(store_factory->create_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
-        store->open();
 
         try {
-            store->initialize();
             store->add_sensor(sensor);
             std::cout << "added to store: " << sensor->str() << std::endl;
 
@@ -294,10 +288,8 @@ BOOST_AUTO_TEST_CASE(check_bulk_insert_duplicates) {
 
         klio::Store::Ptr store(store_factory->create_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
-        store->open();
 
         try {
-            store->initialize();
             store->add_sensor(sensor);
             std::cout << "added to store: " << sensor->str() << std::endl;
 
@@ -371,10 +363,8 @@ BOOST_AUTO_TEST_CASE(check_num_readings) {
         bfs::path db(TEST_DB1_FILE);
         klio::Store::Ptr store(store_factory->create_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
-        store->open();
 
         try {
-            store->initialize();
             store->add_sensor(sensor);
             std::cout << "added to store: " << sensor->str() << std::endl;
 
@@ -418,12 +408,10 @@ BOOST_AUTO_TEST_CASE(check_sync_readings) {
         bfs::path db1(TEST_DB1_FILE);
         klio::Store::Ptr storeA(store_factory->create_sqlite3_store(db1));
         std::cout << "Created: " << storeA->str() << std::endl;
-        storeA->open();
 
         bfs::path db2(TEST_DB2_FILE);
         klio::Store::Ptr storeB(store_factory->create_sqlite3_store(db2));
         std::cout << "Created: " << storeB->str() << std::endl;
-        storeB->open();
 
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
         klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "sensor1", "Watt", "Europe/Berlin"));
@@ -439,12 +427,6 @@ BOOST_AUTO_TEST_CASE(check_sync_readings) {
         std::cout << "Created " << sensor4->str() << std::endl;
 
         try {
-            storeA->initialize();
-            std::cout << "Initialized: " << storeA->str() << std::endl;
-
-            storeB->initialize();
-            std::cout << "Initialized: " << storeB->str() << std::endl;
-
             storeA->add_sensor(sensor1);
             storeB->sync(storeA);
             std::vector<klio::Sensor::uuid_t> uuids = storeB->get_sensor_uuids();
@@ -575,17 +557,14 @@ BOOST_AUTO_TEST_CASE(check_sync_store) {
         bfs::path db1(TEST_DB1_FILE);
         klio::Store::Ptr source1(store_factory->create_sqlite3_store(db1));
         std::cout << "Created: " << source1->str() << std::endl;
-        source1->open();
 
         bfs::path db2(TEST_DB2_FILE);
         klio::Store::Ptr source2(store_factory->create_sqlite3_store(db2));
         std::cout << "Created: " << source2->str() << std::endl;
-        source2->open();
 
         bfs::path db4(TEST_DB4_FILE);
         klio::Store::Ptr target(store_factory->create_sqlite3_store(db4));
         std::cout << "Created: " << target->str() << std::endl;
-        target->open();
 
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
         klio::Sensor::Ptr sensor1(sensor_factory->createSensor("same_external_id", "sensor1", "Watt", "Europe/Berlin"));
@@ -595,14 +574,6 @@ BOOST_AUTO_TEST_CASE(check_sync_store) {
         std::cout << "Created " << sensor2->str() << std::endl;
 
         try {
-            source1->initialize();
-            source2->initialize();
-            target->initialize();
-
-            std::cout << "Initialized: " << source1->str() << std::endl;
-            std::cout << "Initialized: " << source2->str() << std::endl;
-            std::cout << "Initialized: " << target->str() << std::endl;
-
             source1->add_sensor(sensor1);
             source2->add_sensor(sensor2);
 

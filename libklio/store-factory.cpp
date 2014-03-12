@@ -10,15 +10,19 @@ using namespace klio;
 
 SQLite3Store::Ptr StoreFactory::create_sqlite3_store(const bfs::path& path) {
 
-    return SQLite3Store::Ptr(new SQLite3Store(path));
+    SQLite3Store::Ptr store = SQLite3Store::Ptr(new SQLite3Store(path));
+    store->open();
+    store->initialize();
+    store->prepare();
+    return store;
 }
 
 SQLite3Store::Ptr StoreFactory::open_sqlite3_store(const bfs::path& path) {
 
-    SQLite3Store::Ptr store = create_sqlite3_store(path);
+    SQLite3Store::Ptr store = SQLite3Store::Ptr(new SQLite3Store(path));
     store->open();
     store->check_integrity();
-    store->initialize();
+    store->prepare();
     return store;
 }
 

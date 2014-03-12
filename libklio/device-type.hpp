@@ -61,7 +61,7 @@ namespace klio {
         const static DeviceType::Ptr HAIR_DRIER;
         const static DeviceType::Ptr AQUARIUM;
 
-        const static DeviceType::Ptr TV_HIFI;
+        const static DeviceType::Ptr TV;
         const static DeviceType::Ptr RADIO;
         const static DeviceType::Ptr LAMP;
         const static DeviceType::Ptr COMPUTER;
@@ -69,6 +69,8 @@ namespace klio {
         const static DeviceType::Ptr PHOTOCOPIER;
         const static DeviceType::Ptr PRINTER;
         const static DeviceType::Ptr OTHER_IT_DEVICE;
+        const static DeviceType::Ptr XBOX_ONE;
+        const static DeviceType::Ptr CABLE_RECEIVER;
 
         static std::map<int, DeviceType::Ptr> get_all();
         static DeviceType::Ptr get_by_id(int id);

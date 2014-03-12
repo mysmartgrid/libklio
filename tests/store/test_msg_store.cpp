@@ -299,6 +299,8 @@ BOOST_AUTO_TEST_CASE(check_move_msg_sensor_to_new_store) {
             store2->open();
             store1->initialize();
             store2->initialize();
+            store1->prepare();
+            store2->prepare();
 
             klio::Sensor::Ptr sensor(sensor_factory->createSensor(
                     "90328074-8bcf-240b-db7c-c1281038adcb",

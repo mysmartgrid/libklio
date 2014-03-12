@@ -72,6 +72,38 @@ BOOST_AUTO_TEST_CASE(check_create_sqlite3_storage) {
     }
 }
 
+BOOST_AUTO_TEST_CASE(check_open_close_sqlite3_storage) {
+
+    std::cout << "Testing opening and closing SQLite3 store" << std::endl;
+    klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
+    bfs::path db(TEST_DB1_FILE);
+    klio::Store::Ptr store;
+
+    try {
+        std::cout << "Attempting to create " << db << std::endl;
+        store = store_factory->create_sqlite3_store(db);
+        std::cout << "Created database: " << store->str() << std::endl;
+
+        store->open();
+        store->open();
+        
+        store->close();
+        store->close();
+
+        store->open();
+
+        store->close();
+        store->open();
+
+        store->dispose();
+
+    } catch (klio::GenericException const& ex) {
+        store->dispose();
+        std::cout << "Caught invalid exception: " << ex.what() << std::endl;
+        BOOST_FAIL("Unexpected exception occurred for initialize request");
+    }
+}
+
 BOOST_AUTO_TEST_CASE(check_open_corrupt_sqlite3_file) {
 
     std::cout << "Testing storage creation for SQLite3" << std::endl;

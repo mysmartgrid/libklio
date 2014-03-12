@@ -42,7 +42,7 @@ namespace klio {
         SQLite3Store(const bfs::path& path) :
         _path(path),
         _db(NULL),
-        _sub_transactions(0),
+        _transaction(klio::Transaction::Ptr(new klio::Transaction())),
         _insert_sensor_stmt(NULL),
         _remove_sensor_stmt(NULL),
         _update_sensor_stmt(NULL),
@@ -85,20 +85,17 @@ namespace klio {
         SQLite3Store(const SQLite3Store& original);
         SQLite3Store& operator =(const SQLite3Store& rhs);
 
-        void start_transaction();
-        void commit_transaction();
         bool has_table(std::string name);
         void insert_reading_record(sqlite3_stmt* stmt, timestamp_t timestamp, double value);
         sqlite3_stmt *prepare(const std::string& stmt_str);
         int execute(sqlite3_stmt *stmt, int expected_code);
         void reset(sqlite3_stmt *stmt);
-        void finalize(sqlite3_stmt *stmt);
+        void finalize(sqlite3_stmt **stmt);
         Sensor::Ptr parse_sensor(sqlite3_stmt* stmt);
 
         bfs::path _path;
         sqlite3 *_db;
         Transaction::Ptr _transaction;
-        int _sub_transactions;
         sqlite3_stmt* _insert_sensor_stmt;
         sqlite3_stmt* _remove_sensor_stmt;
         sqlite3_stmt* _update_sensor_stmt;

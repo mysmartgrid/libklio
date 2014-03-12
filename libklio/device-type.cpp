@@ -35,7 +35,7 @@ const DeviceType::Ptr DeviceType::MICROWAVE(new DeviceType(311, "Microwave"));
 const DeviceType::Ptr DeviceType::HAIR_DRIER(new DeviceType(312, "Hair Drier"));
 const DeviceType::Ptr DeviceType::AQUARIUM(new DeviceType(313, "Aquarium"));
 
-const DeviceType::Ptr DeviceType::TV_HIFI(new DeviceType(400, "TV HIFI"));
+const DeviceType::Ptr DeviceType::TV(new DeviceType(400, "TV"));
 const DeviceType::Ptr DeviceType::RADIO(new DeviceType(401, "Radio"));
 const DeviceType::Ptr DeviceType::LAMP(new DeviceType(403, "Lamp"));
 const DeviceType::Ptr DeviceType::COMPUTER(new DeviceType(404, "Computer"));
@@ -43,6 +43,8 @@ const DeviceType::Ptr DeviceType::LAPTOP(new DeviceType(405, "Laptop"));
 const DeviceType::Ptr DeviceType::PHOTOCOPIER(new DeviceType(406, "Photocopier"));
 const DeviceType::Ptr DeviceType::PRINTER(new DeviceType(407, "Printer"));
 const DeviceType::Ptr DeviceType::OTHER_IT_DEVICE(new DeviceType(408, "Other IT device"));
+const DeviceType::Ptr DeviceType::XBOX_ONE(new DeviceType(409, "Xbox One"));
+const DeviceType::Ptr DeviceType::CABLE_RECEIVER(new DeviceType(410, "Cable Receiver"));
 
 const std::map<int, DeviceType::Ptr> DeviceType::_all = boost::assign::map_list_of
 
@@ -76,14 +78,16 @@ const std::map<int, DeviceType::Ptr> DeviceType::_all = boost::assign::map_list_
 (DeviceType::HAIR_DRIER->id(), DeviceType::HAIR_DRIER)
 (DeviceType::AQUARIUM->id(), DeviceType::AQUARIUM)
 
-(DeviceType::TV_HIFI->id(), DeviceType::TV_HIFI)
+(DeviceType::TV->id(), DeviceType::TV)
 (DeviceType::RADIO->id(), DeviceType::RADIO)
 (DeviceType::LAMP->id(), DeviceType::LAMP)
 (DeviceType::COMPUTER->id(), DeviceType::COMPUTER)
 (DeviceType::LAPTOP->id(), DeviceType::LAPTOP)
 (DeviceType::PHOTOCOPIER->id(), DeviceType::PHOTOCOPIER)
 (DeviceType::PRINTER->id(), DeviceType::PRINTER)
-(DeviceType::OTHER_IT_DEVICE->id(), DeviceType::OTHER_IT_DEVICE);
+(DeviceType::OTHER_IT_DEVICE->id(), DeviceType::OTHER_IT_DEVICE)
+(DeviceType::XBOX_ONE->id(), DeviceType::XBOX_ONE)
+(DeviceType::CABLE_RECEIVER->id(), DeviceType::CABLE_RECEIVER);
 
 const std::string DeviceType::str() {
     std::ostringstream oss;

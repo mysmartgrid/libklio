@@ -42,7 +42,6 @@ namespace klio {
         SQLite3Store(const bfs::path& path) :
         _path(path),
         _db(NULL),
-        _transaction(klio::Transaction::Ptr(new klio::Transaction())),
         _insert_sensor_stmt(NULL),
         _remove_sensor_stmt(NULL),
         _update_sensor_stmt(NULL),
@@ -95,7 +94,6 @@ namespace klio {
 
         bfs::path _path;
         sqlite3 *_db;
-        Transaction::Ptr _transaction;
         sqlite3_stmt* _insert_sensor_stmt;
         sqlite3_stmt* _remove_sensor_stmt;
         sqlite3_stmt* _update_sensor_stmt;

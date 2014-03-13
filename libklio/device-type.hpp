@@ -74,7 +74,7 @@ namespace klio {
         const static DeviceType::Ptr CABLE_RECEIVER;
 
         static std::map<int, DeviceType::Ptr> get_all();
-        static DeviceType::Ptr get_by_id(int id);
+        static DeviceType::Ptr get_by_id(const int id);
 
         virtual ~DeviceType() {
         };
@@ -111,9 +111,11 @@ namespace klio {
             _name = name;
         }
 
+        static DeviceType::Ptr add_type(const int id, const std::string& name);
+
         int _id;
         std::string _name;
-        const static std::map<int, DeviceType::Ptr> _all;
+        static std::map<int, DeviceType::Ptr> _all;
     };
 };
 

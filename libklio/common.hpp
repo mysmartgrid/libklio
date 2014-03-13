@@ -47,6 +47,9 @@
 // http://www.boost.org/doc/libs/1_49_0/libs/filesystem/v3/doc/index.htm
 #define BOOST_FILESYSTEM_VERSION 3
 
+// See http://stackoverflow.com/questions/15234527/boost-1-53-local-date-time-compiler-error-with-std-c0x
+//#define BOOST_NO_CXX11_EXPLICIT_CONVERSION_OPERATORS 1
+
 #include <libklio/error.hpp>
 #include <stdint.h>
 #include <string>

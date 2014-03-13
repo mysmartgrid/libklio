@@ -15,6 +15,8 @@ function (get_revision_info REV_INFO)
   else()
     set (${REV_INFO} "REVISION-NOTFOUND" PARENT_SCOPE)
   endif()
+  message("git result: ${_res_git}")
+  message("Projectrevision is: ${_out_git}")
 endfunction()
 
 get_revision_info (PROJECT_REVISION)

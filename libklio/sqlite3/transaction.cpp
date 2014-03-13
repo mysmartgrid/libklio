@@ -4,35 +4,40 @@
 
 using namespace klio;
 
-Transaction::Transaction(sqlite3* db) :
-_is_commited(false), _db(db) {
-    if (sqlite3_exec(_db, "BEGIN", 0, 0, 0) != SQLITE_OK) {
-        std::ostringstream oss;
-        oss << "Can't begin transaction: " << sqlite3_errmsg(_db);
-        //throw StoreException(oss.str());
-        LOG(oss.str());
+void Transaction::start() {
+
+    if (!_pending && sqlite3_exec(_db, "BEGIN", 0, 0, 0) == SQLITE_OK) {
+        _pending = true;
+
+    } else {
+        log_error("begin");
     }
 }
 
 void Transaction::commit() {
-    if (sqlite3_exec(_db, "COMMIT", 0, 0, 0) != SQLITE_OK) {
-        sqlite3_exec(_db, "ROLLBACK", 0, 0, 0);
-        std::ostringstream oss;
-        oss << "Can't commit changes to database: " << sqlite3_errmsg(_db);
-        //throw StoreException(oss.str());
-        LOG(oss.str());
+
+    if (_pending && sqlite3_exec(_db, "COMMIT", 0, 0, 0) == SQLITE_OK) {
+        _pending = false;
+        
     } else {
-        _is_commited = true;
+        log_error("commit");
+        rollback();
     }
 }
 
-Transaction::~Transaction() {
-    if (not _is_commited) {
-        if (sqlite3_exec(_db, "ROLLBACK", 0, 0, 0) != SQLITE_OK) {
-            std::ostringstream oss;
-            oss << "Can't roll back database transaction: " << sqlite3_errmsg(_db);
-            //  throw StoreException(oss.str());
-            LOG(oss.str());
-        }
+void Transaction::rollback() {
+
+    if (_pending && sqlite3_exec(_db, "ROLLBACK", 0, 0, 0) == SQLITE_OK) {
+        _pending = false;
+        
+    } else {
+        log_error("rollback");
     }
+}
+
+void Transaction::log_error(const std::string& operation) {
+
+    std::ostringstream oss;
+    oss << "Can't " << operation << " transaction: " << sqlite3_errmsg(_db);
+    LOG(oss.str());
 }

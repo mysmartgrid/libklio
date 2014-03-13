@@ -30,15 +30,29 @@ namespace klio {
     class Transaction {
     public:
         typedef std::tr1::shared_ptr<Transaction> Ptr;
-        Transaction(sqlite3* db);
+
+        Transaction(sqlite3* _db) :
+        _db(_db),
+        _pending(false) {
+            start();
+        }
+
+        virtual ~Transaction() {
+            rollback();
+        }
+
         void commit();
-        virtual ~Transaction();
 
     private:
         Transaction(const Transaction& original);
         Transaction& operator=(const Transaction& rhs);
-        bool _is_commited;
+
+        void start();
+        void rollback();
+        void log_error(const std::string& operation);
+
         sqlite3* _db;
+        bool _pending;
     };
 };
 

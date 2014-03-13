@@ -21,11 +21,11 @@
 #ifndef TESTS_TESTCONFIG_H_IN
 #define TESTS_TESTCONFIG_H_IN 1
 
-#cmakedefine ENABLE_LOGGING 1
-#define TEST_DB1_FILE "${CMAKE_CURRENT_BINARY_DIR}/testdb1.sql"
-#define TEST_DB2_FILE "${CMAKE_CURRENT_BINARY_DIR}/testdb2.sql"
-#define TEST_DB3_FILE "${CMAKE_CURRENT_BINARY_DIR}/testdb3.sql"
-#define TEST_DB4_FILE "${CMAKE_CURRENT_BINARY_DIR}/testdb4.sql"
-#define TEST_DB_PATH "${CMAKE_CURRENT_BINARY_DIR}/testdb"
+/* #undef ENABLE_LOGGING */
+#define TEST_DB1_FILE "/home/wagnerag/projects/libklio/tests/testdb1.sql"
+#define TEST_DB2_FILE "/home/wagnerag/projects/libklio/tests/testdb2.sql"
+#define TEST_DB3_FILE "/home/wagnerag/projects/libklio/tests/testdb3.sql"
+#define TEST_DB4_FILE "/home/wagnerag/projects/libklio/tests/testdb4.sql"
+#define TEST_DB_PATH "/home/wagnerag/projects/libklio/tests/testdb"
 
 #endif /* TESTS_TESTCONFIG_H_IN */

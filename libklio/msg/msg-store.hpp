@@ -66,11 +66,11 @@ namespace klio {
         const std::string key() const {
             return _key;
         };
-        
+
         const std::string description() const {
             return _description;
         };
-        
+
         const std::string type() const {
             return _type;
         };
@@ -81,6 +81,7 @@ namespace klio {
 
         void open();
         void close();
+        void check_integrity();
         void initialize();
         void dispose();
         void flush();
@@ -90,16 +91,17 @@ namespace klio {
         virtual void remove_sensor(const Sensor::Ptr sensor);
         virtual void update_sensor(const Sensor::Ptr sensor);
         virtual Sensor::Ptr get_sensor(const Sensor::uuid_t& uuid);
-        virtual Sensor::Ptr get_sensor_by_external_id(const std::string& external_id);
+        virtual std::vector<Sensor::Ptr> get_sensors_by_external_id(const std::string& external_id);
         virtual std::vector<Sensor::Ptr> get_sensors_by_name(const std::string& name);
         virtual std::vector<Sensor::uuid_t> get_sensor_uuids();
-
+        virtual std::vector<Sensor::Ptr> get_sensors();
+        
         virtual void add_reading(const Sensor::Ptr sensor, timestamp_t timestamp, double value);
         virtual void add_readings(const Sensor::Ptr sensor, const readings_t& readings);
         virtual void update_readings(const Sensor::Ptr sensor, const readings_t& readings);
         virtual readings_t_Ptr get_all_readings(const Sensor::Ptr sensor);
         virtual unsigned long int get_num_readings(const Sensor::Ptr sensor);
-        virtual std::pair<timestamp_t, double> get_last_reading(const Sensor::Ptr sensor);
+        virtual reading_t get_last_reading(const Sensor::Ptr sensor);
 
     private:
         MSGStore(const MSGStore& original);
@@ -113,14 +115,14 @@ namespace klio {
         timestamp_t _last_heartbeat;
         std::map<Sensor::uuid_t, Sensor::Ptr> _sensors_buffer;
         std::map<Sensor::uuid_t, readings_t_Ptr> _readings_buffer;
+        std::map<std::string, Sensor::uuid_t> _external_ids_buffer;
 
-        void init_buffers(const Sensor::Ptr sensor);
+        void set_buffers(const Sensor::Ptr sensor);
         void clear_buffers(const Sensor::Ptr sensor);
         void clear_buffers();
         void flush(bool force);
         void flush(Sensor::Ptr sensor);
         void heartbeat();
-        std::vector<Sensor::Ptr> get_sensors();
 
         const std::string format_uuid_string(const std::string& meter);
         const std::string compose_device_url();

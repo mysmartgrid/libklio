@@ -1,7 +1,9 @@
+# -*- mode: cmake; -*-
 
-include_directories(${CMAKE_SOURCE_DIR}
-                    ${Boost_INCLUDE_DIRS})
-                  #file(GLOB all_sensorstest_src *.cpp *.hpp)
+include_directories(${CMAKE_SOURCE_DIR})
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+
+#file(GLOB all_sensorstest_src *.cpp *.hpp)
 set(sensorstest_src 
   test_data.cpp
   test_sensors.cpp
@@ -10,6 +12,11 @@ set(sensorstest_src
 )
           
 add_executable(sensorstest ${sensorstest_src})
+
+if(ROCKSDB_FOUND)
+  set_source_files_properties(${sensorstest_src} COMPILE_FLAGS "-std=gnu++11")
+  target_link_libraries(sensorstest klio ${ROCKSDB_LIBRARY} snappy)
+endif(ROCKSDB_FOUND)
 
 ADD_TEST(SensorTest ${CMAKE_CURRENT_BINARY_DIR}/sensorstest TestSensors)
 

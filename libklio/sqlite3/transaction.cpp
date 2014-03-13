@@ -6,7 +6,7 @@ using namespace klio;
 
 void Transaction::start() {
 
-    if (_db && !_pending && sqlite3_exec(_db, "BEGIN", 0, 0, 0) == SQLITE_OK) {
+    if (!_pending && sqlite3_exec(_db, "BEGIN", 0, 0, 0) == SQLITE_OK) {
         _pending = true;
 
     } else {
@@ -16,7 +16,7 @@ void Transaction::start() {
 
 void Transaction::commit() {
 
-    if (_db && _pending && sqlite3_exec(_db, "COMMIT", 0, 0, 0) == SQLITE_OK) {
+    if (_pending && sqlite3_exec(_db, "COMMIT", 0, 0, 0) == SQLITE_OK) {
         _pending = false;
         
     } else {
@@ -27,7 +27,7 @@ void Transaction::commit() {
 
 void Transaction::rollback() {
 
-    if (_db && _pending && sqlite3_exec(_db, "ROLLBACK", 0, 0, 0) == SQLITE_OK) {
+    if (_pending && sqlite3_exec(_db, "ROLLBACK", 0, 0, 0) == SQLITE_OK) {
         _pending = false;
         
     } else {
@@ -38,10 +38,6 @@ void Transaction::rollback() {
 void Transaction::log_error(const std::string& operation) {
 
     std::ostringstream oss;
-    oss << "Can't " << operation << " transaction";
-    
-    if (_db) {
-        oss << ": " << sqlite3_errmsg(_db);
-    }
+    oss << "Can't " << operation << " transaction: " << sqlite3_errmsg(_db);
     LOG(oss.str());
 }

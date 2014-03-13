@@ -34,6 +34,7 @@ const DeviceType::Ptr DeviceType::KETTLE(new DeviceType(310, "Kettle"));
 const DeviceType::Ptr DeviceType::MICROWAVE(new DeviceType(311, "Microwave"));
 const DeviceType::Ptr DeviceType::HAIR_DRIER(new DeviceType(312, "Hair Drier"));
 const DeviceType::Ptr DeviceType::AQUARIUM(new DeviceType(313, "Aquarium"));
+const DeviceType::Ptr DeviceType::KITCHEN_AID(new DeviceType(314, "Kitchen Aid"));
 
 const DeviceType::Ptr DeviceType::TV(new DeviceType(400, "TV"));
 const DeviceType::Ptr DeviceType::RADIO(new DeviceType(401, "Radio"));
@@ -77,6 +78,7 @@ const std::map<int, DeviceType::Ptr> DeviceType::_all = boost::assign::map_list_
 (DeviceType::MICROWAVE->id(), DeviceType::MICROWAVE)
 (DeviceType::HAIR_DRIER->id(), DeviceType::HAIR_DRIER)
 (DeviceType::AQUARIUM->id(), DeviceType::AQUARIUM)
+(DeviceType::KITCHEN_AID->id(), DeviceType::KITCHEN_AID)
 
 (DeviceType::TV->id(), DeviceType::TV)
 (DeviceType::RADIO->id(), DeviceType::RADIO)

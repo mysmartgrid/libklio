@@ -60,6 +60,7 @@ namespace klio {
         const static DeviceType::Ptr MICROWAVE;
         const static DeviceType::Ptr HAIR_DRIER;
         const static DeviceType::Ptr AQUARIUM;
+        const static DeviceType::Ptr KITCHEN_AID;
 
         const static DeviceType::Ptr TV;
         const static DeviceType::Ptr RADIO;

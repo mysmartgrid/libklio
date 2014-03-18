@@ -819,4 +819,66 @@ BOOST_AUTO_TEST_CASE(check_add_celsius_reading_msg) {
     }
 }
 
+BOOST_AUTO_TEST_CASE(check_add_hsbs_reading_msg) {
+
+    try {
+        std::cout << "Testing add_reading for MSG (°C)" << std::endl;
+        klio::StoreFactory::Ptr factory(new klio::StoreFactory());
+        std::string url = "https://dev3-api.mysmartgrid.de:8443";
+
+        std::cout << "Attempting to create MSG store " << url << std::endl;
+        klio::Store::Ptr store(factory->create_msg_store(url,
+                "21c180742bcf888bdb7cc1221038adcb",
+                "21c180742bcf888bdb7cc1221038adcb",
+                "libklio test",
+                "libklio"));
+
+        std::cout << "Created: " << store->str() << std::endl;
+
+        try {
+            klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+
+            klio::Sensor::Ptr sensor(sensor_factory->createSensor(
+                    "12121274-2bcf-888b-db7c-c1221038adcb",
+                    "Sensor12",
+                    "Test",
+                    "description",
+                    "_hsbs",
+                    "Europe/Berlin"));
+
+            store->add_sensor(sensor);
+
+            klio::Sensor::Ptr found = store->get_sensor(sensor->uuid());
+            BOOST_CHECK_EQUAL(found->external_id(), sensor->external_id());
+            BOOST_CHECK_EQUAL(found->name(), sensor->name());
+            BOOST_CHECK_EQUAL(found->description(), sensor->description());
+            BOOST_CHECK_EQUAL(found->unit(), sensor->unit());
+            BOOST_CHECK_EQUAL(found->timezone(), sensor->timezone());
+
+            klio::timestamp_t timestamp = time(0);
+            timestamp -= timestamp % 60;
+            klio::readings_t readings;
+            double value = 30;
+
+            for (int i = 0; i < 72; i++) {
+                klio::reading_t reading(timestamp - (i * 20), value);
+                readings.insert(reading);
+            }
+            store->add_readings(sensor, readings);
+
+            store->dispose();
+
+        } catch (klio::CommunicationException const& ce) {
+            //Ignore this kind of exception
+
+        } catch (klio::GenericException const& ex) {
+            store->dispose();
+            std::cout << "Caught invalid exception: " << ex.what() << std::endl;
+            BOOST_FAIL("Unexpected exception occurred for initialize request");
+        }
+    } catch (std::exception const& ex) {
+        BOOST_FAIL("Unexpected exception occurred during sensor test");
+    }
+}
+
 //BOOST_AUTO_TEST_SUITE_END()

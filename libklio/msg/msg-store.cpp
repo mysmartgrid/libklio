@@ -40,15 +40,8 @@ void MSGStore::initialize() {
 
         std::string url = compose_device_url();
         json_object *jresponse = perform_http_post(url, _key, jobject);
+
         destroy_object(jresponse);
-
-        clear_buffers();
-
-        std::vector<Sensor::Ptr> sensors = get_sensors();
-        for (std::vector<Sensor::Ptr>::const_iterator sensor = sensors.begin(); sensor != sensors.end(); ++sensor) {
-            set_buffers(*sensor);
-        }
-
         destroy_object(jobject);
 
     } catch (GenericException const& e) {
@@ -61,8 +54,19 @@ void MSGStore::initialize() {
     }
 }
 
+void MSGStore::prepare() {
+
+    clear_buffers();
+
+    std::vector<Sensor::Ptr> sensors = get_sensors();
+    for (std::vector<Sensor::Ptr>::const_iterator sensor = sensors.begin(); sensor != sensors.end(); ++sensor) {
+        set_buffers(*sensor);
+    }
+}
+
 void MSGStore::close() {
     flush(true);
+    clear_buffers();
 }
 
 void MSGStore::check_integrity() {

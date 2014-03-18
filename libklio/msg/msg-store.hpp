@@ -83,6 +83,7 @@ namespace klio {
         void close();
         void check_integrity();
         void initialize();
+        void prepare();
         void dispose();
         void flush();
         const std::string str();

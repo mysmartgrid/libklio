@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_CASE(check_create_msg_storage) {
         klio::MSGStore::Ptr store(factory->create_msg_store(url,
                 "d271f4de-3ecd-f3d3-00db-3e96755d8736",
                 "d221f4de-3ecd-f3d3-00db-3e96755d8733",
-                "libklio test desc",
+                "libklio test d_üäöß",
                 "libklio"));
         std::cout << "Created: " << store->str() << std::endl;
 
@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE(check_create_msg_storage) {
             BOOST_CHECK_EQUAL(store->url(), url);
             BOOST_CHECK_EQUAL(store->id(), "d271f4de3ecdf3d300db3e96755d8736");
             BOOST_CHECK_EQUAL(store->key(), "d221f4de3ecdf3d300db3e96755d8733");
-            BOOST_CHECK_EQUAL(store->description(), "libklio test desc");
+            BOOST_CHECK_EQUAL(store->description(), "libklio test d_üäöß");
             BOOST_CHECK_EQUAL(store->type(), "libklio");
             BOOST_CHECK_EQUAL(store->activation_code(), "d271f4de3e");
 
@@ -90,15 +90,16 @@ BOOST_AUTO_TEST_CASE(check_create_msg_storage) {
                 store = factory->create_msg_store(url,
                         "d261f4de-3ecd-f3d3-00db-3e96755d8733",
                         "d261f4de-3ecd-f3d3-00db-3e96755d8733",
-                        "libklio test desc \n\t\f",
+                        "libklio test desc \f",
                         "libklio");
+
+                store->dispose();
 
                 BOOST_FAIL("A DataFormatException must be thrown when the description contains a non-printable character.");
 
-            } catch (klio::GenericException const& ex) {
+            } catch (klio::DataFormatException const& ex) {
                 //This exception was expected
             }
-            store->dispose();
 
         } catch (klio::CommunicationException const& ce) {
             std::cout << "The MSGStore tests have been partially disabled. Please make sure that: " << std::endl;
@@ -125,8 +126,8 @@ BOOST_AUTO_TEST_CASE(check_add_msg_sensor) {
 
         std::cout << "Attempting to create MSG store " << url << std::endl;
         klio::MSGStore::Ptr store(factory->create_msg_store(url,
-                "555d8736-3ecd-f3d3-00db-3e96755d8736",
-                "555d8736-3ecd-f3d3-00db-3e96755d8733",
+                "555d8736-3ecd-f3d3-00db-3e96755d8888",
+                "555d8736-3ecd-f3d3-00db-3e96755d8888",
                 "libklio test desc",
                 "libklio"));
         std::cout << "Created: " << store->str() << std::endl;
@@ -134,9 +135,9 @@ BOOST_AUTO_TEST_CASE(check_add_msg_sensor) {
         try {
             klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
 
-            std::string external_id = std::string("Test libklio very long id - 9484383823929384834939320399434939 ß?@äö");
-            std::string name = std::string("Test name ß?@äö");
-            std::string description = std::string("this is a sensor description ß?@äö");
+            std::string external_id = std::string("Test libklio very long id - 9484383823929384834939320399434939");
+            std::string name = std::string("Test name");
+            std::string description = std::string("this is a sensor description");
 
             klio::Sensor::Ptr sensor(sensor_factory->createSensor(
                     "59c18074-8bcf-240b-db7c-c1281038adcb",
@@ -145,7 +146,7 @@ BOOST_AUTO_TEST_CASE(check_add_msg_sensor) {
                     description,
                     "kwh",
                     "Europe/Berlin"));
-
+            
             store->add_sensor(sensor);
 
             klio::Sensor::Ptr retrieved = store->get_sensor(sensor->uuid());
@@ -159,8 +160,8 @@ BOOST_AUTO_TEST_CASE(check_add_msg_sensor) {
 
             try {
                 sensor = sensor_factory->createSensor(
-                        "59c74018-8bcf-240b-db7c-c1281038adcb",
-                        "Test 89c74018-8bcf-240b-db7c-c1281038adcb",
+                        "59c74018-8bcf-240b-db7c-c12810388888",
+                        "Test 89c74018-8bcf-240b-db7c-c12810388888",
                         "Test libklio",
                         "changed description",
                         "xxx",
@@ -204,7 +205,7 @@ BOOST_AUTO_TEST_CASE(check_add_msg_sensor) {
 
                 BOOST_FAIL("A DataFormatException must be thrown when the function contains non-printable characters.");
 
-            } catch (klio::GenericException const& ex) {
+            } catch (klio::DataFormatException const& ex) {
                 //This exception was expected
             }
 
@@ -221,7 +222,7 @@ BOOST_AUTO_TEST_CASE(check_add_msg_sensor) {
 
                 BOOST_FAIL("A DataFormatException must be thrown when the description contains non-printable characters.");
 
-            } catch (klio::GenericException const& ex) {
+            } catch (klio::DataFormatException const& ex) {
                 //This exception was expected
             }
 

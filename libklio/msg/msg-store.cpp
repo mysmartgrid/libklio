@@ -310,12 +310,21 @@ readings_t_Ptr MSGStore::get_all_readings(const Sensor::Ptr sensor) {
     }
 }
 
-readings_t_Ptr MSGStore::get_timeframe_readings(klio::Sensor::Ptr sensor, 
-    timestamp_t begin, timestamp_t end) {
-  //TODO: Implement me!
-  std::cout << "Function get_timeframe_readings(..) is not implemented in MSG store." << std::endl;
-  std::cout << "Exiting." << std::endl;
-  exit(-56);
+readings_t_Ptr MSGStore::get_timeframe_readings(klio::Sensor::Ptr sensor,
+        timestamp_t begin, timestamp_t end) {
+
+    //TODO: improve this method
+
+    readings_t_Ptr selected;
+    readings_t_Ptr readings = get_all_readings(sensor);
+
+    for (readings_cit_t reading = readings->begin(); reading != readings->end(); ++reading) {
+
+        if ((*reading).first >= begin && (*reading).first <= end) {
+            selected->insert(*reading);
+        }
+    }
+    return selected;
 }
 
 unsigned long int MSGStore::get_num_readings(const Sensor::Ptr sensor) {
@@ -410,8 +419,7 @@ void MSGStore::clear_buffers() {
 
 void MSGStore::flush(bool force) {
 
-    TimeConverter tc;
-    timestamp_t now = tc.get_timestamp();
+    timestamp_t now = time_converter->get_timestamp();
 
     //Send measurements every 10 minutes
     if (force || now - _last_sync > 600) {
@@ -476,8 +484,7 @@ void MSGStore::heartbeat() {
     json_object *jobject = NULL;
 
     try {
-        TimeConverter tc;
-        timestamp_t now = tc.get_timestamp();
+        timestamp_t now = time_converter->get_timestamp();
 
         //Send a heartbeat every 30 minutes
         if (now - _last_heartbeat > 1800) {
@@ -789,8 +796,6 @@ Sensor::Ptr MSGStore::parse_sensor(const std::string& uuid_str, json_object * js
     //TODO: there should be no hard coded default timezone
     const char* timezone = "Europe/Berlin";
 
-    SensorFactory::Ptr sensor_factory(new SensorFactory());
-
     return sensor_factory->createSensor(
             uuid_str,
             std::string(external_id),
@@ -811,9 +816,7 @@ std::pair<timestamp_t, double > MSGStore::create_reading_pair(json_object * jpai
     } else {
         json_object *jtimestamp = json_object_array_get_idx(jpair, 0);
         long epoch = json_object_get_int(jtimestamp);
-
-        TimeConverter::Ptr tc(new TimeConverter());
-        timestamp_t timestamp = tc->convert_from_epoch(epoch);
+        timestamp_t timestamp = time_converter->convert_from_epoch(epoch);
 
         return std::pair<timestamp_t, double>(timestamp, value);
     }

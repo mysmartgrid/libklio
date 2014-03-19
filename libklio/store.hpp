@@ -27,6 +27,7 @@
 #include <libklio/types.hpp>
 #include <libklio/sensor.hpp>
 #include <libklio/time.hpp>
+#include <libklio/sensor-factory.hpp>
 
 
 namespace klio {
@@ -68,6 +69,10 @@ namespace klio {
         virtual unsigned long int get_num_readings(klio::Sensor::Ptr sensor) = 0;
         virtual void sync(klio::Store::Ptr store);
         virtual void sync_readings(klio::Sensor::Ptr sensor, klio::Store::Ptr store);
+
+    protected:    
+        static const klio::SensorFactory::Ptr sensor_factory;
+        static const klio::TimeConverter::Ptr time_converter;
 
     private:
         Store(const Store& original);

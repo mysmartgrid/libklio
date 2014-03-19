@@ -10,9 +10,6 @@
 
 using namespace klio;
 
-const klio::SensorFactory::Ptr SQLite3Store::sensor_factory(new klio::SensorFactory());
-const klio::TimeConverter::Ptr SQLite3Store::time_converter(new klio::TimeConverter());
-
 void SQLite3Store::open() {
 
     if (_db) {
@@ -359,25 +356,7 @@ readings_t_Ptr SQLite3Store::get_all_readings(klio::Sensor::Ptr sensor) {
     oss << "SELECT timestamp, value FROM '" << sensor->uuid_string() << "';";
     sqlite3_stmt* stmt = prepare(oss.str());
 
-    readings_t_Ptr readings(new readings_t());
-    try {
-        while (SQLITE_ROW == sqlite3_step(stmt)) {
-
-            int epoch = sqlite3_column_int(stmt, 0);
-            double value = sqlite3_column_double(stmt, 1);
-            readings->insert(
-                    std::pair<timestamp_t, double>(
-                    time_converter->convert_from_epoch(epoch),
-                    value
-                    ));
-        }
-
-    } catch (klio::StoreException e) {
-        finalize(&stmt);
-        throw;
-    }
-    finalize(&stmt);
-    return readings;
+    return get_readings(stmt);
 }
 
 readings_t_Ptr SQLite3Store::get_timeframe_readings(klio::Sensor::Ptr sensor,
@@ -389,10 +368,15 @@ readings_t_Ptr SQLite3Store::get_timeframe_readings(klio::Sensor::Ptr sensor,
     std::ostringstream oss;
     oss << "SELECT timestamp, value FROM '" << sensor->uuid_string() << "' ";
     oss << "WHERE timestamp BETWEEN ? AND ?;";
-    sqlite3_stmt* stmt = prepare(oss.str());
 
+    sqlite3_stmt* stmt = prepare(oss.str());
     sqlite3_bind_int(stmt, 1, begin);
     sqlite3_bind_int(stmt, 2, end);
+
+    return get_readings(stmt);
+}
+
+readings_t_Ptr SQLite3Store::get_readings(sqlite3_stmt* stmt) {
 
     readings_t_Ptr readings(new readings_t());
     try {

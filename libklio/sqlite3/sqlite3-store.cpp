@@ -5,6 +5,7 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <libklio/sensor-factory.hpp>
 #include <libklio/sqlite3/transaction.hpp>
+#include <libklio/common.hpp>
 #include "sqlite3-store.hpp"
 
 
@@ -68,21 +69,43 @@ void SQLite3Store::check_integrity() {
 
         } else {
             sqlite3_stmt* stmt = prepare("PRAGMA integrity_check;");
-            execute(stmt, SQLITE_ROW);
-            std::string result = std::string((char*) sqlite3_column_text(stmt, 0));
-            finalize(&stmt);
 
-            if (result == "ok") {
+            try {
+                execute(stmt, SQLITE_ROW);
+                std::string result = std::string((char*) sqlite3_column_text(stmt, 0));
+                finalize(&stmt);
 
-                if (has_table("sensors")) {
-                    return;
+                if (result == "ok") {
+
+                    VersionInfo::Ptr info = VersionInfo::Ptr(new VersionInfo());
+
+                    if (has_table("sensors") && has_table("properties")) {
+
+                        stmt = prepare("SELECT value FROM properties WHERE name = 'version'");
+                        execute(stmt, SQLITE_ROW);
+                        result = std::string((char*) sqlite3_column_text(stmt, 0));
+                        finalize(&stmt);
+
+                        //Check the libklio database version
+                        if (result == info->getVersion()) {
+                            return;
+                        }
+
+                        oss << "The store was created using an old version of libKlio. " <<
+                                "Please, use the command klio-store to upgrade it " <<
+                                "to version " << info->getVersion();
+
+                    } else {
+                        oss << "The store has not been initialized. Please, recreate it.";
+                    }
 
                 } else {
-                    oss << "Database has not been initialized.";
+                    oss << "The database is corrupt.";
                 }
 
-            } else {
-                oss << "Database is corrupt.";
+            } catch (klio::StoreException e) {
+                finalize(&stmt);
+                throw;
             }
         }
 
@@ -94,10 +117,65 @@ void SQLite3Store::check_integrity() {
 
 void SQLite3Store::initialize() {
 
+    Transaction::Ptr transaction(Transaction::Ptr(new Transaction(_db)));
+
     //Create table sensors if it does not exist
     sqlite3_stmt* stmt = prepare("CREATE TABLE IF NOT EXISTS sensors(uuid VARCHAR(16) PRIMARY KEY, external_id VARCHAR(32), name VARCHAR(100), description VARCHAR(255), unit VARCHAR(20), timezone INTEGER, device_type_id INTEGER)");
-    execute(stmt, SQLITE_DONE);
-    finalize(&stmt);
+
+    try {
+        execute(stmt, SQLITE_DONE);
+        finalize(&stmt);
+
+        //Create table properties if it does not exist
+        stmt = prepare("CREATE TABLE IF NOT EXISTS properties(name VARCHAR(32) PRIMARY KEY, value VARCHAR(32))");
+        execute(stmt, SQLITE_DONE);
+        finalize(&stmt);
+
+        VersionInfo::Ptr info = VersionInfo::Ptr(new VersionInfo());
+        stmt = prepare("INSERT OR IGNORE INTO properties (name, value) VALUES(?1, ?2)");
+        sqlite3_bind_text(stmt, 1, "version", -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt, 2, info->getVersion().c_str(), -1, SQLITE_TRANSIENT);
+        execute(stmt, SQLITE_DONE);
+        finalize(&stmt);
+
+        transaction->commit();
+
+    } catch (klio::StoreException e) {
+        finalize(&stmt);
+        throw;
+    }
+}
+
+void SQLite3Store::upgrade() {
+
+    VersionInfo::Ptr info = VersionInfo::Ptr(new VersionInfo());
+    sqlite3_stmt* stmt = prepare("INSERT OR REPLACE INTO properties (name, value) VALUES(?1, ?2)");
+
+    try {
+        sqlite3_bind_text(stmt, 1, "version", -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt, 2, info->getVersion().c_str(), -1, SQLITE_TRANSIENT);
+
+        Transaction::Ptr transaction(Transaction::Ptr(new Transaction(_db)));
+
+        execute(stmt, SQLITE_DONE);
+        finalize(&stmt);
+
+        if (!has_column("sensors", "device_type_id")) {
+            stmt = prepare("ALTER TABLE sensors ADD COLUMN device_type_id INTEGER");
+            execute(stmt, SQLITE_DONE);
+            finalize(&stmt);
+
+            stmt = prepare("UPDATE sensors SET device_type_id = 0");
+            execute(stmt, SQLITE_DONE);
+            finalize(&stmt);
+        }
+
+        transaction->commit();
+
+    } catch (klio::StoreException e) {
+        finalize(&stmt);
+        throw;
+    }
 }
 
 void SQLite3Store::prepare() {
@@ -120,9 +198,38 @@ void SQLite3Store::dispose() {
 
 bool SQLite3Store::has_table(std::string name) {
 
+    bool found = false;
     sqlite3_stmt* stmt = prepare("SELECT name FROM sqlite_master WHERE type='table' AND name=?");
-    sqlite3_bind_text(stmt, 1, name.c_str(), -1, SQLITE_TRANSIENT);
-    bool found = (sqlite3_step(stmt) == SQLITE_ROW);
+
+    try {
+        sqlite3_bind_text(stmt, 1, name.c_str(), -1, SQLITE_TRANSIENT);
+        found = (sqlite3_step(stmt) == SQLITE_ROW);
+
+    } catch (klio::StoreException e) {
+        finalize(&stmt);
+        throw;
+    }
+    finalize(&stmt);
+    return found;
+}
+
+bool SQLite3Store::has_column(std::string table, std::string column) {
+
+    bool found = false;
+    sqlite3_stmt* stmt = prepare("PRAGMA table_info(sensors)");
+
+    try {
+        while (SQLITE_ROW == sqlite3_step(stmt)) {
+            if (std::string((char*) sqlite3_column_text(stmt, 1)) == column) {
+                found = true;
+                break;
+            }
+        }
+
+    } catch (klio::StoreException e) {
+        finalize(&stmt);
+        throw;
+    }
     finalize(&stmt);
     return found;
 }
@@ -139,7 +246,7 @@ void SQLite3Store::add_sensor(klio::Sensor::Ptr sensor) {
     LOG("Adding sensor: " << sensor->str());
 
     std::ostringstream oss;
-    oss << "CREATE TABLE '" << sensor->uuid_string() << "'(timestamp INTEGER PRIMARY KEY, value DOUBLE);";
+    oss << "CREATE TABLE '" << sensor->uuid_string() << "'(timestamp INTEGER PRIMARY KEY, value DOUBLE)";
     sqlite3_stmt* create_table_stmt = prepare(oss.str());
 
     sqlite3_bind_text(_insert_sensor_stmt, 1, sensor->uuid_string().c_str(), -1, SQLITE_TRANSIENT);
@@ -247,10 +354,10 @@ std::vector<klio::Sensor::uuid_t> SQLite3Store::get_sensor_uuids() {
 
     while (SQLITE_ROW == sqlite3_step(_select_all_sensor_uuids_stmt)) {
 
-        const unsigned char* select_uuid = sqlite3_column_text(_select_all_sensor_uuids_stmt, 0);
-        boost::uuids::uuid u;
         std::stringstream ss;
-        ss << select_uuid;
+        ss << sqlite3_column_text(_select_all_sensor_uuids_stmt, 0);
+
+        boost::uuids::uuid u;
         ss >> u;
         uuids.push_back(u);
     }
@@ -278,7 +385,7 @@ void SQLite3Store::add_reading(klio::Sensor::Ptr sensor, timestamp_t timestamp, 
     LOG("Adding to sensor: " << sensor->str() << " time=" << timestamp << " value=" << value);
 
     std::ostringstream oss;
-    oss << "INSERT INTO '" << sensor->uuid_string() << "' (timestamp, value) VALUES (?, ?);";
+    oss << "INSERT INTO '" << sensor->uuid_string() << "' (timestamp, value) VALUES (?, ?)";
     sqlite3_stmt* stmt = prepare(oss.str());
 
     Transaction::Ptr transaction(Transaction::Ptr(new Transaction(_db)));
@@ -299,7 +406,7 @@ void SQLite3Store::add_readings(klio::Sensor::Ptr sensor, const readings_t& read
     LOG("Adding " << readings->size() << " readings to sensor: " << sensor->str());
 
     std::ostringstream oss;
-    oss << "INSERT INTO '" << sensor->uuid_string() << "' (timestamp, value) VALUES (?, ?);";
+    oss << "INSERT INTO '" << sensor->uuid_string() << "' (timestamp, value) VALUES (?, ?)";
     sqlite3_stmt* stmt = prepare(oss.str());
 
     try {
@@ -321,7 +428,7 @@ void SQLite3Store::add_readings(klio::Sensor::Ptr sensor, const readings_t& read
 void SQLite3Store::update_readings(klio::Sensor::Ptr sensor, const readings_t& readings) {
 
     std::ostringstream oss;
-    oss << "INSERT OR REPLACE INTO '" << sensor->uuid_string() << "' (timestamp, value) VALUES (?, ?);";
+    oss << "INSERT OR REPLACE INTO '" << sensor->uuid_string() << "' (timestamp, value) VALUES (?, ?)";
     sqlite3_stmt* stmt = prepare(oss.str());
 
     try {
@@ -353,7 +460,7 @@ readings_t_Ptr SQLite3Store::get_all_readings(klio::Sensor::Ptr sensor) {
     LOG("Retrieving all readings of sensor " << sensor->str());
 
     std::ostringstream oss;
-    oss << "SELECT timestamp, value FROM '" << sensor->uuid_string() << "';";
+    oss << "SELECT timestamp, value FROM '" << sensor->uuid_string() << "'";
     sqlite3_stmt* stmt = prepare(oss.str());
 
     return get_readings(stmt);
@@ -367,7 +474,7 @@ readings_t_Ptr SQLite3Store::get_timeframe_readings(klio::Sensor::Ptr sensor,
 
     std::ostringstream oss;
     oss << "SELECT timestamp, value FROM '" << sensor->uuid_string() << "' ";
-    oss << "WHERE timestamp BETWEEN ? AND ?;";
+    oss << "WHERE timestamp BETWEEN ? AND ?";
 
     sqlite3_stmt* stmt = prepare(oss.str());
     sqlite3_bind_int(stmt, 1, begin);
@@ -404,7 +511,7 @@ unsigned long int SQLite3Store::get_num_readings(klio::Sensor::Ptr sensor) {
     LOG("Retrieving number of readings for sensor " << sensor->str());
 
     std::ostringstream oss;
-    oss << "SELECT count(*) FROM '" << sensor->uuid_string() << "';";
+    oss << "SELECT count(*) FROM '" << sensor->uuid_string() << "'";
     sqlite3_stmt* stmt = prepare(oss.str());
 
     try {
@@ -423,7 +530,7 @@ reading_t SQLite3Store::get_last_reading(klio::Sensor::Ptr sensor) {
     LOG("Retrieving last readings of sensor " << sensor->str());
 
     std::ostringstream oss;
-    oss << "SELECT timestamp, value FROM '" << sensor->uuid_string() << "' ORDER BY timestamp DESC LIMIT 1;";
+    oss << "SELECT timestamp, value FROM '" << sensor->uuid_string() << "' ORDER BY timestamp DESC LIMIT 1";
     sqlite3_stmt* stmt = prepare(oss.str());
 
     std::pair<timestamp_t, double> reading;

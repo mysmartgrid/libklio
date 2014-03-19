@@ -59,6 +59,7 @@ namespace klio {
         void close();
         void check_integrity();
         void initialize();
+        void upgrade();
         void prepare();
         void dispose();
         const std::string str();
@@ -85,6 +86,7 @@ namespace klio {
         SQLite3Store& operator =(const SQLite3Store& rhs);
 
         bool has_table(std::string name);
+        bool has_column(std::string table, std::string column);
         void insert_reading_record(sqlite3_stmt* stmt, timestamp_t timestamp, double value);
         readings_t_Ptr get_readings(sqlite3_stmt* stmt);
         sqlite3_stmt *prepare(const std::string& stmt_str);

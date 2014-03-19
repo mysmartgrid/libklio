@@ -27,6 +27,7 @@
 #include <boost/program_options.hpp>
 #include <boost/program_options/positional_options.hpp>
 #include <libklio/store-factory.hpp>
+#include <libklio/common.hpp>
 
 namespace po = boost::program_options;
 
@@ -39,7 +40,7 @@ int main(int argc, char** argv) {
         desc.add_options()
                 ("help,h", "produce help message")
                 ("version,v", "print libklio version and exit")
-                ("action,a", po::value<std::string>(), "Valid actions are: create, check, sync")
+                ("action,a", po::value<std::string>(), "Valid actions are: create, check, sync, upgrade")
                 ("storefile,s", po::value<std::string>(), "the data store to use")
                 ("sourcestore,r", po::value<std::string>(), "the data store to use as source for synchronization")
                 ;
@@ -81,6 +82,8 @@ int main(int argc, char** argv) {
             action = (vm["action"].as<std::string>());
         }
 
+        klio::StoreFactory::Ptr factory(new klio::StoreFactory());
+
         /**
          * CREATE action
          */
@@ -90,7 +93,6 @@ int main(int argc, char** argv) {
                 std::cerr << "File " << db << " already exists, exiting." << std::endl;
                 return 2;
             }
-            klio::StoreFactory::Ptr factory(new klio::StoreFactory());
             try {
                 std::cout << "Attempting to create " << db << std::endl;
                 klio::Store::Ptr store(factory->create_sqlite3_store(db));
@@ -100,16 +102,16 @@ int main(int argc, char** argv) {
                 std::cout << "Failed to create: " << ex.what() << std::endl;
             }
 
-        /**
-         * CHECK action
-         */
+            /**
+             * CHECK action
+             */
         } else if (boost::iequals(action, std::string("check"))) {
             bfs::path db(storefile);
             if (!bfs::exists(db)) {
                 std::cerr << "File " << db << " does not exist, exiting." << std::endl;
                 return 2;
             }
-            klio::StoreFactory::Ptr factory(new klio::StoreFactory());
+
             try {
                 //  std::cout << "Attempting to open " << db << std::endl;
                 klio::Store::Ptr store(factory->open_sqlite3_store(db));
@@ -214,9 +216,9 @@ int main(int argc, char** argv) {
                 std::cout << "Failed to create: " << ex.what() << std::endl;
             }
 
-        /**
-         * SYNC action
-         */
+            /**
+             * SYNC action
+             */
         } else if (boost::iequals(action, std::string("sync"))) {
 
             std::string sourcestore;
@@ -240,7 +242,6 @@ int main(int argc, char** argv) {
                 return 2;
             }
 
-            klio::StoreFactory::Ptr factory(new klio::StoreFactory());
             try {
 
                 std::cout << "Attempting to open source store " << source_path << std::endl;
@@ -262,10 +263,27 @@ int main(int argc, char** argv) {
                 std::cout << "Failed to synchronize stores. " << ex.what() << std::endl;
             }
 
+            /**
+             * UPGRADE action
+             */
+        } else if (boost::iequals(action, std::string("upgrade"))) {
 
-        /** 
-         * unknown command
-         */
+            bfs::path db(storefile);
+            try {
+                klio::VersionInfo::Ptr info = klio::VersionInfo::Ptr(new klio::VersionInfo());
+
+                std::cout << "Attempting to upgrade " << db << " to version " << info->getVersion() << std::endl;
+                klio::SQLite3Store::Ptr store(factory->create_sqlite3_store(db));
+                store->upgrade();
+                std::cout << "Store upgraded." << std::endl;
+
+            } catch (klio::StoreException const& ex) {
+                std::cout << "Failed to upgrade: " << ex.what() << std::endl;
+            }
+
+            /** 
+             * unknown command
+             */
         } else {
             std::cerr << "Unknown command " << action << std::endl;
             return 1;

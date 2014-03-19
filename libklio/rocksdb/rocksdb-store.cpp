@@ -216,6 +216,35 @@ readings_t_Ptr RocksDBStore::get_all_readings(klio::Sensor::Ptr sensor) {
     return readings;
 }
 
+readings_t_Ptr RocksDBStore::get_timeframe_readings(klio::Sensor::Ptr sensor, timestamp_t begin, timestamp_t end) {
+
+    readings_t_Ptr readings(new readings_t());
+    klio::TimeConverter::Ptr tc(new klio::TimeConverter());
+
+    rocksdb::DB* db = open_db(true, false,
+            compose_sensor_readings_path(sensor->uuid_string()));
+
+    rocksdb::Iterator* it = db->NewIterator(rocksdb::ReadOptions());
+
+    for (it->SeekToFirst(); it->Valid(); it->Next()) {
+
+        std::string epoch = it->key().ToString();
+        std::string value = it->value().ToString();
+        long timestamp = tc->convert_from_epoch(atol(epoch.c_str()));
+        
+        if (timestamp >= begin, timestamp <= end) {
+
+            readings->insert(
+                    std::pair<timestamp_t, double>(
+                    timestamp,
+                    atof(value.c_str())
+                    ));
+        }
+    }
+    delete it;
+    return readings;
+}
+
 unsigned long int RocksDBStore::get_num_readings(klio::Sensor::Ptr sensor) {
 
     //TODO: make this method more efficient

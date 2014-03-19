@@ -134,7 +134,9 @@ int main(int argc, char** argv) {
                 std::cout << std::setw(21) << "first timestamp";
                 std::cout << std::setw(21) << "last timestamp";
                 std::cout << '\t' << "type";
-                std::cout << '\t' << "sensor name" << std::endl;
+                std::cout << std::setw(8) << "unit";
+
+                std::cout << '\t' << "sensor name / description" << std::endl;
                 for (it = uuids.begin(); it < uuids.end(); it++) {
                     klio::Sensor::Ptr loadedSensor(store->get_sensor(*it));
                     klio::readings_t_Ptr readings;
@@ -226,7 +228,18 @@ int main(int argc, char** argv) {
                     std::cout << std::setw(21) << oss.str();
                     // sensor data
                     std::cout << '\t' << loadedSensor->device_type()->name();
-                    std::cout << '\t' << loadedSensor->name() << std::endl;
+
+                    // unit
+                    std::cout << '\t' << loadedSensor->unit();
+
+                    // name and description
+                    std::cout << '\t' << loadedSensor->name();
+                    std::cout << '\t' << loadedSensor->description();
+
+                    // for debugging only: external_id
+                    //std::cout << '\t' << '#' << loadedSensor->external_id();
+
+                    std::cout << std::endl;
                 }
             } catch (klio::StoreException const& ex) {
                 std::cout << "Failed to create: " << ex.what() << std::endl;

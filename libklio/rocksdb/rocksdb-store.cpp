@@ -232,7 +232,7 @@ readings_t_Ptr RocksDBStore::get_timeframe_readings(klio::Sensor::Ptr sensor, ti
         std::string value = it->value().ToString();
         long timestamp = tc->convert_from_epoch(atol(epoch.c_str()));
         
-        if (timestamp >= begin, timestamp <= end) {
+        if (timestamp >= begin && timestamp <= end) {
 
             readings->insert(
                     std::pair<timestamp_t, double>(

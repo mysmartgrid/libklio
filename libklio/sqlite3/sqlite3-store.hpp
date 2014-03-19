@@ -26,6 +26,8 @@
 #include <boost/filesystem.hpp>
 #include <libklio/common.hpp>
 #include <libklio/store.hpp>
+#include <libklio/sensor-factory.hpp>
+#include "transaction.hpp"
 
 
 namespace bfs = boost::filesystem;
@@ -37,7 +39,16 @@ namespace klio {
         typedef std::tr1::shared_ptr<SQLite3Store> Ptr;
 
         SQLite3Store(const bfs::path& path) :
-        _path(path) {
+        _path(path),
+        _db(NULL),
+        _insert_sensor_stmt(NULL),
+        _remove_sensor_stmt(NULL),
+        _update_sensor_stmt(NULL),
+        _select_sensor_stmt(NULL),
+        _select_sensor_by_external_id_stmt(NULL),
+        _select_sensor_by_name_stmt(NULL),
+        _select_sensors_stmt(NULL),
+        _select_all_sensor_uuids_stmt(NULL) {
         };
 
         virtual ~SQLite3Store() {
@@ -46,7 +57,9 @@ namespace klio {
 
         void open();
         void close();
+        void check_integrity();
         void initialize();
+        void prepare();
         void dispose();
         const std::string str();
 
@@ -54,10 +67,10 @@ namespace klio {
         virtual void remove_sensor(const Sensor::Ptr sensor);
         virtual void update_sensor(const Sensor::Ptr sensor);
         virtual Sensor::Ptr get_sensor(const Sensor::uuid_t& uuid);
-        virtual Sensor::Ptr get_sensor_by_external_id(const std::string& external_id);
         virtual std::vector<Sensor::Ptr> get_sensors_by_external_id(const std::string& external_id);
         virtual std::vector<Sensor::Ptr> get_sensors_by_name(const std::string& sensor_id);
         virtual std::vector<Sensor::uuid_t> get_sensor_uuids();
+        virtual std::vector<Sensor::Ptr> get_sensors();
 
         virtual void add_reading(Sensor::Ptr sensor, timestamp_t timestamp, double value);
         virtual void add_readings(Sensor::Ptr sensor, const readings_t& readings);
@@ -65,33 +78,33 @@ namespace klio {
         virtual readings_t_Ptr get_all_readings(Sensor::Ptr sensor);
         virtual readings_t_Ptr get_timeframe_readings(klio::Sensor::Ptr sensor, timestamp_t begin, timestamp_t end);
         virtual unsigned long int get_num_readings(Sensor::Ptr sensor);
-        virtual std::pair<timestamp_t, double> get_last_reading(Sensor::Ptr sensor);
+        virtual reading_t get_last_reading(Sensor::Ptr sensor);
 
     private:
         SQLite3Store(const SQLite3Store& original);
         SQLite3Store& operator =(const SQLite3Store& rhs);
 
         bool has_table(std::string name);
-        void insert_reading_record(Sensor::Ptr sensor, timestamp_t timestamp, double value);
-
-        sqlite3_stmt *prepare(const std::string stmt_str);
+        void insert_reading_record(sqlite3_stmt* stmt, timestamp_t timestamp, double value);
+        sqlite3_stmt *prepare(const std::string& stmt_str);
         int execute(sqlite3_stmt *stmt, int expected_code);
         void reset(sqlite3_stmt *stmt);
-        void finalize(sqlite3_stmt *stmt);
-        int execute(std::string stmt, int (*callback)(void*, int, char**, char**), void *arg);
+        void finalize(sqlite3_stmt **stmt);
         Sensor::Ptr parse_sensor(sqlite3_stmt* stmt);
 
-        sqlite3 *db;
         bfs::path _path;
-
-        static const std::string create_sensors_table_stmt;
-        static const std::string insert_sensor_stmt;
-        static const std::string remove_sensor_stmt;
-        static const std::string update_sensor_stmt;
-        static const std::string select_sensor_stmt;
-        static const std::string select_sensor_by_external_id_stmt;
-        static const std::string select_sensor_by_name_stmt;
-        static const std::string select_all_sensor_uuids_stmt;
+        sqlite3 *_db;
+        sqlite3_stmt* _insert_sensor_stmt;
+        sqlite3_stmt* _remove_sensor_stmt;
+        sqlite3_stmt* _update_sensor_stmt;
+        sqlite3_stmt* _select_sensor_stmt;
+        sqlite3_stmt* _select_sensor_by_external_id_stmt;
+        sqlite3_stmt* _select_sensor_by_name_stmt;
+        sqlite3_stmt* _select_sensors_stmt;
+        sqlite3_stmt* _select_all_sensor_uuids_stmt;
+        
+        static const klio::SensorFactory::Ptr sensor_factory;
+        static const klio::TimeConverter::Ptr time_converter;
     };
 };
 

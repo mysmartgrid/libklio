@@ -27,7 +27,6 @@
 #include <libklio/common.hpp>
 #include <libklio/store.hpp>
 #include <libklio/sensor-factory.hpp>
-
 #include "transaction.hpp"
 
 
@@ -77,6 +76,7 @@ namespace klio {
         virtual void add_readings(Sensor::Ptr sensor, const readings_t& readings);
         virtual void update_readings(Sensor::Ptr sensor, const readings_t& readings);
         virtual readings_t_Ptr get_all_readings(Sensor::Ptr sensor);
+        virtual readings_t_Ptr get_timeframe_readings(klio::Sensor::Ptr sensor, timestamp_t begin, timestamp_t end);
         virtual unsigned long int get_num_readings(Sensor::Ptr sensor);
         virtual reading_t get_last_reading(Sensor::Ptr sensor);
 

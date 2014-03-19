@@ -380,6 +380,41 @@ readings_t_Ptr SQLite3Store::get_all_readings(klio::Sensor::Ptr sensor) {
     return readings;
 }
 
+readings_t_Ptr SQLite3Store::get_timeframe_readings(klio::Sensor::Ptr sensor,
+        timestamp_t begin, timestamp_t end) {
+
+    LOG("Retrieving readings of sensor " << sensor->str()
+            << " between " << begin << " and " << end);
+
+    std::ostringstream oss;
+    oss << "SELECT timestamp, value FROM '" << sensor->uuid_string() << "' ";
+    oss << "WHERE timestamp BETWEEN ? AND ?;";
+    sqlite3_stmt* stmt = prepare(oss.str());
+
+    sqlite3_bind_int(stmt, 1, begin);
+    sqlite3_bind_int(stmt, 2, end);
+
+    readings_t_Ptr readings(new readings_t());
+    try {
+        while (SQLITE_ROW == sqlite3_step(stmt)) {
+
+            int epoch = sqlite3_column_int(stmt, 0);
+            double value = sqlite3_column_double(stmt, 1);
+            readings->insert(
+                    std::pair<timestamp_t, double>(
+                    time_converter->convert_from_epoch(epoch),
+                    value
+                    ));
+        }
+
+    } catch (klio::StoreException e) {
+        finalize(&stmt);
+        throw;
+    }
+    finalize(&stmt);
+    return readings;
+}
+
 unsigned long int SQLite3Store::get_num_readings(klio::Sensor::Ptr sensor) {
 
     LOG("Retrieving number of readings for sensor " << sensor->str());

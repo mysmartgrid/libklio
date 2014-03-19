@@ -310,6 +310,14 @@ readings_t_Ptr MSGStore::get_all_readings(const Sensor::Ptr sensor) {
     }
 }
 
+readings_t_Ptr MSGStore::get_timeframe_readings(klio::Sensor::Ptr sensor, 
+    timestamp_t begin, timestamp_t end) {
+  //TODO: Implement me!
+  std::cout << "Function get_timeframe_readings(..) is not implemented in MSG store." << std::endl;
+  std::cout << "Exiting." << std::endl;
+  exit(-56);
+}
+
 unsigned long int MSGStore::get_num_readings(const Sensor::Ptr sensor) {
 
     struct json_object *jreadings = NULL;

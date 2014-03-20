@@ -3,6 +3,8 @@
 #include <cstdio>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/classification.hpp>
 #include <libklio/sensor-factory.hpp>
 #include <libklio/sqlite3/transaction.hpp>
 #include <libklio/common.hpp>
@@ -82,17 +84,25 @@ void SQLite3Store::check_integrity() {
 
                     stmt = prepare("SELECT value FROM properties WHERE name = 'version'");
                     execute(stmt, SQLITE_ROW);
-                    result = std::string((char*) sqlite3_column_text(stmt, 0));
+                    std::string db_version = std::string((char*) sqlite3_column_text(stmt, 0));
                     finalize(&stmt);
 
-                    //Check the libklio database version
-                    if (result == info->getVersion()) {
+                    std::vector<std::string> db_version_digits;
+                    boost::split(db_version_digits, db_version, boost::is_any_of("."));
+                    
+                    std::vector<std::string> klio_version_digits;
+                    boost::split(klio_version_digits, info->getVersion(), boost::is_any_of("."));
+
+                    //Only two first digits must match
+                    if (db_version_digits.at(0) == klio_version_digits.at(0) &&
+                            db_version_digits.at(1) == klio_version_digits.at(1)) {
+
                         return;
                     }
                 }
                 oss << "The store was created using an old version of libKlio. " <<
                         "Please, use the command klio-store to upgrade it " <<
-                        "to version " << info->getVersion();
+                        "to version " << info->getVersion() << ".";
             } else {
                 oss << "The database is corrupt.";
             }

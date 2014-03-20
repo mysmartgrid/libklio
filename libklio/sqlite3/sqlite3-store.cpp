@@ -91,8 +91,9 @@ void SQLite3Store::check_integrity() {
                     }
                 }
                 oss << "The store was created using an old version of libKlio. " <<
-                        "Please, use the command klio-store to upgrade it " <<
-                        "to version " << info->getVersion();
+                        "Please, use the command " << std::endl <<
+                        " $ klio-store -a upgrade -s <FILE>" << std::endl 
+                        << "to upgrade it to database version " << info->getVersion();
             } else {
                 oss << "The database is corrupt.";
             }

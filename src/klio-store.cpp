@@ -2,6 +2,7 @@
  * This file is part of libklio.
  *
  * (c) Fraunhofer ITWM - Mathias Dalheimer <dalheimer@itwm.fhg.de>, 2011
+ *                       Ely de Oliveira   <ely.oliveira@itwm.fhg.de>, 2014
  *
  * libklio is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,7 +16,6 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with libklio. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 #include <sstream>
@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
 
         if (vm.count("help")) {
             std::cout << desc << std::endl;
-            return 1;
+            return 0;
         }
 
         if (vm.count("version")) {
@@ -83,16 +83,18 @@ int main(int argc, char** argv) {
         }
 
         klio::StoreFactory::Ptr factory(new klio::StoreFactory());
-
+        bfs::path db(storefile);
+        
         /**
          * CREATE action
          */
         if (boost::iequals(action, std::string("create"))) {
-            bfs::path db(storefile);
+
             if (bfs::exists(db)) {
                 std::cerr << "File " << db << " already exists, exiting." << std::endl;
                 return 2;
             }
+
             try {
                 std::cout << "Attempting to create " << db << std::endl;
                 klio::Store::Ptr store(factory->create_sqlite3_store(db));
@@ -100,13 +102,14 @@ int main(int argc, char** argv) {
 
             } catch (klio::StoreException const& ex) {
                 std::cout << "Failed to create: " << ex.what() << std::endl;
+                return 1;
             }
 
             /**
              * CHECK action
              */
         } else if (boost::iequals(action, std::string("check"))) {
-            bfs::path db(storefile);
+
             if (!bfs::exists(db)) {
                 std::cerr << "File " << db << " does not exist, exiting." << std::endl;
                 return 2;
@@ -116,6 +119,7 @@ int main(int argc, char** argv) {
                 //  std::cout << "Attempting to open " << db << std::endl;
                 klio::Store::Ptr store(factory->open_sqlite3_store(db));
                 //  std::cout << "opened store: " << store->str() << std::endl;
+
                 std::vector<klio::Sensor::uuid_t> uuids = store->get_sensor_uuids();
                 std::vector<klio::Sensor::uuid_t>::iterator it;
                 std::cout << std::setw(8) << "# val";
@@ -128,10 +132,13 @@ int main(int argc, char** argv) {
                 std::cout << std::setw(21) << "first timestamp";
                 std::cout << std::setw(21) << "last timestamp";
                 std::cout << '\t' << "sensor name" << std::endl;
+
                 for (it = uuids.begin(); it < uuids.end(); it++) {
+
                     klio::Sensor::Ptr loadedSensor(store->get_sensor(*it));
                     klio::readings_t_Ptr readings;
                     readings = store->get_all_readings(loadedSensor);
+
                     // loop over all readings and calculate metrics
                     uint64_t num_readings = 0;
                     klio::timestamp_t first_timestamp = 0;
@@ -141,19 +148,24 @@ int main(int argc, char** argv) {
                     double min_value = std::numeric_limits<double>::max();
                     double max_value = std::numeric_limits<double>::min();
                     double aggregated_value = 0;
+
                     std::vector<uint32_t> all_intervals;
+
                     for (klio::readings_it_t it = readings->begin();
                             it != readings->end(); it++) {
+
                         num_readings++;
                         klio::timestamp_t ts1 = (*it).first;
                         double val1 = (*it).second;
                         min_value = std::min(min_value, val1);
                         max_value = std::max(max_value, val1);
                         aggregated_value += val1;
+
                         if (last_timestamp == 0) {
                             // this is the first value we read, initialize state
                             first_timestamp = ts1;
                             last_timestamp = ts1;
+                            
                         } else {
                             // everything set up, this is just another value
                             uint32_t interval = ts1 - last_timestamp;
@@ -164,39 +176,49 @@ int main(int argc, char** argv) {
                             last_timestamp = ts1;
                         }
                     }
+                    
                     size_t middle_element_idx = all_intervals.size() / 2;
                     uint32_t mean_interval = 0;
+
                     if (middle_element_idx != 0) {
                         std::nth_element(all_intervals.begin(),
                                 all_intervals.begin() + middle_element_idx,
                                 all_intervals.end());
                         mean_interval = all_intervals[middle_element_idx];
                     }
+
                     // compose output line
                     std::cout << std::setfill(' ') << std::setw(8) << num_readings;
                     std::cout << std::setw(8) << mean_interval;
+                    
                     // print mean of intervals
                     if (min_timestamp_interval == std::numeric_limits<uint32_t>::max() ||
                             max_timestamp_interval == std::numeric_limits<uint32_t>::min()) {
+
                         std::cout << std::setw(8) << "n/a";
                         std::cout << std::setw(8) << "n/a";
+
                     } else {
                         std::cout << std::setw(8) << min_timestamp_interval;
                         std::cout << std::setw(8) << max_timestamp_interval;
                     }
+                    
                     // value stats
                     if (num_readings == 0) {
                         std::cout << std::setw(8) << "n/a";
+
                     } else {
                         std::cout << std::setw(8) << (uint32_t) aggregated_value / num_readings;
                     }
                     std::cout << std::setw(8) << (uint32_t) min_value;
                     std::cout << std::setw(8) << (uint32_t) max_value;
+
                     // Time conversion foo
                     klio::LocalTime::Ptr lt(new klio::LocalTime("."));
                     boost::local_time::local_time_facet* output_facet
                             = new boost::local_time::local_time_facet();
                     output_facet->format("%Y.%m.%d-%H:%M:%S");
+
                     std::ostringstream oss;
                     oss.imbue(std::locale(std::locale::classic(), output_facet));
                     boost::local_time::local_date_time first_timestamp_datetime =
@@ -204,16 +226,19 @@ int main(int argc, char** argv) {
                     oss.str("");
                     oss << first_timestamp_datetime;
                     std::cout << std::setw(21) << oss.str();
+
                     boost::local_time::local_date_time last_timestamp_datetime =
                             lt->get_local_time(loadedSensor, last_timestamp);
                     oss.str("");
                     oss << last_timestamp_datetime;
                     std::cout << std::setw(21) << oss.str();
+
                     // name of the sensor
                     std::cout << '\t' << loadedSensor->name() << std::endl;
                 }
             } catch (klio::StoreException const& ex) {
-                std::cout << "Failed to create: " << ex.what() << std::endl;
+                std::cout << "Failed to check: " << ex.what() << std::endl;
+                return 1;
             }
 
             /**
@@ -243,7 +268,6 @@ int main(int argc, char** argv) {
             }
 
             try {
-
                 std::cout << "Attempting to open source store " << source_path << std::endl;
                 klio::Store::Ptr source_store(factory->open_sqlite3_store(source_path));
                 std::cout << "Opened source store: " << source_store->str() << std::endl;
@@ -261,6 +285,7 @@ int main(int argc, char** argv) {
 
             } catch (klio::StoreException const& ex) {
                 std::cout << "Failed to synchronize stores. " << ex.what() << std::endl;
+                return 1;
             }
 
             /**
@@ -268,7 +293,6 @@ int main(int argc, char** argv) {
              */
         } else if (boost::iequals(action, std::string("upgrade"))) {
 
-            bfs::path db(storefile);
             try {
                 klio::VersionInfo::Ptr info = klio::VersionInfo::Ptr(new klio::VersionInfo());
 
@@ -279,6 +303,7 @@ int main(int argc, char** argv) {
 
             } catch (klio::StoreException const& ex) {
                 std::cout << "Failed to upgrade: " << ex.what() << std::endl;
+                return 1;
             }
 
             /** 
@@ -295,6 +320,7 @@ int main(int argc, char** argv) {
 
     } catch (...) {
         std::cerr << "Exception of unknown type!" << std::endl;
+        return 1;
     }
 
     return 0;

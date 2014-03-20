@@ -76,6 +76,8 @@ void SQLite3Store::check_integrity() {
 
             if (result == "ok") {
 
+                VersionInfo::Ptr info = VersionInfo::Ptr(new VersionInfo());
+
                 if (has_table("sensors") && has_table("properties")) {
 
                     stmt = prepare("SELECT value FROM properties WHERE name = 'version'");
@@ -84,16 +86,13 @@ void SQLite3Store::check_integrity() {
                     finalize(&stmt);
 
                     //Check the libklio database version
-                    VersionInfo::Ptr info = VersionInfo::Ptr(new VersionInfo());
                     if (result == info->getVersion()) {
                         return;
                     }
-                    oss << "The store was created using an old version of libKlio. " <<
-                            "Please, use the command klio-store to upgrade it " <<
-                            "to version " << info->getVersion();
-                } else {
-                    oss << "The store has not been initialized. Please, recreate it.";
                 }
+                oss << "The store was created using an old version of libKlio. " <<
+                        "Please, use the command klio-store to upgrade it " <<
+                        "to version " << info->getVersion();
             } else {
                 oss << "The database is corrupt.";
             }
@@ -363,7 +362,7 @@ std::vector<klio::Sensor::Ptr> SQLite3Store::get_sensors_by_name(const std::stri
         while (SQLITE_ROW == sqlite3_step(_select_sensor_by_name_stmt)) {
             sensors.push_back(parse_sensor(_select_sensor_by_name_stmt));
         }
-        
+
     } catch (std::exception const& e) {
         reset(_select_sensor_by_name_stmt);
         throw;

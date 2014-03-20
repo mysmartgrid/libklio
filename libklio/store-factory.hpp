@@ -45,6 +45,7 @@ namespace klio {
         };
 
         SQLite3Store::Ptr create_sqlite3_store(const bfs::path& path);
+        SQLite3Store::Ptr create_sqlite3_store(const bfs::path& path, bool prepare);
         SQLite3Store::Ptr open_sqlite3_store(const bfs::path& path);
 
         MSGStore::Ptr create_msg_store();

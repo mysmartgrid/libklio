@@ -304,7 +304,7 @@ int main(int argc, char** argv) {
                 klio::VersionInfo::Ptr info = klio::VersionInfo::Ptr(new klio::VersionInfo());
 
                 std::cout << "Attempting to upgrade " << db << " to version " << info->getVersion() << std::endl;
-                klio::SQLite3Store::Ptr store(factory->create_sqlite3_store(db));
+                klio::SQLite3Store::Ptr store(factory->create_sqlite3_store(db, false));
                 store->upgrade();
                 std::cout << "Store upgraded." << std::endl;
 

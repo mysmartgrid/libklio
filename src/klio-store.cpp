@@ -122,6 +122,14 @@ int main(int argc, char** argv) {
 
                 std::vector<klio::Sensor::uuid_t> uuids = store->get_sensor_uuids();
                 std::vector<klio::Sensor::uuid_t>::iterator it;
+                klio::timestamp_t all_sensors_last_timestamp = 0;
+                // First pass: get the latest timestamps of all sensors
+                for (it = uuids.begin(); it < uuids.end(); it++) {
+                  klio::Sensor::Ptr loadedSensor(store->get_sensor(*it));
+                  klio::reading_t last_reading = store->get_last_reading(loadedSensor);
+                  all_sensors_last_timestamp = std::max(all_sensors_last_timestamp, last_reading.first);
+                }
+                std::cout << std::setw(5) << "stat";
                 std::cout << std::setw(8) << "# val";
                 std::cout << std::setw(8) << "dt med";
                 std::cout << std::setw(8) << "dt min";
@@ -131,8 +139,10 @@ int main(int argc, char** argv) {
                 std::cout << std::setw(8) << "max(W)";
                 std::cout << std::setw(21) << "first timestamp";
                 std::cout << std::setw(21) << "last timestamp";
-                std::cout << '\t' << "sensor name" << std::endl;
+                std::cout << '\t' << "type";
+                std::cout << std::setw(8) << "unit";
 
+                std::cout << '\t' << "sensor name / description" << std::endl;
                 for (it = uuids.begin(); it < uuids.end(); it++) {
 
                     klio::Sensor::Ptr loadedSensor(store->get_sensor(*it));
@@ -188,7 +198,15 @@ int main(int argc, char** argv) {
                     }
 
                     // compose output line
-                    std::cout << std::setfill(' ') << std::setw(8) << num_readings;
+                    std::ostringstream stat_oss;
+                    if (last_timestamp + (60*60) < all_sensors_last_timestamp) {
+                      // no value in the last hour - mark as late
+                      stat_oss << "L"; // mark as late
+                    } else {
+                      stat_oss << "C"; // mark as current
+                    }
+                    std::cout << std::setfill(' ') << std::setw(5) << stat_oss.str();
+                    std::cout << std::setw(8) << num_readings;
                     std::cout << std::setw(8) << mean_interval;
                     
                     // print mean of intervals
@@ -232,9 +250,20 @@ int main(int argc, char** argv) {
                     oss.str("");
                     oss << last_timestamp_datetime;
                     std::cout << std::setw(21) << oss.str();
+                    // sensor data
+                    std::cout << '\t' << loadedSensor->device_type()->name();
 
-                    // name of the sensor
-                    std::cout << '\t' << loadedSensor->name() << std::endl;
+                    // unit
+                    std::cout << '\t' << loadedSensor->unit();
+
+                    // name and description
+                    std::cout << '\t' << loadedSensor->name();
+                    std::cout << '\t' << loadedSensor->description();
+
+                    // for debugging only: external_id
+                    //std::cout << '\t' << '#' << loadedSensor->external_id();
+
+                    std::cout << std::endl;
                 }
             } catch (klio::StoreException const& ex) {
                 std::cout << "Failed to check: " << ex.what() << std::endl;

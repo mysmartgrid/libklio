@@ -1,9 +1,11 @@
 
-#include <libklio/sensor-factory.hpp>
 #include "store.hpp"
 
 
 using namespace klio;
+
+const klio::SensorFactory::Ptr Store::sensor_factory(new klio::SensorFactory());
+const klio::TimeConverter::Ptr Store::time_converter(new klio::TimeConverter());
 
 reading_t Store::get_reading(klio::Sensor::Ptr sensor, timestamp_t timestamp) {
 
@@ -43,8 +45,6 @@ void Store::sync_readings(klio::Sensor::Ptr sensor, klio::Store::Ptr store) {
         local_sensor = sensor;
 
     } else {
-        klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-
         //Exactly one sensor is processed
         for (std::vector<klio::Sensor::Ptr>::const_iterator found = sensors.begin(); found != sensors.end(); ++found) {
 

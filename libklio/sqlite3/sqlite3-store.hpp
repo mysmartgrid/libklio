@@ -59,6 +59,7 @@ namespace klio {
         void close();
         void check_integrity();
         void initialize();
+        void upgrade();
         void prepare();
         void dispose();
         const std::string str();
@@ -85,7 +86,9 @@ namespace klio {
         SQLite3Store& operator =(const SQLite3Store& rhs);
 
         bool has_table(std::string name);
+        bool has_column(std::string table, std::string column);
         void insert_reading_record(sqlite3_stmt* stmt, timestamp_t timestamp, double value);
+        readings_t_Ptr get_readings(sqlite3_stmt* stmt);
         sqlite3_stmt *prepare(const std::string& stmt_str);
         int execute(sqlite3_stmt *stmt, int expected_code);
         void reset(sqlite3_stmt *stmt);
@@ -102,9 +105,6 @@ namespace klio {
         sqlite3_stmt* _select_sensor_by_name_stmt;
         sqlite3_stmt* _select_sensors_stmt;
         sqlite3_stmt* _select_all_sensor_uuids_stmt;
-        
-        static const klio::SensorFactory::Ptr sensor_factory;
-        static const klio::TimeConverter::Ptr time_converter;
     };
 };
 

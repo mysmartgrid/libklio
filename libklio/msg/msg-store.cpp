@@ -810,7 +810,7 @@ std::pair<timestamp_t, double > MSGStore::create_reading_pair(json_object * jpai
     json_object *jvalue = json_object_array_get_idx(jpair, 1);
     double value = json_object_get_double(jvalue);
 
-    if (isnan(value)) {
+    if (std::isnan(value)) {
         return std::pair<timestamp_t, double>(0, 0);
 
     } else {

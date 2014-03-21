@@ -31,12 +31,14 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
   set(_curl_INCLUDE_SEARCH_DIRS
     ${CMAKE_INCLUDE_PATH}
     /usr/local/include
+    /usr/local/opt/curl/include
     /usr/include
     )
 
   set(_curl_LIBRARIES_SEARCH_DIRS
     ${CMAKE_LIBRARY_PATH}
     /usr/local/lib
+    /usr/local/opt/curl/lib
     /usr/lib
     )
 
@@ -83,6 +85,7 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
     ${PC_CURL_INCLUDE_DIRS}
     ${CMAKE_INCLUDE_PATH}
     )
+  message("==> CURL_INCLUDE_DIR='${CURL_INCLUDE_DIR}'")
 
   # locate the library
   if(WIN32)
@@ -91,6 +94,8 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
     if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
       # On MacOS
       set(CURL_LIBRARY_NAMES ${CURL_LIBRARY_NAMES} libcurl.dylib)
+      set(CURL_STATIC_LIBRARY_NAMES ${CURL_STATIC_LIBRARY_NAMES}
+        libcurl.a)
     else(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
       set(CURL_LIBRARY_NAMES ${CURL_LIBRARY_NAMES} libcurl.a)
     endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -127,37 +132,44 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
     set(CURL_STATIC_LIBRARIES ${_CURL_STATIC_LIBRARIES} CACHE FILEPATH "")
     set(CURL_SHARED_LIBRARIES ${_CURL_SHARED_LIBRARIES} CACHE FILEPATH "")
   endif( PC_CURL_STATIC_LIBRARIES )
-  #else( PC_CURL_STATIC_LIBRARIES )
-    find_library(CURL_LIBRARY NAMES ${CURL_LIBRARY_NAMES}
-      HINTS
-      ${_curl_LIBRARIES_SEARCH_DIRS}
-      ${PC_CURL_LIBDIR}
-      ${PC_CURL_LIBRARY_DIRS}
-      )
-  #endif( PC_CURL_STATIC_LIBRARIES )
+  # message("Looking for ${CURL_LIBRARY_NAMES} in location ${_curl_LIBRARIES_SEARCH_DIRS}")
+  find_library(CURL_LIBRARIES NAMES ${CURL_LIBRARY_NAMES}
+    HINTS
+    ${_curl_LIBRARIES_SEARCH_DIRS}
+    ${PC_CURL_LIBDIR}
+    ${PC_CURL_LIBRARY_DIRS}
+    )
+
+  # message("Looking for ${CURL_STATIC_LIBRARY_NAMES} in location ${_curl_LIBRARIES_SEARCH_DIRS}")
+  find_library(CURL_STATIC_LIBRARIES NAMES ${CURL_STATIC_LIBRARY_NAMES}
+    HINTS
+    ${_curl_LIBRARIES_SEARCH_DIRS}
+    ${PC_CURL_LIBDIR}
+    ${PC_CURL_LIBRARY_DIRS}
+    )
 
   message("==> CURL_LIBRARIES='${CURL_LIBRARIES}'")
   message("==> CURL_STATIC_LIBRARIES='${CURL_STATIC_LIBRARIES}'")
   # On Linux
-  find_library (CURL_SHARED_LIBRARY
-    NAMES libcurl.so
-    HINTS ${CURL_HOME} ENV CURL_HOME
-    PATH_SUFFIXES lib
-    )
+  #find_library (CURL_SHARED_LIBRARY
+  #  NAMES libcurl.so
+  #  HINTS ${CURL_HOME} ENV CURL_HOME
+  #  PATH_SUFFIXES lib
+  #  )
 
 
-#  if (CURL_INCLUDE_DIR AND CURL_LIBRARY)
-#    set (CURL_FOUND TRUE)
-#    if (NOT CURL_FIND_QUIETLY)
-#      message (STATUS "Found curl headers in ${CURL_INCLUDE_DIR} and libraries ${CURL_LIBRARY}")
-#    endif (NOT CURL_FIND_QUIETLY)
-#  else (CURL_INCLUDE_DIR AND CURL_LIBRARY)
-#    if (CURL_FIND_REQUIRED)
-#      message (FATAL_ERROR "curl could not be found!")
-#    endif (CURL_FIND_REQUIRED)
-#  endif (CURL_INCLUDE_DIR AND CURL_LIBRARY)
+  #  if (CURL_INCLUDE_DIR AND CURL_LIBRARY)
+  #    set (CURL_FOUND TRUE)
+  #    if (NOT CURL_FIND_QUIETLY)
+  #      message (STATUS "Found curl headers in ${CURL_INCLUDE_DIR} and libraries ${CURL_LIBRARY}")
+  #    endif (NOT CURL_FIND_QUIETLY)
+  #  else (CURL_INCLUDE_DIR AND CURL_LIBRARY)
+  #    if (CURL_FIND_REQUIRED)
+  #      message (FATAL_ERROR "curl could not be found!")
+  #    endif (CURL_FIND_REQUIRED)
+  #  endif (CURL_INCLUDE_DIR AND CURL_LIBRARY)
 
-find_package_handle_standard_args(CURL   DEFAULT_MSG CURL_LIBRARIES CURL_STATIC_LIBRARIES CURL_INCLUDE_DIR)
+  find_package_handle_standard_args(CURL DEFAULT_MSG CURL_LIBRARIES CURL_INCLUDE_DIR)
 
 else(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
   set(CURL_FOUND true)

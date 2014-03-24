@@ -23,6 +23,7 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <boost/shared_ptr.hpp>
 #include <libklio/sqlite3/sqlite3-store.hpp>
 #include <libklio/msg/msg-store.hpp>
 #ifdef ENABLE_ROCKSDB
@@ -35,7 +36,7 @@ namespace klio {
 
     class StoreFactory {
     public:
-        typedef std::tr1::shared_ptr<StoreFactory> Ptr;
+        typedef boost::shared_ptr<StoreFactory> Ptr;
         typedef boost::uuids::uuid uuid_t;
 
         StoreFactory() : _gen() {

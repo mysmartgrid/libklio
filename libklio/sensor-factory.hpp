@@ -22,6 +22,7 @@
 #define LIBKLIO_SENSORFACTORY_HPP 1
 
 #include <boost/uuid/uuid_generators.hpp>
+#include <boost/shared_ptr.hpp>
 #include <libklio/common.hpp>
 #include <libklio/sensor.hpp>
 #include <libklio/device-type.hpp>
@@ -30,7 +31,7 @@ namespace klio {
 
     class SensorFactory {
     public:
-        typedef std::tr1::shared_ptr<SensorFactory> Ptr;
+        typedef boost::shared_ptr<SensorFactory> Ptr;
 
         SensorFactory() {
         };

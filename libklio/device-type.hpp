@@ -23,13 +23,14 @@
 
 #include <map>
 #include <sstream>
+#include <boost/shared_ptr.hpp>
 #include <libklio/common.hpp>
 
 namespace klio {
 
     class DeviceType {
     public:
-        typedef std::tr1::shared_ptr<DeviceType> Ptr;
+        typedef boost::shared_ptr<DeviceType> Ptr;
 
         const static DeviceType::Ptr UNKNOWN_DEVICE;
         const static DeviceType::Ptr DISABLED_DEVICE;

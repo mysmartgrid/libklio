@@ -25,6 +25,7 @@
 #include <vector>
 #include <boost/multi_array.hpp>
 #include <boost/tuple/tuple.hpp>
+#include <boost/shared_ptr.hpp>
 #include <libklio/common.hpp>
 #include <libklio/sensor.hpp>
 
@@ -35,7 +36,7 @@ namespace klio {
 
     // Basic types for representing time series
     typedef std::map<klio::timestamp_t, double> readings_t;
-    typedef std::tr1::shared_ptr< readings_t > readings_t_Ptr;
+    typedef boost::shared_ptr< readings_t > readings_t_Ptr;
     typedef std::map<klio::timestamp_t, double>::iterator readings_it_t;
     typedef std::map<klio::timestamp_t, double>::const_iterator readings_cit_t;
     typedef std::pair<klio::timestamp_t, double> reading_t;

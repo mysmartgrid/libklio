@@ -22,6 +22,7 @@
 #define LIBKLIO_TIME_HPP 1
 
 #include <ctime>
+#include <boost/shared_ptr.hpp>
 #include <libklio/common.hpp>
 #include <libklio/types.hpp>
 
@@ -30,7 +31,7 @@ namespace klio {
 
     class TimeConverter {
     public:
-        typedef std::tr1::shared_ptr<TimeConverter> Ptr;
+        typedef boost::shared_ptr<TimeConverter> Ptr;
         TimeConverter();
         virtual ~TimeConverter();
 

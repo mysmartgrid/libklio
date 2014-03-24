@@ -24,6 +24,7 @@
 #include <map>
 #include <iostream>
 #include <boost/uuid/uuid.hpp>
+#include <boost/shared_ptr.hpp>
 #include <libklio/common.hpp>
 #include <libklio/device-type.hpp>
 
@@ -32,7 +33,7 @@ namespace klio {
 
     class Sensor {
     public:
-        typedef std::tr1::shared_ptr<Sensor> Ptr;
+        typedef boost::shared_ptr<Sensor> Ptr;
         typedef boost::uuids::uuid uuid_t;
 
         Sensor(const uuid_t uuid,

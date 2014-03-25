@@ -23,6 +23,13 @@ enable_testing()
 # add a path where some libraries might be stored
 set(CMAKE_ADDITIONAL_PATH "$ENV{CMAKE_ADDITIONAL_PATH}" CACHE PATH "Path where many locally installed libraries can be found")
 
+OPTION(ENABLE_ROCKSDB
+  "Build the project with rockskdb enabled"
+  ON)
+OPTION(ENABLE_MSG
+  "Build the project with mysmartgrid enabled"
+  ON)
+
 ################################################################
   ###################################
 # No user settings below
@@ -88,35 +95,41 @@ FIND_PACKAGE(Boost 1.46.1
 
 # RocksDB
 # check if the compiler version supports c++ 2011
-if( ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER "4.7")  
-  include(FindRocksDB)
-  if(ROCKSDB_FOUND)
-    include_directories(${ROCKSDB_INCLUDE_DIR})
-  else(ROCKSDB_FOUND)
-    set(ROCKSDB_INCLUDE_DIR "")
-    message(STATUS "RocksDB support is disabled because the library is not found. Install RocksDB or call cmake -DROCKSDB_HOME=path_to_rocksdb_install in order to enable it.")
-  endif(ROCKSDB_FOUND)
+if( ENABLE_ROCKSDB )
+  if( ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER "4.6")  
+    include(FindRocksDB)
+    if(ROCKSDB_FOUND)
+      include_directories(${ROCKSDB_INCLUDE_DIR})
+    else(ROCKSDB_FOUND)
+      set(ROCKSDB_INCLUDE_DIR "")
+      message(STATUS "RocksDB support is disabled because the library is not found. Install RocksDB or call cmake -DROCKSDB_HOME=path_to_rocksdb_install in order to enable it.")
+    endif(ROCKSDB_FOUND)
+  else()
+    set(ENABLE_ROCKSDB False)
+  endif()
 endif()
 
-# libjson
-include(FindJson)
-if( NOT JSON_FOUND)
-  message(FATAL_ERROR "libjson is required.
-Install json or call cmake -DJSON_HOME=path_to_json_install")
-endif( NOT JSON_FOUND)
-include_directories(${JSON_INCLUDE_DIR})
+if( ENABLE_MSG )
+  # libjson
+  include(FindJson)
+  if( NOT JSON_FOUND)
+    message(FATAL_ERROR "libjson is required.
+            Install json or call cmake -DJSON_HOME=path_to_json_install")
+  endif( NOT JSON_FOUND)
+  include_directories(${JSON_INCLUDE_DIR})
 
-# Curl
-IF(WIN32)
-  add_definitions(-DCURL_STATICLIB)
-  include(FindCURL_WIN32)
-else(WIN32)
-  #  add_definitions(-DCURL_STATICLIB)
-  include(FindCurl)
-  include(FindGnutls)
-endif(WIN32)
+  # Curl
+  IF(WIN32)
+    add_definitions(-DCURL_STATICLIB)
+    include(FindCURL_WIN32)
+  else(WIN32)
+    #  add_definitions(-DCURL_STATICLIB)
+    include(FindCurl)
+    #include(FindGnutls)
+  endif(WIN32)
+  find_package(OpenSSL)
+endif()
 
-find_package(OpenSSL)
 
 include_directories(${CMAKE_BINARY_DIR})
 

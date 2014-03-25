@@ -16,6 +16,7 @@
 #include <libklio/sensor-factory.hpp>
 #include "msg-store.hpp"
 
+#ifdef ENABLE_MSG
 
 using namespace klio;
 
@@ -828,3 +829,5 @@ void MSGStore::destroy_object(json_object * jobject) {
         json_object_put(jobject);
     }
 }
+
+#endif /* ENABLE_MSG */

@@ -29,6 +29,8 @@
 #include <libklio/sensor-factory.hpp>
 #include <testconfig.h>
 
+#ifdef ENABLE_MSG
+
 /**
  * see http://www.boost.org/doc/libs/1_43_0/libs/test/doc/html/tutorials/hello-the-testing-world.html
  */
@@ -787,5 +789,7 @@ BOOST_AUTO_TEST_CASE(check_get_msg_sensor_uuids) {
         BOOST_FAIL("Unexpected exception occurred during MSGStore test");
     }
 }
+
+#endif /* ENABLE_MSG */
 
 //BOOST_AUTO_TEST_SUITE_END()

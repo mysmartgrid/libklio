@@ -33,6 +33,8 @@ SQLite3Store::Ptr StoreFactory::open_sqlite3_store(const bfs::path& path) {
     return store;
 }
 
+#ifdef ENABLE_MSG
+
 MSGStore::Ptr StoreFactory::create_msg_store() {
 
     return create_msg_store(
@@ -67,6 +69,8 @@ MSGStore::Ptr StoreFactory::create_msg_store(
     store->prepare();
     return store;
 }
+
+#endif /* ENABLE_MSG */
 
 #ifdef ENABLE_ROCKSDB
 

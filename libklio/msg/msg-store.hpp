@@ -22,14 +22,16 @@
 #define LIBKLIO_MSG_MSGSTORE_HPP 1
 
 #include <vector>
-#include <curl/curl.h>
-#include <json/json.h>
 #include <boost/shared_ptr.hpp>
 #include <libklio/common.hpp>
 #include <libklio/types.hpp>
 #include <libklio/store.hpp>
 #include <libklio/sensor.hpp>
 
+#ifdef ENABLE_MSG
+
+#include <curl/curl.h>
+#include <json/json.h>
 
 namespace klio {
 
@@ -151,5 +153,7 @@ namespace klio {
         void destroy_object(json_object * jobject);
     };
 };
+
+#endif /* ENABLE_MSG */
 
 #endif /* LIBKLIO_MSG_MSGSTORE_HPP */

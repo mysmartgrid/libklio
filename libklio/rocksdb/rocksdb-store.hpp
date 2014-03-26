@@ -20,14 +20,16 @@
 #ifndef LIBKLIO_ROCKSDB_ROCKSDBSTORE_HPP
 #define LIBKLIO_ROCKSDB_ROCKSDBSTORE_HPP 1
 
-#include <vector>
-#include <boost/filesystem.hpp>
-#include <boost/shared_ptr.hpp>
-#include <libklio/store.hpp>
+#include <libklio/config.h>
 
 #ifdef ENABLE_ROCKSDB
 
+#include <vector>
+#include <boost/filesystem.hpp>
+#include <boost/shared_ptr.hpp>
 #include <rocksdb/db.h>
+#include <libklio/store.hpp>
+
 
 namespace bfs = boost::filesystem;
 

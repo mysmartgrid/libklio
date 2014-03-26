@@ -100,8 +100,8 @@ several libraries:
 3. pkg-config 0.28 or later
 
 Optionally, in case you want to use the mySmartGrid web site as the storage
-backend, the following additional packages needs to be installed. This is the
-case of Hexabus.
+backend, the following additional packages needs to be installed. This is your 
+case if you are compiling Hexabus.
 
 1. CURL 7.29 or later
 2. json-c 0.10 or later

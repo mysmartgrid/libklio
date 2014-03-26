@@ -17,6 +17,10 @@
  * along with libklio. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <libklio/config.h>
+
+#ifdef ENABLE_ROCKSDB
+
 #include <iostream>
 #include <boost/test/unit_test.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -24,7 +28,6 @@
 #include <libklio/sensor-factory.hpp>
 #include <testconfig.h>
 
-#ifdef ENABLE_ROCKSDB
 
 /**
  * see http://www.boost.org/doc/libs/1_43_0/libs/test/doc/html/tutorials/hello-the-testing-world.html

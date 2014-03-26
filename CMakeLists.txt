@@ -1,5 +1,6 @@
 # -*- mode: cmake; -*-
 project(libklio)
+string(TOUPPER ${PROJECT_NAME} UPPER_PROJECT_NAME)
 cmake_minimum_required(VERSION "2.6" FATAL_ERROR)
 if(POLICY CMP0011)
   cmake_policy(SET CMP0011 NEW)
@@ -103,6 +104,7 @@ if( ENABLE_ROCKSDB )
     else(ROCKSDB_FOUND)
       set(ROCKSDB_INCLUDE_DIR "")
       message(STATUS "RocksDB support is disabled because the library is not found. Install RocksDB or call cmake -DROCKSDB_HOME=path_to_rocksdb_install in order to enable it.")
+      set(ENABLE_ROCKSDB False)
     endif(ROCKSDB_FOUND)
   else()
     set(ENABLE_ROCKSDB False)
@@ -113,23 +115,31 @@ if( ENABLE_MSG )
   # libjson
   include(FindJson)
   if( NOT JSON_FOUND)
-    message(FATAL_ERROR "libjson is required.
+    message(STATUS "libjson is required.
             Install json or call cmake -DJSON_HOME=path_to_json_install")
-  endif( NOT JSON_FOUND)
-  include_directories(${JSON_INCLUDE_DIR})
+    set(ENABLE_MSG False)
+  else()
+    include_directories(${JSON_INCLUDE_DIR})
 
-  # Curl
-  IF(WIN32)
-    add_definitions(-DCURL_STATICLIB)
-    include(FindCURL_WIN32)
-  else(WIN32)
-    #  add_definitions(-DCURL_STATICLIB)
-    include(FindCurl)
-    #include(FindGnutls)
-  endif(WIN32)
-  find_package(OpenSSL)
+    # Curl
+    IF(WIN32)
+      add_definitions(-DCURL_STATICLIB)
+      include(FindCURL_WIN32)
+    else(WIN32)
+      #  add_definitions(-DCURL_STATICLIB)
+      include(FindCurl)
+      #include(FindGnutls)
+    endif(WIN32)
+    if( NOT CURL_FOUND )
+      set(ENABLE_MSG False)
+    endif()
+    find_package(OpenSSL)
+  endif( NOT JSON_FOUND)
 endif()
 
+# this file is installed and contains all necessary information about the installed libseda,
+# it also loads the file with the exported targets
+configure_file(${PROJECT_NAME}Config.cmake.in "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake" @ONLY)
 
 include_directories(${CMAKE_BINARY_DIR})
 
@@ -151,6 +161,14 @@ INSTALL(FILES share/libklio/date_time_zonespec.csv
 configure_file(share/libklio/date_time_zonespec.csv 
   ${CMAKE_BINARY_DIR}/
   )
+
+install(EXPORT ${PROJECT_NAME}Exports
+    DESTINATION lib/shared
+    FILE ${PROJECT_NAME}Targets.cmake
+    COMPONENT libraries)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+  DESTINATION lib/shared
+  COMPONENT libraries)
 
 # CPACK packaging
 INCLUDE(InstallRequiredSystemLibraries)

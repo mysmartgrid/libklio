@@ -11,11 +11,13 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/algorithm/string/erase.hpp>
-#include <curl/curl.h>
-#include <json/json.h>
 #include <libklio/sensor-factory.hpp>
 #include "msg-store.hpp"
 
+#ifdef ENABLE_MSG
+
+#include <curl/curl.h>
+#include <json/json.h>
 
 using namespace klio;
 
@@ -40,15 +42,8 @@ void MSGStore::initialize() {
 
         std::string url = compose_device_url();
         json_object *jresponse = perform_http_post(url, _key, jobject);
+
         destroy_object(jresponse);
-
-        clear_buffers();
-
-        std::vector<Sensor::Ptr> sensors = get_sensors();
-        for (std::vector<Sensor::Ptr>::const_iterator sensor = sensors.begin(); sensor != sensors.end(); ++sensor) {
-            set_buffers(*sensor);
-        }
-
         destroy_object(jobject);
 
     } catch (GenericException const& e) {
@@ -61,8 +56,19 @@ void MSGStore::initialize() {
     }
 }
 
+void MSGStore::prepare() {
+
+    clear_buffers();
+
+    std::vector<Sensor::Ptr> sensors = get_sensors();
+    for (std::vector<Sensor::Ptr>::const_iterator sensor = sensors.begin(); sensor != sensors.end(); ++sensor) {
+        set_buffers(*sensor);
+    }
+}
+
 void MSGStore::close() {
     flush(true);
+    clear_buffers();
 }
 
 void MSGStore::check_integrity() {
@@ -306,6 +312,23 @@ readings_t_Ptr MSGStore::get_all_readings(const Sensor::Ptr sensor) {
     }
 }
 
+readings_t_Ptr MSGStore::get_timeframe_readings(klio::Sensor::Ptr sensor,
+        timestamp_t begin, timestamp_t end) {
+
+    //TODO: improve this method
+
+    readings_t_Ptr selected;
+    readings_t_Ptr readings = get_all_readings(sensor);
+
+    for (readings_cit_t reading = readings->begin(); reading != readings->end(); ++reading) {
+
+        if ((*reading).first >= begin && (*reading).first <= end) {
+            selected->insert(*reading);
+        }
+    }
+    return selected;
+}
+
 unsigned long int MSGStore::get_num_readings(const Sensor::Ptr sensor) {
 
     struct json_object *jreadings = NULL;
@@ -398,8 +421,7 @@ void MSGStore::clear_buffers() {
 
 void MSGStore::flush(bool force) {
 
-    TimeConverter tc;
-    timestamp_t now = tc.get_timestamp();
+    timestamp_t now = time_converter->get_timestamp();
 
     //Send measurements every 10 minutes
     if (force || now - _last_sync > 600) {
@@ -464,8 +486,7 @@ void MSGStore::heartbeat() {
     json_object *jobject = NULL;
 
     try {
-        TimeConverter tc;
-        timestamp_t now = tc.get_timestamp();
+        timestamp_t now = time_converter->get_timestamp();
 
         //Send a heartbeat every 30 minutes
         if (now - _last_heartbeat > 1800) {
@@ -689,6 +710,9 @@ struct json_object * MSGStore::perform_http_request(const std::string& method, c
         curl_global_cleanup();
         throw;
     }
+    //Some compilers require a return here
+    throw StoreException("This point should never be reached.");
+    return NULL;
 }
 
 struct json_object * MSGStore::create_json_object() {
@@ -777,8 +801,6 @@ Sensor::Ptr MSGStore::parse_sensor(const std::string& uuid_str, json_object * js
     //TODO: there should be no hard coded default timezone
     const char* timezone = "Europe/Berlin";
 
-    SensorFactory::Ptr sensor_factory(new SensorFactory());
-
     return sensor_factory->createSensor(
             uuid_str,
             std::string(external_id),
@@ -799,9 +821,7 @@ std::pair<timestamp_t, double > MSGStore::create_reading_pair(json_object * jpai
     } else {
         json_object *jtimestamp = json_object_array_get_idx(jpair, 0);
         long epoch = json_object_get_int(jtimestamp);
-
-        TimeConverter::Ptr tc(new TimeConverter());
-        timestamp_t timestamp = tc->convert_from_epoch(epoch);
+        timestamp_t timestamp = time_converter->convert_from_epoch(epoch);
 
         return std::pair<timestamp_t, double>(timestamp, value);
     }
@@ -813,3 +833,5 @@ void MSGStore::destroy_object(json_object * jobject) {
         json_object_put(jobject);
     }
 }
+
+#endif /* ENABLE_MSG */

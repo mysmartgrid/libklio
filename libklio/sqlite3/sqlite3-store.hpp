@@ -24,10 +24,10 @@
 #include <vector>
 #include <sqlite3.h>
 #include <boost/filesystem.hpp>
+#include <boost/shared_ptr.hpp>
 #include <libklio/common.hpp>
 #include <libklio/store.hpp>
 #include <libklio/sensor-factory.hpp>
-
 #include "transaction.hpp"
 
 
@@ -37,7 +37,7 @@ namespace klio {
 
     class SQLite3Store : public Store {
     public:
-        typedef std::tr1::shared_ptr<SQLite3Store> Ptr;
+        typedef boost::shared_ptr<SQLite3Store> Ptr;
 
         SQLite3Store(const bfs::path& path) :
         _path(path),
@@ -60,6 +60,7 @@ namespace klio {
         void close();
         void check_integrity();
         void initialize();
+        void upgrade();
         void prepare();
         void dispose();
         const std::string str();
@@ -77,6 +78,7 @@ namespace klio {
         virtual void add_readings(Sensor::Ptr sensor, const readings_t& readings);
         virtual void update_readings(Sensor::Ptr sensor, const readings_t& readings);
         virtual readings_t_Ptr get_all_readings(Sensor::Ptr sensor);
+        virtual readings_t_Ptr get_timeframe_readings(klio::Sensor::Ptr sensor, timestamp_t begin, timestamp_t end);
         virtual unsigned long int get_num_readings(Sensor::Ptr sensor);
         virtual reading_t get_last_reading(Sensor::Ptr sensor);
 
@@ -85,7 +87,9 @@ namespace klio {
         SQLite3Store& operator =(const SQLite3Store& rhs);
 
         bool has_table(std::string name);
+        bool has_column(std::string table, std::string column);
         void insert_reading_record(sqlite3_stmt* stmt, timestamp_t timestamp, double value);
+        readings_t_Ptr get_readings(sqlite3_stmt* stmt);
         sqlite3_stmt *prepare(const std::string& stmt_str);
         int execute(sqlite3_stmt *stmt, int expected_code);
         void reset(sqlite3_stmt *stmt);
@@ -102,9 +106,6 @@ namespace klio {
         sqlite3_stmt* _select_sensor_by_name_stmt;
         sqlite3_stmt* _select_sensors_stmt;
         sqlite3_stmt* _select_all_sensor_uuids_stmt;
-        
-        static const klio::SensorFactory::Ptr sensor_factory;
-        static const klio::TimeConverter::Ptr time_converter;
     };
 };
 

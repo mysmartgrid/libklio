@@ -23,6 +23,7 @@
 
 #include <boost/date_time/local_time/local_time.hpp>
 #include <boost/date_time/gregorian/gregorian.hpp>
+#include <boost/shared_ptr.hpp>
 #include <libklio/common.hpp>
 #include <libklio/sensor.hpp>
 #include <libklio/types.hpp>
@@ -32,7 +33,7 @@ namespace klio {
 
     class LocalTime {
     public:
-        typedef std::tr1::shared_ptr<LocalTime> Ptr;
+        typedef boost::shared_ptr<LocalTime> Ptr;
         LocalTime(const char* cmd);
 
         virtual ~LocalTime() {

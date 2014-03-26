@@ -194,7 +194,6 @@ void RocksDBStore::update_readings(klio::Sensor::Ptr sensor, const readings_t& r
 readings_t_Ptr RocksDBStore::get_all_readings(klio::Sensor::Ptr sensor) {
 
     readings_t_Ptr readings(new readings_t());
-    klio::TimeConverter::Ptr tc(new klio::TimeConverter());
 
     rocksdb::DB* db = open_db(true, false,
             compose_sensor_readings_path(sensor->uuid_string()));
@@ -208,9 +207,37 @@ readings_t_Ptr RocksDBStore::get_all_readings(klio::Sensor::Ptr sensor) {
 
         readings->insert(
                 std::pair<timestamp_t, double>(
-                tc->convert_from_epoch(atol(epoch.c_str())),
+                time_converter->convert_from_epoch(atol(epoch.c_str())),
                 atof(value.c_str())
                 ));
+    }
+    delete it;
+    return readings;
+}
+
+readings_t_Ptr RocksDBStore::get_timeframe_readings(klio::Sensor::Ptr sensor, timestamp_t begin, timestamp_t end) {
+
+    readings_t_Ptr readings(new readings_t());
+
+    rocksdb::DB* db = open_db(true, false,
+            compose_sensor_readings_path(sensor->uuid_string()));
+
+    rocksdb::Iterator* it = db->NewIterator(rocksdb::ReadOptions());
+
+    for (it->SeekToFirst(); it->Valid(); it->Next()) {
+
+        std::string epoch = it->key().ToString();
+        std::string value = it->value().ToString();
+        long timestamp = time_converter->convert_from_epoch(atol(epoch.c_str()));
+        
+        if (timestamp >= begin && timestamp <= end) {
+
+            readings->insert(
+                    std::pair<timestamp_t, double>(
+                    timestamp,
+                    atof(value.c_str())
+                    ));
+        }
     }
     delete it;
     return readings;
@@ -233,8 +260,7 @@ reading_t RocksDBStore::get_last_reading(klio::Sensor::Ptr sensor) {
     const char* epoch = it->key().ToString().c_str();
     const char* value = it->value().ToString().c_str();
 
-    klio::TimeConverter::Ptr tc(new klio::TimeConverter());
-    return std::pair<timestamp_t, double>(tc->convert_from_epoch(atol(epoch)), atof(value));
+    return std::pair<timestamp_t, double>(time_converter->convert_from_epoch(atol(epoch)), atof(value));
 }
 
 rocksdb::DB* RocksDBStore::open_db(const bool create_if_missing, const bool error_if_exists, const std::string& db_path) {

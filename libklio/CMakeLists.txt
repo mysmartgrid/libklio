@@ -41,13 +41,19 @@ file(GLOB klio_msg_src msg/*.cpp msg/*.hpp)
 
 file(GLOB klio_algorithm_src algorithm/*.cpp algorithm/*.hpp)
 
-ADD_LIBRARY(klio STATIC ${klio_src} ${klio_sqlite3_src} ${klio_msg_src} ${klio_rocksdb_src} ${klio_algorithm_src})
+ADD_LIBRARY(klio STATIC ${klio_src} ${klio_sqlite3_src} ${klio_msg_src} 
+  ${klio_rocksdb_src} ${klio_algorithm_src}
+  )
 
 target_link_libraries(klio
   ${SQLITE3_LIBRARIES}
-  ${ROCKSDB_LIBRARIES}
+)
+if( ENABLE_ROCKSDB )
+  target_link_libraries(klio ${ROCKSDB_LIBRARIES})
+endif()
+target_link_libraries(klio
   ${Boost_LIBRARIES}
-  ${CURL_SHARED_LIBRARY}
+  ${CURL_LIBRARIES}
   ${JSON_LIBRARY}
   ${OPENSSL_CRYPTO_LIBRARY}
 )
@@ -55,6 +61,14 @@ target_link_libraries(klio
 #if(BUILD_SHARED_LIBS)
 # install(TARGETS klio LIBRARY DESTINATION lib)
 #else(BUILD_SHARED_LIBS)
-    install(TARGETS klio ARCHIVE DESTINATION lib)
+install(TARGETS klio 
+  EXPORT ${PROJECT_NAME}Exports
+  ARCHIVE DESTINATION lib
+  COMPONENT static-libraries)
 #endif(BUILD_SHARED_LIBS)
+
+#install(TARGETS libklio
+#  ARCHIVE
+#  DESTINATION lib
+#  COMPONENT static-libraries)
 

@@ -21,6 +21,7 @@
 #ifndef LIBKLIO_JSON_EXPORTER_HPP
 #define LIBKLIO_JSON_EXPORTER_HPP 1
 
+#include <boost/shared_ptr.hpp>
 #include "exporter.hpp"
 
 
@@ -28,7 +29,7 @@ namespace klio {
 
     class JSONExporter : public Exporter {
     public:
-        typedef std::tr1::shared_ptr<JSONExporter> Ptr;
+        typedef boost::shared_ptr<JSONExporter> Ptr;
 
         JSONExporter(std::ostream& out) : Exporter(out) {
         };

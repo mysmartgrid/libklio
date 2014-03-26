@@ -22,6 +22,7 @@
 #define LIBKLIO_SQLITE3_TRANSACTION_HPP 1
 
 #include <sqlite3.h>
+#include <boost/shared_ptr.hpp>
 #include <libklio/common.hpp>
 
 
@@ -29,7 +30,7 @@ namespace klio {
 
     class Transaction {
     public:
-        typedef std::tr1::shared_ptr<Transaction> Ptr;
+        typedef boost::shared_ptr<Transaction> Ptr;
 
         Transaction(sqlite3* _db) :
         _db(_db),

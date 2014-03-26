@@ -22,13 +22,16 @@
 #define LIBKLIO_MSG_MSGSTORE_HPP 1
 
 #include <vector>
-#include <curl/curl.h>
-#include <json/json.h>
+#include <boost/shared_ptr.hpp>
 #include <libklio/common.hpp>
 #include <libklio/types.hpp>
 #include <libklio/store.hpp>
 #include <libklio/sensor.hpp>
 
+#ifdef ENABLE_MSG
+
+#include <curl/curl.h>
+#include <json/json.h>
 
 namespace klio {
 
@@ -39,7 +42,7 @@ namespace klio {
 
     class MSGStore : public Store {
     public:
-        typedef std::tr1::shared_ptr<MSGStore> Ptr;
+        typedef boost::shared_ptr<MSGStore> Ptr;
 
         MSGStore(const std::string& url, const std::string& id, const std::string& key, const std::string& description, const std::string& type) :
         _url(url),
@@ -83,6 +86,7 @@ namespace klio {
         void close();
         void check_integrity();
         void initialize();
+        void prepare();
         void dispose();
         void flush();
         const std::string str();
@@ -100,6 +104,7 @@ namespace klio {
         virtual void add_readings(const Sensor::Ptr sensor, const readings_t& readings);
         virtual void update_readings(const Sensor::Ptr sensor, const readings_t& readings);
         virtual readings_t_Ptr get_all_readings(const Sensor::Ptr sensor);
+        virtual readings_t_Ptr get_timeframe_readings(klio::Sensor::Ptr sensor, timestamp_t begin, timestamp_t end);
         virtual unsigned long int get_num_readings(const Sensor::Ptr sensor);
         virtual reading_t get_last_reading(const Sensor::Ptr sensor);
 
@@ -148,5 +153,7 @@ namespace klio {
         void destroy_object(json_object * jobject);
     };
 };
+
+#endif /* ENABLE_MSG */
 
 #endif /* LIBKLIO_MSG_MSGSTORE_HPP */

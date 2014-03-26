@@ -22,6 +22,7 @@
 
 #include <vector>
 #include <boost/filesystem.hpp>
+#include <boost/shared_ptr.hpp>
 #include <libklio/store.hpp>
 
 #ifdef ENABLE_ROCKSDB
@@ -34,7 +35,7 @@ namespace klio {
 
     class RocksDBStore : public Store {
     public:
-        typedef std::tr1::shared_ptr<RocksDBStore> Ptr;
+        typedef boost::shared_ptr<RocksDBStore> Ptr;
 
         RocksDBStore(const bfs::path& path,
                 const std::map<std::string, std::string>& db_options,
@@ -70,6 +71,7 @@ namespace klio {
         virtual void add_readings(const Sensor::Ptr sensor, const readings_t& readings);
         virtual void update_readings(const Sensor::Ptr sensor, const readings_t& readings);
         virtual readings_t_Ptr get_all_readings(const Sensor::Ptr sensor);
+        virtual readings_t_Ptr get_timeframe_readings(klio::Sensor::Ptr sensor, timestamp_t begin, timestamp_t end);
         virtual unsigned long int get_num_readings(const Sensor::Ptr sensor);
         virtual reading_t get_last_reading(const Sensor::Ptr sensor);
 

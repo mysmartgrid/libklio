@@ -2,6 +2,7 @@
  * This file is part of libklio.
  *
  * (c) Fraunhofer ITWM - Mathias Dalheimer <dalheimer@itwm.fhg.de>, 2011
+ *                       Ely de Oliveira   <ely.oliveira@itwm.fhg.de>, 2014
  *
  * libklio is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,7 +47,7 @@ int main(int argc, char** argv) {
                 ("action,a", po::value<std::string>(), "Valid actions: table, plaintable, octave, json, csv")
                 ("storefile,s", po::value<std::string>(), "the data store to use")
                 ("outputfile,o", po::value<std::string>(), "the output file to use")
-                ("id,i", po::value<std::string>(), "the id of the sensor")
+                ("id,i", po::value<std::string>(), "the internal id of the sensor (i.e. 3e3b6ef2-d960-4677-8845-1f52977b16d6)")
                 ("lasthours,l", po::value<long>(), "export the last N hours of data")
                 ;
         po::positional_options_description p;
@@ -87,6 +88,7 @@ int main(int argc, char** argv) {
         } else {
             action = (vm["action"].as<std::string>());
         }
+
         bfs::path db(storefile);
         if (!bfs::exists(db)) {
             std::cerr << "File " << db << " does not exist, exiting." << std::endl;
@@ -105,6 +107,7 @@ int main(int argc, char** argv) {
             if (bfs::exists(of)) {
                 std::cerr << "File " << of << " does exist, exiting." << std::endl;
                 return 2;
+
             } else {
                 outputstream = new std::ofstream(of.c_str());
             }
@@ -115,7 +118,8 @@ int main(int argc, char** argv) {
 
         try {
             if (!vm.count("id")) {
-                std::cout << "You must specify the id of the sensor." << std::endl;
+                std::cout << "You must specify the internal id of the sensor."
+                        << std::endl;
                 return 2;
             }
             std::string sensor_id(vm["id"].as<std::string>());
@@ -128,22 +132,39 @@ int main(int argc, char** argv) {
             bool found_sensor = false;
 
             for (it = uuids.begin(); it < uuids.end(); it++) {
-
                 klio::Sensor::Ptr loadedSensor(store->get_sensor(*it));
 
-                if (boost::iequals(loadedSensor->name(), sensor_id)) {
+                if (boost::iequals(loadedSensor->uuid_string(), sensor_id)) {
 
+                    std::cout << "Found sensor \"" << loadedSensor->name() << "\"" << std::endl;
                     found_sensor = true;
-                    klio::readings_t_Ptr readings = store->get_all_readings(loadedSensor);
 
-                    if (boost::iequals(action, std::string("TABLE")) || boost::iequals(action, std::string("PLAINTABLE"))) {
+                    klio::readings_t_Ptr readings;
+
+                    if (!vm.count("lasthours")) {
+                        readings = store->get_all_readings(loadedSensor);
+
+                    } else {
+                        uint32_t num_last_hours = vm["lasthours"].as<long>();
+                        uint32_t num_last_seconds = num_last_hours * 60 * 60;
+                        klio::reading_t last_reading = store->get_last_reading(loadedSensor);
+                        klio::timestamp_t last_timestamp = last_reading.first;
+                        klio::timestamp_t first_timestamp = last_timestamp - num_last_seconds;
+                        std::cout << "Retrieving last " << num_last_hours << " hours of data from the store (["
+                                << first_timestamp << ", " << last_timestamp << "])" << std::endl;
+                        readings = store->get_timeframe_readings(loadedSensor, first_timestamp, last_timestamp);
+                    }
+
+                    if (boost::iequals(action, std::string("TABLE")) ||
+                            boost::iequals(action, std::string("PLAINTABLE"))) {
+
                         //TABLE and PLAINTABLE commands
 
                         klio::readings_it_t it;
                         if (boost::iequals(action, std::string("TABLE"))) {
+                            std::cout << "Writing header to output file." << std::endl;
                             *outputstream << "timestamp\treading" << std::endl;
                         }
-
                         for (it = readings->begin(); it != readings->end(); it++) {
                             klio::timestamp_t ts1 = (*it).first;
                             double val1 = (*it).second;
@@ -183,7 +204,8 @@ int main(int argc, char** argv) {
                     } else if (boost::iequals(action, std::string("JSON"))) {
                         //JSON command 
                         klio::Exporter::Ptr jsonexporter(new klio::JSONExporter(*outputstream));
-                        jsonexporter->process(readings, loadedSensor->name(), loadedSensor->description());
+                        jsonexporter->process(readings,
+                                loadedSensor->name(), loadedSensor->description());
 
                     } else {
                         //UNKNOWN command 
@@ -192,9 +214,11 @@ int main(int argc, char** argv) {
                     }
                 }
             }
+
             if (!found_sensor) {
                 std::cout << "Sensor " << sensor_id << " not found. Aborting." << std::endl;
             }
+
         } catch (klio::StoreException const& ex) {
             std::cout << "Failed to export: " << ex.what() << std::endl;
         }
@@ -205,9 +229,9 @@ int main(int argc, char** argv) {
     } catch (std::exception& e) {
         std::cerr << "error: " << e.what() << std::endl;
         return 1;
+
     } catch (...) {
         std::cerr << "Exception of unknown type!" << std::endl;
     }
     return 0;
-
 }

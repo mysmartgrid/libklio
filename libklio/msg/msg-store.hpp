@@ -21,17 +21,18 @@
 #ifndef LIBKLIO_MSG_MSGSTORE_HPP
 #define LIBKLIO_MSG_MSGSTORE_HPP 1
 
-#include <vector>
-#include <boost/shared_ptr.hpp>
-#include <libklio/common.hpp>
-#include <libklio/types.hpp>
-#include <libklio/store.hpp>
-#include <libklio/sensor.hpp>
+#include <libklio/config.h>
 
 #ifdef ENABLE_MSG
 
+#include <vector>
+#include <boost/shared_ptr.hpp>
 #include <curl/curl.h>
 #include <json/json.h>
+#include <libklio/common.hpp>
+#include <libklio/types.hpp>
+#include <libklio/store.hpp>
+
 
 namespace klio {
 

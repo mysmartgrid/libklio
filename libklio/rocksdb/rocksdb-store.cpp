@@ -1,3 +1,6 @@
+#include <libklio/config.h>
+
+#ifdef ENABLE_ROCKSDB
 
 #include <iostream>
 #include <sstream>
@@ -7,7 +10,6 @@
 #include <libklio/sensor-factory.hpp>
 #include "rocksdb-store.hpp"
 
-#ifdef ENABLE_ROCKSDB
 
 using namespace klio;
 

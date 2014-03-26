@@ -1,3 +1,7 @@
+#include <libklio/config.h>
+
+#ifdef ENABLE_MSG
+
 #include <iostream>
 #include <sstream>
 #include <cstdio>
@@ -8,16 +12,14 @@
 #include <openssl/hmac.h>
 #include <openssl/sha.h>
 #include <openssl/evp.h>
+#include <curl/curl.h>
+#include <json/json.h>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/algorithm/string/erase.hpp>
 #include <libklio/sensor-factory.hpp>
 #include "msg-store.hpp"
 
-#ifdef ENABLE_MSG
-
-#include <curl/curl.h>
-#include <json/json.h>
 
 using namespace klio;
 

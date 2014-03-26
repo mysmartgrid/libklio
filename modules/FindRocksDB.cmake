@@ -8,6 +8,8 @@
 # * ROCKSDB_INCLUDE The include directories for rocksdb.
 
 message(STATUS "FindRocksDB check")
+include(FindPackageHandleStandardArgs)
+
 IF (NOT WIN32)
   include(FindPkgConfig)
   if ( PKG_CONFIG_FOUND )

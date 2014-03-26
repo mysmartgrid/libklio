@@ -710,6 +710,9 @@ struct json_object * MSGStore::perform_http_request(const std::string& method, c
         curl_global_cleanup();
         throw;
     }
+    //Some compilers require a return here
+    throw StoreException("This point should never be reached.");
+    return NULL;
 }
 
 struct json_object * MSGStore::create_json_object() {

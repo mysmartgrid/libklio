@@ -47,7 +47,7 @@ ADD_LIBRARY(klio STATIC ${klio_src} ${klio_sqlite3_src} ${klio_msg_src}
 
 target_link_libraries(klio
   ${SQLITE3_LIBRARIES}
-  ${ROCKSDB_LIBRARIES}
+  ${ROCKSDB_STATIC_LIBRARIES}
   ${Boost_LIBRARIES}
   ${CURL_LIBRARIES}
   ${JSON_LIBRARY}

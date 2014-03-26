@@ -208,4 +208,6 @@ message("  json: -L${JSON_LIBRARY} -I${JSON_INCLUDE_DIR}")
 message("  sqlite3 include: ${SQLITE3_INCLUDE_DIR}, lib: ${SQLITE3_LIBRARIES}")
 message("  rocksdb include: ${ROCKSDB_INCLUDE_DIR}, lib: ${ROCKSDB_STATIC_LIBRARIES}")
 message("  extended logging: ${ENABLE_LOGGING}")
+message("  rocksdb: ${ENABLE_ROCKSDB}")
+message("  mysmartgrid: ${ENABLE_MSG}")
 

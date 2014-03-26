@@ -11,11 +11,13 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/algorithm/string/erase.hpp>
-#include <curl/curl.h>
-#include <json/json.h>
 #include <libklio/sensor-factory.hpp>
 #include "msg-store.hpp"
 
+#ifdef ENABLE_MSG
+
+#include <curl/curl.h>
+#include <json/json.h>
 
 using namespace klio;
 
@@ -708,6 +710,9 @@ struct json_object * MSGStore::perform_http_request(const std::string& method, c
         curl_global_cleanup();
         throw;
     }
+    //Some compilers require a return here
+    throw StoreException("This point should never be reached.");
+    return NULL;
 }
 
 struct json_object * MSGStore::create_json_object() {
@@ -828,3 +833,5 @@ void MSGStore::destroy_object(json_object * jobject) {
         json_object_put(jobject);
     }
 }
+
+#endif /* ENABLE_MSG */

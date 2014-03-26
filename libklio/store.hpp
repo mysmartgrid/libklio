@@ -23,6 +23,7 @@
 
 #include <vector>
 #include <boost/optional/optional.hpp>
+#include <boost/shared_ptr.hpp>
 #include <libklio/common.hpp>
 #include <libklio/types.hpp>
 #include <libklio/sensor.hpp>
@@ -34,7 +35,7 @@ namespace klio {
 
     class Store {
     public:
-        typedef std::tr1::shared_ptr<Store> Ptr;
+        typedef boost::shared_ptr<Store> Ptr;
 
         Store() {
         };

@@ -5,10 +5,10 @@
 This library implements a storage layer for time-series data such as
 meter readings. Its name references Klio, the greek muse of history[0].
 The purpose of the library is to abstract from the storage backend. At
-this time, a simple SQLite-based storage backend is implemented, but a
-key-value based store will be implemented. The library is written in
-C++ and intended to be used within other programs. All functionality is
-tested within a seperate unit-test-driven testsuite.
+this time, three types of storage backend are supported: SQLite, RocksDB, and a
+remote storage on the mySmartGrid website. The library is written in C++ and
+intended to be used within other programs. All functionality is tested within
+a seperate unit-test-driven testsuite.
 
 ## CONCEPTS
 The library uses several concepts to make the storage of time-series
@@ -96,8 +96,20 @@ So far, the library has been successfully compiled on Ubuntu Linux
 several libraries:
 
 1. Boost version 1.48.0 or later
-2. sqlite3
-3. pkg-config
+2. sqlite version 3.7.15 or later
+3. pkg-config 0.28 or later
+
+Optionally, in case you want to use the mySmartGrid web site as the storage
+backend, the following additional packages needs to be installed. This is the
+case of Hexabus.
+
+1. CURL 7.29 or later
+2. json-c 0.10 or later
+
+Optionally, in case you want to use RocksDB as the storage backend, the
+following additional package needs to be installed.
+
+1. RocksDB 2.0 or later
 
 The library uses CMake for compile-time configuration. A Makefile is
 provided which wraps the build infrastructure. A simple

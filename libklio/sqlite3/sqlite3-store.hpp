@@ -24,6 +24,7 @@
 #include <vector>
 #include <sqlite3.h>
 #include <boost/filesystem.hpp>
+#include <boost/shared_ptr.hpp>
 #include <libklio/common.hpp>
 #include <libklio/store.hpp>
 #include <libklio/sensor-factory.hpp>
@@ -36,7 +37,7 @@ namespace klio {
 
     class SQLite3Store : public Store {
     public:
-        typedef std::tr1::shared_ptr<SQLite3Store> Ptr;
+        typedef boost::shared_ptr<SQLite3Store> Ptr;
 
         SQLite3Store(const bfs::path& path) :
         _path(path),

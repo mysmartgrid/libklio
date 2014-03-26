@@ -21,6 +21,7 @@
 #ifndef LIBKLIO_OCTAVE_EXPORTER_HPP
 #define LIBKLIO_OCTAVE_EXPORTER_HPP 1
 
+#include <boost/shared_ptr.hpp>
 #include "exporter.hpp"
 
 
@@ -28,7 +29,7 @@ namespace klio {
 
     class OctaveExporter : public Exporter {
     public:
-        typedef std::tr1::shared_ptr<OctaveExporter> Ptr;
+        typedef boost::shared_ptr<OctaveExporter> Ptr;
 
         OctaveExporter(std::ostream& out) : Exporter(out) {
         };

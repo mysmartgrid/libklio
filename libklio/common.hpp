@@ -21,6 +21,7 @@
 #ifndef LIBKLIO_COMMON_HPP
 #define LIBKLIO_COMMON_HPP 1
 
+#include <boost/shared_ptr.hpp>
 
 /* Include TR1 shared ptrs in a portable way. */
 #include <cstddef> // for __GLIBCXX__
@@ -58,7 +59,7 @@ namespace klio {
 
     class VersionInfo {
     public:
-        typedef std::tr1::shared_ptr<VersionInfo> Ptr;
+        typedef boost::shared_ptr<VersionInfo> Ptr;
 
         VersionInfo() {
         };

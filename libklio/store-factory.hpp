@@ -23,8 +23,11 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <boost/shared_ptr.hpp>
 #include <libklio/sqlite3/sqlite3-store.hpp>
+#ifdef ENABLE_MSG  
 #include <libklio/msg/msg-store.hpp>
+#endif /* ENABLE_MSG */
 #ifdef ENABLE_ROCKSDB
 #include <libklio/rocksdb/rocksdb-store.hpp>
 #endif /* ENABLE_ROCKSDB */
@@ -35,7 +38,7 @@ namespace klio {
 
     class StoreFactory {
     public:
-        typedef std::tr1::shared_ptr<StoreFactory> Ptr;
+        typedef boost::shared_ptr<StoreFactory> Ptr;
         typedef boost::uuids::uuid uuid_t;
 
         StoreFactory() : _gen() {
@@ -48,10 +51,14 @@ namespace klio {
         SQLite3Store::Ptr create_sqlite3_store(const bfs::path& path, bool prepare);
         SQLite3Store::Ptr open_sqlite3_store(const bfs::path& path);
 
+#ifdef ENABLE_MSG        
+        
         MSGStore::Ptr create_msg_store();
         MSGStore::Ptr create_msg_store(const std::string& id, const std::string& key);
         MSGStore::Ptr create_msg_store(const std::string& url, const std::string& id, const std::string& key, const std::string& description, const std::string& type);
 
+#endif /* ENABLE_MSG */
+        
 #ifdef ENABLE_ROCKSDB
 
         RocksDBStore::Ptr create_rocksdb_store(const bfs::path& path);

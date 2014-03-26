@@ -1,5 +1,6 @@
 #include <sstream>
 #include <boost/assign.hpp>
+#include <boost/shared_ptr.hpp>
 #include "device-type.hpp"
 
 
@@ -70,7 +71,7 @@ std::map<int, DeviceType::Ptr> DeviceType::get_all() {
 
 DeviceType::Ptr DeviceType::get_by_id(int id) {
 
-    std::map<int, std::tr1::shared_ptr<klio::DeviceType> >::const_iterator it = _all.find(id);
+    std::map<int, boost::shared_ptr<klio::DeviceType> >::const_iterator it = _all.find(id);
 
     if (it == _all.end()) {
         std::ostringstream oss;

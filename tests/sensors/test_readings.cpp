@@ -684,6 +684,8 @@ BOOST_AUTO_TEST_CASE(check_sync_store) {
     }
 }
 
+#ifdef ENABLE_MSG
+
 BOOST_AUTO_TEST_CASE(check_add_watt_reading_msg) {
 
     try {
@@ -940,5 +942,7 @@ BOOST_AUTO_TEST_CASE(check_add_hsbs_reading_msg) {
         BOOST_FAIL("Unexpected exception occurred during sensor test");
     }
 }
+
+#endif /* ENABLE_MSG */
 
 //BOOST_AUTO_TEST_SUITE_END()

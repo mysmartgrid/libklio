@@ -22,6 +22,7 @@
 
 #include <vector>
 #include <boost/filesystem.hpp>
+#include <boost/shared_ptr.hpp>
 #include <libklio/store.hpp>
 
 #ifdef ENABLE_ROCKSDB
@@ -34,7 +35,7 @@ namespace klio {
 
     class RocksDBStore : public Store {
     public:
-        typedef std::tr1::shared_ptr<RocksDBStore> Ptr;
+        typedef boost::shared_ptr<RocksDBStore> Ptr;
 
         RocksDBStore(const bfs::path& path,
                 const std::map<std::string, std::string>& db_options,

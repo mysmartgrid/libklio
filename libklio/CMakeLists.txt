@@ -49,7 +49,7 @@ target_link_libraries(klio
   ${SQLITE3_LIBRARIES}
 )
 if( ENABLE_ROCKSDB )
-  target_link_libraries(klio ${ROCKSDB_STATIC_LIBRARIES})
+  target_link_libraries(klio ${ROCKSDB_LIBRARIES})
 endif()
 target_link_libraries(klio
   ${Boost_LIBRARIES}

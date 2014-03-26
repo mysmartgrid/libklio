@@ -206,6 +206,6 @@ message("  boost system lib: ${Boost_SYSTEM_LIBRARY}")
 message("  boost filesystem lib: ${Boost_FILESYSTEM_LIBRARY}")
 message("  json: -L${JSON_LIBRARY} -I${JSON_INCLUDE_DIR}")
 message("  sqlite3 include: ${SQLITE3_INCLUDE_DIR}, lib: ${SQLITE3_LIBRARIES}")
-message("  rocksdb include: ${ROCKSDB_INCLUDE_DIR}, lib: ${ROCKSDB_LIBRARIES}")
+message("  rocksdb include: ${ROCKSDB_INCLUDE_DIR}, lib: ${ROCKSDB_STATIC_LIBRARIES}")
 message("  extended logging: ${ENABLE_LOGGING}")
 

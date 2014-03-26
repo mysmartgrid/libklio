@@ -9,7 +9,6 @@ add_executable(storetest ${storetest_src})
 
 if(ROCKSDB_FOUND)
   set_source_files_properties(${storetest_src} COMPILE_FLAGS "-std=gnu++11")
-  target_link_libraries(storetest klio ${ROCKSDB_LIBRARY} snappy)
 endif(ROCKSDB_FOUND)
 
 # Link the executable 

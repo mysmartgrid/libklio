@@ -15,7 +15,6 @@ add_executable(sensorstest ${sensorstest_src})
 
 if(ROCKSDB_FOUND)
   set_source_files_properties(${sensorstest_src} COMPILE_FLAGS "-std=gnu++11")
-  target_link_libraries(sensorstest klio ${ROCKSDB_LIBRARY} snappy)
 endif(ROCKSDB_FOUND)
 
 ADD_TEST(SensorTest ${CMAKE_CURRENT_BINARY_DIR}/sensorstest TestSensors)

@@ -585,7 +585,7 @@ std::string MSGStore::digest_message(const std::string& data, const std::string&
         strncat(ret, s, 2 * len);
     }
 
-    HMAC_cleanup(&context);
+    HMAC_CTX_cleanup(&context);
 
     char digest[255];
     memset(digest, 0, sizeof (digest));

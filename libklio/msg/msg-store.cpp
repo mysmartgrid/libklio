@@ -565,16 +565,17 @@ void MSGStore::perform_http_delete(const std::string& url, const std::string & k
     destroy_object(jobject);
 }
 
-std::string MSGStore::digest_message(const std::string& data, const std::string & key) {
+std::string MSGStore::digest_message(const std::string& data, const std::string& key) {
 
-    HMAC_CTX hmacContext;
-    HMAC_Init(&hmacContext, key.c_str(), key.length(), EVP_sha1());
-    HMAC_Update(&hmacContext, (const unsigned char*) data.c_str(), data.length());
+    HMAC_CTX context;
+    HMAC_CTX_init(&context);
+    HMAC_Init_ex(&context, key.c_str(), key.length(), EVP_sha1(), NULL);
+    HMAC_Update(&context, (const unsigned char*) data.c_str(), data.length());
 
     unsigned char out[EVP_MAX_MD_SIZE];
     unsigned int len = EVP_MAX_MD_SIZE;
 
-    HMAC_Final(&hmacContext, out, &len);
+    HMAC_Final(&context, out, &len);
     char ret[2 * EVP_MAX_MD_SIZE];
     memset(ret, 0, sizeof (ret));
 
@@ -584,9 +585,10 @@ std::string MSGStore::digest_message(const std::string& data, const std::string 
         strncat(ret, s, 2 * len);
     }
 
-    HMAC_cleanup(&hmacContext);
+    HMAC_cleanup(&context);
 
     char digest[255];
+    memset(digest, 0, sizeof (digest));
     snprintf(digest, 255, "%s", ret);
     return std::string(digest);
 }

@@ -121,14 +121,17 @@ int main(int argc, char** argv) {
             std::string sensor_id(vm["id"].as<std::string>());
             std::string sensor_unit(vm["unit"].as<std::string>());
             std::string sensor_timezone(vm["timezone"].as<std::string>());
-            int device_type_id(vm["devicetype"].as<int>());
 
+            klio::DeviceType::Ptr device_type = vm.count("devicetype") ? 
+                klio::DeviceType::get_by_id(vm["devicetype"].as<int>()) : 
+                klio::DeviceType::UNKNOWN_DEVICE;
+            
             if (vm.count("description") > 0) {
                 //FIXME: vm["description"].as<std::string>()
             }
 
             klio::Sensor::Ptr new_sensor(sensor_factory->createSensor(
-                    sensor_id, sensor_id, sensor_unit, sensor_timezone, klio::DeviceType::get_by_id(device_type_id)));
+                    sensor_id, sensor_id, sensor_unit, sensor_timezone, device_type));
             try {
                 klio::Store::Ptr store(factory->open_sqlite3_store(db));
                 std::cout << "opened store: " << store->str() << std::endl;

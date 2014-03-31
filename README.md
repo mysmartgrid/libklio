@@ -34,10 +34,12 @@ Each command comes with its own builtin help, so e.g.
 provides this information:
 
     Usage: klio-store ACTION [additional options]:
-    -h [ --help ]          produce help message
-    -v [ --version ]       print libklio version and exit
-    -a [ --action ] arg    Valid actions are: create
-    -s [ --storefile ] arg the data store to use
+      -h [ --help ]            produce help message
+      -v [ --version ]         print libklio version and exit
+      -a [ --action ] arg      Valid actions are: create, check, sync, upgrade
+      -s [ --storefile ] arg   the data store to use
+      -r [ --sourcestore ] arg the data store to use as source for synchronization
+
 
 A typical workflow would be:
 
@@ -50,7 +52,7 @@ A typical workflow would be:
 2. Add a sensor definition.
 
         $ klio-sensor create -s teststore.db -i bullshitsensor -u heveling \
-          -z "Europe/Berlin" -d "How much $foo is going on?" 
+          -z "Europe/Berlin" -d "How much $foo is going on?"
         opened store: SQLite3 database, stored in file "teststore.db"
         added: bullshitsensor(862acc00-9f18-4f58-9bcd-c4658f591d2d), unit heveling, 
         tz=Europe/Berlin, description: How much $foo is going on?
@@ -103,8 +105,9 @@ Optionally, in case you want to use the mySmartGrid web site as the storage
 backend, the following additional packages needs to be installed. This is your 
 case if you are compiling Hexabus.
 
-1. CURL 7.29 or later
-2. json-c 0.10 or later
+1. CURL 7.19 or later
+2. json-c 0.9 or later
+3. OpenSSL 1.0 or later
 
 Optionally, in case you want to use RocksDB as the storage backend, the
 following additional package needs to be installed.

@@ -1,5 +1,6 @@
 # -*- mode: cmake; -*-
 project(libklio)
+string(TOUPPER ${PROJECT_NAME} UPPER_PROJECT_NAME)
 cmake_minimum_required(VERSION "2.6" FATAL_ERROR)
 if(POLICY CMP0011)
   cmake_policy(SET CMP0011 NEW)
@@ -13,8 +14,8 @@ OPTION(ENABLE_LOGGING
 set(CMAKE_VERBOSE_MAKEFILE true)
 
 set(V_MAJOR 0)
-set(V_MINOR 2)
-set(V_PATCH 0)
+set(V_MINOR 3)
+set(V_PATCH 2)
 
 # use ctest
 include(CTest)
@@ -22,6 +23,13 @@ enable_testing()
 
 # add a path where some libraries might be stored
 set(CMAKE_ADDITIONAL_PATH "$ENV{CMAKE_ADDITIONAL_PATH}" CACHE PATH "Path where many locally installed libraries can be found")
+
+OPTION(ENABLE_ROCKSDB
+  "Build the project with rockskdb enabled"
+  ON)
+OPTION(ENABLE_MSG
+  "Build the project with mysmartgrid enabled"
+  ON)
 
 ################################################################
   ###################################
@@ -72,7 +80,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Werror")
 
 # always set these flags
-set(CMAKE_CXX_FLAGS "-Wall ")
+set(CMAKE_CXX_FLAGS "-Wall")
 
 FIND_PACKAGE(Sqlite)
 # We depend on boost >= 1.46.1 because of the updated filesystem
@@ -86,24 +94,52 @@ SET(Boost_DETAILED_FAILURE_MSG true)
 FIND_PACKAGE(Boost 1.46.1 
   COMPONENTS test_exec_monitor program_options filesystem system date_time)
 
-# libjson
-include(FindJson)
-if( NOT JSON_FOUND)
-  message(FATAL_ERROR "libjson ist required.
-Install json or call cmake -DJSON_HOME=path_to_json_install")
-endif( NOT JSON_FOUND)
-include_directories(${JSON_INCLUDE_DIR})
+# RocksDB
+# check if the compiler version supports c++ 2011
+if( ENABLE_ROCKSDB )
+  if( ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER "4.6")  
+    include(FindRocksDB)
+    if(ROCKSDB_FOUND)
+      include_directories(${ROCKSDB_INCLUDE_DIR})
+    else(ROCKSDB_FOUND)
+      set(ROCKSDB_INCLUDE_DIR "")
+      message(STATUS "RocksDB support is disabled because the library is not found. Install RocksDB or call cmake -DROCKSDB_HOME=path_to_rocksdb_install in order to enable it.")
+      set(ENABLE_ROCKSDB False)
+    endif(ROCKSDB_FOUND)
+  else()
+    set(ENABLE_ROCKSDB False)
+  endif()
+endif()
 
-# check for curl
-IF(WIN32)
-  add_definitions(-DCURL_STATICLIB)
-  include(FindCURL_WIN32)
-else(WIN32)
-  #  add_definitions(-DCURL_STATICLIB)
-  include(FindCurl)
-  include(FindGnutls)
-endif(WIN32)
-find_package(OpenSSL)
+if( ENABLE_MSG )
+  # libjson
+  include(FindJson)
+  if( NOT JSON_FOUND)
+    message(STATUS "libjson is required.
+            Install json or call cmake -DJSON_HOME=path_to_json_install")
+    set(ENABLE_MSG False)
+  else()
+    include_directories(${JSON_INCLUDE_DIR})
+
+    # Curl
+    IF(WIN32)
+      add_definitions(-DCURL_STATICLIB)
+      include(FindCURL_WIN32)
+    else(WIN32)
+      #  add_definitions(-DCURL_STATICLIB)
+      include(FindCurl)
+      #include(FindGnutls)
+    endif(WIN32)
+    if( NOT CURL_FOUND )
+      set(ENABLE_MSG False)
+    endif()
+    find_package(OpenSSL)
+  endif( NOT JSON_FOUND)
+endif()
+
+# this file is installed and contains all necessary information about the installed libseda,
+# it also loads the file with the exported targets
+configure_file(${PROJECT_NAME}Config.cmake.in "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake" @ONLY)
 
 include_directories(${CMAKE_BINARY_DIR})
 
@@ -125,6 +161,14 @@ INSTALL(FILES share/libklio/date_time_zonespec.csv
 configure_file(share/libklio/date_time_zonespec.csv 
   ${CMAKE_BINARY_DIR}/
   )
+
+install(EXPORT ${PROJECT_NAME}Exports
+    DESTINATION lib/shared
+    FILE ${PROJECT_NAME}Targets.cmake
+    COMPONENT libraries)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+  DESTINATION lib/shared
+  COMPONENT libraries)
 
 # CPACK packaging
 INCLUDE(InstallRequiredSystemLibraries)
@@ -162,5 +206,8 @@ message("  boost system lib: ${Boost_SYSTEM_LIBRARY}")
 message("  boost filesystem lib: ${Boost_FILESYSTEM_LIBRARY}")
 message("  json: -L${JSON_LIBRARY} -I${JSON_INCLUDE_DIR}")
 message("  sqlite3 include: ${SQLITE3_INCLUDE_DIR}, lib: ${SQLITE3_LIBRARIES}")
+message("  rocksdb include: ${ROCKSDB_INCLUDE_DIR}, lib: ${ROCKSDB_STATIC_LIBRARIES}")
 message("  extended logging: ${ENABLE_LOGGING}")
+message("  rocksdb: ${ENABLE_ROCKSDB}")
+message("  mysmartgrid: ${ENABLE_MSG}")
 

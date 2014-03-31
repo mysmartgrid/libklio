@@ -13,6 +13,10 @@ set(sensorstest_src
           
 add_executable(sensorstest ${sensorstest_src})
 
+if(ROCKSDB_FOUND)
+  set_source_files_properties(${sensorstest_src} COMPILE_FLAGS "-std=gnu++11")
+endif(ROCKSDB_FOUND)
+
 ADD_TEST(SensorTest ${CMAKE_CURRENT_BINARY_DIR}/sensorstest TestSensors)
 
 # Link the executable 

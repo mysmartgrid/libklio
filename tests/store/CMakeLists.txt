@@ -7,8 +7,13 @@ file(GLOB all_storetest_src *.cpp *.hpp)
 set(storetest_src ${all_storetest_src})
 add_executable(storetest ${storetest_src})
 
+if(ROCKSDB_FOUND)
+  set_source_files_properties(${storetest_src} COMPILE_FLAGS "-std=gnu++11")
+endif(ROCKSDB_FOUND)
+
 # Link the executable 
 link_directories(${SQLITE3_LIBRARY_DIRS})
+link_directories(${ROCKSDB_LIBRARY_DIRS})
 target_link_libraries(storetest klio ${Boost_LIBRARIES} )
 
 ADD_TEST(StoreTest ${CMAKE_CURRENT_BINARY_DIR}/storetest TestStore)

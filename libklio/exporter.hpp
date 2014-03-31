@@ -22,6 +22,7 @@
 #define LIBKLIO_EXPORTER_HPP 1
 
 #include <iostream>
+#include <boost/shared_ptr.hpp>
 #include "store.hpp"
 
 
@@ -29,7 +30,7 @@ namespace klio {
 
     class Exporter {
     public:
-        typedef std::tr1::shared_ptr<Exporter> Ptr;
+        typedef boost::shared_ptr<Exporter> Ptr;
 
         Exporter(std::ostream& out) :
         _out(out) {

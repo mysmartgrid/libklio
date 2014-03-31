@@ -28,4 +28,14 @@
 
 #define INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}"
 
+/*
+ *
+ */
+#cmakedefine ENABLE_MSG 1
+
+/*
+ *
+ */
+#cmakedefine ENABLE_ROCKSDB 1
+
 #endif /* LIBKLIO_CONFIG_H_IN */

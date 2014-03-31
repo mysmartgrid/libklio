@@ -26,6 +26,7 @@
 #include <libklio/store-factory.hpp>
 #include <libklio/sensor.hpp>
 #include <libklio/sensor-factory.hpp>
+#include <libklio/device-type.hpp>
 #include <testconfig.h>
 
 BOOST_AUTO_TEST_CASE(check_sensor_interface) {
@@ -58,16 +59,22 @@ BOOST_AUTO_TEST_CASE(check_create_sensor_sqlite3) {
     try {
         std::cout << std::endl << "*** Testing sensor creation for the SQLite3 store" << std::endl;
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-        klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "sensor1", "Watt", "Europe/Berlin"));
+        klio::Sensor::Ptr sensor1(sensor_factory->createSensor(
+                "70c18074-8bcf-240b-db7c-c1281038adcb",
+                "sensor1",
+                "sensor1",
+                "description",
+                "Watt",
+                "Europe/Berlin",
+                klio::DeviceType::COFFEE_MACHINE));
 
         klio::StoreFactory::Ptr factory(new klio::StoreFactory());
-        bfs::path db(TEST_DB_FILE);
+        bfs::path db(TEST_DB1_FILE);
         bfs::remove(db);
-        klio::Store::Ptr store(factory->open_sqlite3_store(db));
+        klio::Store::Ptr store(factory->create_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
 
         try {
-            store->initialize();
             store->add_sensor(sensor1);
             std::cout << "added: " << sensor1->str() << std::endl;
 
@@ -75,7 +82,7 @@ BOOST_AUTO_TEST_CASE(check_create_sensor_sqlite3) {
             std::cout << "loaded: " << loadedSensor1->str() << std::endl;
 
             // We did not specify a description, so we expect the default one.
-            BOOST_CHECK_EQUAL(loadedSensor1->description(), klio::DEFAULT_SENSOR_DESCRIPTION);
+            BOOST_CHECK_EQUAL(loadedSensor1->description(), "description");
             if ((*sensor1) != (*loadedSensor1)) {
                 BOOST_FAIL("loaded sensor differs from its original.");
             } else {
@@ -108,17 +115,24 @@ BOOST_AUTO_TEST_CASE(check_update_sensor) {
     try {
         std::cout << std::endl << "*** Testing update sensor" << std::endl;
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-        klio::Sensor::Ptr sensor(sensor_factory->createSensor("original_external_id", "sensor1", "Watt", "Europe/Berlin"));
+        klio::Sensor::Ptr sensor(sensor_factory->createSensor(
+                "79c18074-8bcf-240b-db7c-c1281038adcb",
+                "original_external_id",
+                "sensor1",
+                "description",
+                "Watt",
+                "Europe/Berlin",
+                klio::DeviceType::COFFEE_MACHINE));
+
         boost::uuids::uuid sensor_id = sensor->uuid();
 
         klio::StoreFactory::Ptr factory(new klio::StoreFactory());
-        bfs::path db(TEST_DB_FILE);
+        bfs::path db(TEST_DB1_FILE);
         bfs::remove(db);
-        klio::Store::Ptr store(factory->open_sqlite3_store(db));
+        klio::Store::Ptr store(factory->create_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
 
         try {
-            store->initialize();
             store->add_sensor(sensor);
 
             sensor->external_id("Changed External id");
@@ -126,6 +140,7 @@ BOOST_AUTO_TEST_CASE(check_update_sensor) {
             sensor->description("Changed Description");
             sensor->unit("kWh");
             sensor->timezone("Europe/Paris");
+            sensor->device_type(klio::DeviceType::AIR_CONDITIONER);
 
             store->update_sensor(sensor);
             std::cout << "Updated: " << store->str() << std::endl;
@@ -147,6 +162,7 @@ BOOST_AUTO_TEST_CASE(check_update_sensor) {
                 BOOST_CHECK_EQUAL(found->description(), "Changed Description");
                 BOOST_CHECK_EQUAL(found->unit(), "kWh");
                 BOOST_CHECK_EQUAL(found->timezone(), "Europe/Paris");
+                BOOST_CHECK_EQUAL(found->device_type()->id(), klio::DeviceType::AIR_CONDITIONER->id());
             }
 
         } catch (klio::StoreException const& ex) {
@@ -164,16 +180,22 @@ BOOST_AUTO_TEST_CASE(check_retrieve_sensor_by_uuid) {
         std::cout << std::endl << "*** Testing sensor query by uuid" << std::endl;
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
 
-        klio::Sensor::Ptr sensor(sensor_factory->createSensor("sensor x", "sensor x", "Watt", "Europe/Berlin"));
+        klio::Sensor::Ptr sensor(sensor_factory->createSensor(
+                "79c18074-8bcf-240b-db7c-c1281038adcb",
+                "original_external_id",
+                "sensor1",
+                "description",
+                "Watt",
+                "Europe/Berlin",
+                klio::DeviceType::AQUARIUM));
 
         klio::StoreFactory::Ptr factory(new klio::StoreFactory());
-        bfs::path db(TEST_DB_FILE);
+        bfs::path db(TEST_DB1_FILE);
         bfs::remove(db);
-        klio::Store::Ptr store(factory->open_sqlite3_store(db));
+        klio::Store::Ptr store(factory->create_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
 
         try {
-            store->initialize();
             store->add_sensor(sensor);
 
             klio::Sensor::Ptr retrieved = store->get_sensor(sensor->uuid());
@@ -187,6 +209,7 @@ BOOST_AUTO_TEST_CASE(check_retrieve_sensor_by_uuid) {
             BOOST_CHECK_EQUAL(sensor->name(), retrieved->name());
             BOOST_CHECK_EQUAL(sensor->unit(), retrieved->unit());
             BOOST_CHECK_EQUAL(sensor->timezone(), retrieved->timezone());
+            BOOST_CHECK_EQUAL(sensor->device_type(), retrieved->device_type());
 
         } catch (klio::StoreException const& ex) {
             std::cout << "Caught invalid exception: " << ex.what() << std::endl;
@@ -208,13 +231,12 @@ BOOST_AUTO_TEST_CASE(check_retrieve_sensor_by_name) {
         klio::Sensor::Ptr sensor2a(sensor_factory->createSensor("sensor2a", sensor2_name, "Watt", "Europe/Berlin"));
         klio::Sensor::Ptr sensor2b(sensor_factory->createSensor("sensor2b", sensor2_name, "Watt", "Europe/Berlin"));
         klio::StoreFactory::Ptr factory(new klio::StoreFactory());
-        bfs::path db(TEST_DB_FILE);
+        bfs::path db(TEST_DB1_FILE);
         bfs::remove(db);
-        klio::Store::Ptr store(factory->open_sqlite3_store(db));
+        klio::Store::Ptr store(factory->create_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
 
         try {
-            store->initialize();
             store->add_sensor(sensor1);
             store->add_sensor(sensor2a);
             store->add_sensor(sensor2b);
@@ -260,13 +282,12 @@ BOOST_AUTO_TEST_CASE(check_retrieve_sensor_uuids_sqlite3) {
         klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "sensor1", "Watt", "Europe/Berlin"));
         klio::Sensor::Ptr sensor2(sensor_factory->createSensor("sensor2", "sensor2", "Watt", "Europe/Berlin"));
         klio::StoreFactory::Ptr factory(new klio::StoreFactory());
-        bfs::path db(TEST_DB_FILE);
+        bfs::path db(TEST_DB1_FILE);
         bfs::remove(db);
-        klio::Store::Ptr store(factory->open_sqlite3_store(db));
+        klio::Store::Ptr store(factory->create_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
 
         try {
-            store->initialize();
             store->add_sensor(sensor1);
             store->add_sensor(sensor2);
             std::cout << "added: " << sensor1->str() << std::endl;
@@ -307,13 +328,12 @@ BOOST_AUTO_TEST_CASE(check_remove_sensor_sqlite3) {
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
         klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "sensor1", "Watt", "Europe/Berlin"));
         klio::StoreFactory::Ptr factory(new klio::StoreFactory());
-        bfs::path db(TEST_DB_FILE);
+        bfs::path db(TEST_DB1_FILE);
         bfs::remove(db);
-        klio::Store::Ptr store(factory->open_sqlite3_store(db));
+        klio::Store::Ptr store(factory->create_sqlite3_store(db));
         std::cout << "Created: " << store->str() << std::endl;
 
         try {
-            store->initialize();
             store->add_sensor(sensor1);
             std::cout << "added: " << sensor1->str() << std::endl;
 
@@ -343,6 +363,28 @@ BOOST_AUTO_TEST_CASE(check_remove_sensor_sqlite3) {
         }
     } catch (std::exception const& ex) {
         BOOST_FAIL("Unexpected exception occurred during sensor test");
+    }
+}
+
+BOOST_AUTO_TEST_CASE(check_get_device_type_by_id) {
+
+    klio::DeviceType::Ptr type = klio::DeviceType::get_by_id(300);
+    BOOST_CHECK_EQUAL(klio::DeviceType::FRIDGE, type);
+    BOOST_CHECK_EQUAL(300, type->id());
+    BOOST_CHECK_EQUAL("Fridge", type->name());
+    
+    type = klio::DeviceType::get_by_id(404);
+    BOOST_CHECK_EQUAL(klio::DeviceType::COMPUTER, type);
+    BOOST_CHECK_EQUAL(404, type->id());
+    BOOST_CHECK_EQUAL("Computer", type->name());
+
+    try {
+        klio::DeviceType::get_by_id(999);
+
+        BOOST_FAIL("An exception should be raised when an invalid device type id is informed.");
+
+    } catch (klio::DataFormatException const& ex) {
+        //This exception is expected
     }
 }
 

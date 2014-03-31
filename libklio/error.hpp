@@ -22,6 +22,7 @@
 #define LIBKLIO_ERROR_HPP 1
 
 #include <string>
+#include <boost/shared_ptr.hpp>
 #include <exception>
 
 
@@ -29,7 +30,7 @@ namespace klio {
 
     class GenericException : public std::exception {
     public:
-        typedef std::tr1::shared_ptr<GenericException> Ptr;
+        typedef boost::shared_ptr<GenericException> Ptr;
 
         GenericException(const std::string reason) : _reason(reason) {
         };
@@ -51,7 +52,7 @@ namespace klio {
 
     class CommunicationException : public GenericException {
     public:
-        typedef std::tr1::shared_ptr<CommunicationException> Ptr;
+        typedef boost::shared_ptr<CommunicationException> Ptr;
 
         CommunicationException(const std::string reason) :
         klio::GenericException(reason) {
@@ -63,7 +64,7 @@ namespace klio {
 
     class DataFormatException : public GenericException {
     public:
-        typedef std::tr1::shared_ptr<DataFormatException> Ptr;
+        typedef boost::shared_ptr<DataFormatException> Ptr;
 
         DataFormatException(const std::string reason) :
         klio::GenericException(reason) {
@@ -75,7 +76,7 @@ namespace klio {
 
     class StoreException : public GenericException {
     public:
-        typedef std::tr1::shared_ptr<StoreException> Ptr;
+        typedef boost::shared_ptr<StoreException> Ptr;
 
         StoreException(const std::string reason) :
         klio::GenericException(reason) {
@@ -87,7 +88,7 @@ namespace klio {
     
     class EnvironmentException : public GenericException {
     public:
-        typedef std::tr1::shared_ptr<EnvironmentException> Ptr;
+        typedef boost::shared_ptr<EnvironmentException> Ptr;
 
         EnvironmentException(const std::string reason) :
         klio::GenericException(reason) {
@@ -99,7 +100,7 @@ namespace klio {
 
     class MemoryException : public EnvironmentException {
     public:
-        typedef std::tr1::shared_ptr<MemoryException> Ptr;
+        typedef boost::shared_ptr<MemoryException> Ptr;
 
         MemoryException(const std::string reason) :
         klio::EnvironmentException(reason) {

@@ -22,7 +22,10 @@
 #define TESTS_TESTCONFIG_H_IN 1
 
 #cmakedefine ENABLE_LOGGING 1
-#define TEST_DB_FILE "${CMAKE_CURRENT_BINARY_DIR}/testdb.sql"
+#define TEST_DB1_FILE "${CMAKE_CURRENT_BINARY_DIR}/testdb1.sql"
 #define TEST_DB2_FILE "${CMAKE_CURRENT_BINARY_DIR}/testdb2.sql"
+#define TEST_DB3_FILE "${CMAKE_CURRENT_BINARY_DIR}/testdb3.sql"
+#define TEST_DB4_FILE "${CMAKE_CURRENT_BINARY_DIR}/testdb4.sql"
+#define TEST_DB_PATH "${CMAKE_CURRENT_BINARY_DIR}/testdb"
 
 #endif /* TESTS_TESTCONFIG_H_IN */

@@ -21,13 +21,17 @@
 #ifndef LIBKLIO_MSG_MSGSTORE_HPP
 #define LIBKLIO_MSG_MSGSTORE_HPP 1
 
+#include <libklio/config.h>
+
+#ifdef ENABLE_MSG
+
 #include <vector>
+#include <boost/shared_ptr.hpp>
 #include <curl/curl.h>
 #include <json/json.h>
 #include <libklio/common.hpp>
 #include <libklio/types.hpp>
 #include <libklio/store.hpp>
-#include <libklio/sensor.hpp>
 
 
 namespace klio {
@@ -39,7 +43,7 @@ namespace klio {
 
     class MSGStore : public Store {
     public:
-        typedef std::tr1::shared_ptr<MSGStore> Ptr;
+        typedef boost::shared_ptr<MSGStore> Ptr;
 
         MSGStore(const std::string& url, const std::string& id, const std::string& key, const std::string& description, const std::string& type) :
         _url(url),
@@ -66,11 +70,11 @@ namespace klio {
         const std::string key() const {
             return _key;
         };
-        
+
         const std::string description() const {
             return _description;
         };
-        
+
         const std::string type() const {
             return _type;
         };
@@ -81,7 +85,9 @@ namespace klio {
 
         void open();
         void close();
+        void check_integrity();
         void initialize();
+        void prepare();
         void dispose();
         void flush();
         const std::string str();
@@ -90,17 +96,18 @@ namespace klio {
         virtual void remove_sensor(const Sensor::Ptr sensor);
         virtual void update_sensor(const Sensor::Ptr sensor);
         virtual Sensor::Ptr get_sensor(const Sensor::uuid_t& uuid);
-        virtual Sensor::Ptr get_sensor_by_external_id(const std::string& external_id);
         virtual std::vector<Sensor::Ptr> get_sensors_by_external_id(const std::string& external_id);
         virtual std::vector<Sensor::Ptr> get_sensors_by_name(const std::string& name);
         virtual std::vector<Sensor::uuid_t> get_sensor_uuids();
-
+        virtual std::vector<Sensor::Ptr> get_sensors();
+        
         virtual void add_reading(const Sensor::Ptr sensor, timestamp_t timestamp, double value);
         virtual void add_readings(const Sensor::Ptr sensor, const readings_t& readings);
         virtual void update_readings(const Sensor::Ptr sensor, const readings_t& readings);
         virtual readings_t_Ptr get_all_readings(const Sensor::Ptr sensor);
+        virtual readings_t_Ptr get_timeframe_readings(klio::Sensor::Ptr sensor, timestamp_t begin, timestamp_t end);
         virtual unsigned long int get_num_readings(const Sensor::Ptr sensor);
-        virtual std::pair<timestamp_t, double> get_last_reading(const Sensor::Ptr sensor);
+        virtual reading_t get_last_reading(const Sensor::Ptr sensor);
 
     private:
         MSGStore(const MSGStore& original);
@@ -114,14 +121,14 @@ namespace klio {
         timestamp_t _last_heartbeat;
         std::map<Sensor::uuid_t, Sensor::Ptr> _sensors_buffer;
         std::map<Sensor::uuid_t, readings_t_Ptr> _readings_buffer;
+        std::map<std::string, Sensor::uuid_t> _external_ids_buffer;
 
-        void init_buffers(const Sensor::Ptr sensor);
+        void set_buffers(const Sensor::Ptr sensor);
         void clear_buffers(const Sensor::Ptr sensor);
         void clear_buffers();
         void flush(bool force);
         void flush(Sensor::Ptr sensor);
         void heartbeat();
-        std::vector<Sensor::Ptr> get_sensors();
 
         const std::string format_uuid_string(const std::string& meter);
         const std::string compose_device_url();
@@ -147,5 +154,7 @@ namespace klio {
         void destroy_object(json_object * jobject);
     };
 };
+
+#endif /* ENABLE_MSG */
 
 #endif /* LIBKLIO_MSG_MSGSTORE_HPP */

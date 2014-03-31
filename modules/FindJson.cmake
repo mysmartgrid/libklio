@@ -68,7 +68,7 @@ IF( JSON_HOME )
   SET(_json_HOME ${JSON_HOME})
 ENDIF( JSON_HOME )
 
-message("Jsoon search: '${_json_INCLUDE_SEARCH_DIRS}' ${CMAKE_INCLUDE_PATH}")
+message("Json search: '${_json_INCLUDE_SEARCH_DIRS}' ${CMAKE_INCLUDE_PATH}")
 # find the include files
 FIND_PATH(JSON_INCLUDE_DIR json/json.h
    HINTS
@@ -96,9 +96,9 @@ IF(JSON_INCLUDE_DIR AND JSON_LIBRARY)
   SET(JSON_FOUND "YES")
 ENDIF(JSON_INCLUDE_DIR AND JSON_LIBRARY)
 
-if( NOT WIN32)
-  list(APPEND JSON_LIBRARY "-lrt")
-endif( NOT WIN32)
+#if( NOT WIN32)
+#  list(APPEND JSON_LIBRARY "-lrt")
+#endif( NOT WIN32)
 
 MARK_AS_ADVANCED(
   JSON_FOUND

@@ -21,6 +21,7 @@
 #ifndef LIBKLIO_COMMON_HPP
 #define LIBKLIO_COMMON_HPP 1
 
+#include <boost/shared_ptr.hpp>
 
 /* Include TR1 shared ptrs in a portable way. */
 #include <cstddef> // for __GLIBCXX__
@@ -47,6 +48,9 @@
 // http://www.boost.org/doc/libs/1_49_0/libs/filesystem/v3/doc/index.htm
 #define BOOST_FILESYSTEM_VERSION 3
 
+// See http://stackoverflow.com/questions/15234527/boost-1-53-local-date-time-compiler-error-with-std-c0x
+//#define BOOST_NO_CXX11_EXPLICIT_CONVERSION_OPERATORS 1
+
 #include <libklio/error.hpp>
 #include <stdint.h>
 #include <string>
@@ -55,7 +59,7 @@ namespace klio {
 
     class VersionInfo {
     public:
-        typedef std::tr1::shared_ptr<VersionInfo> Ptr;
+        typedef boost::shared_ptr<VersionInfo> Ptr;
 
         VersionInfo() {
         };

@@ -74,6 +74,8 @@ namespace klio {
         const static DeviceType::Ptr XBOX_ONE;
         const static DeviceType::Ptr CABLE_RECEIVER;
 
+        const static DeviceType::Ptr EMOS;
+
         static std::map<int, DeviceType::Ptr> get_all();
         static DeviceType::Ptr get_by_id(const int id);
 

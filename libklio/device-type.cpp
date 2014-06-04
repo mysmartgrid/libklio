@@ -50,6 +50,8 @@ const DeviceType::Ptr DeviceType::OTHER_IT_DEVICE = add_type(408, "Other IT devi
 const DeviceType::Ptr DeviceType::XBOX_ONE = add_type(409, "Xbox One");
 const DeviceType::Ptr DeviceType::CABLE_RECEIVER = add_type(410, "Cable Receiver");
 
+const DeviceType::Ptr DeviceType::EMOS = add_type(501, "EMOS");
+
 
 const std::string DeviceType::str() {
     std::ostringstream oss;

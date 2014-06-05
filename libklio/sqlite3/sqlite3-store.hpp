@@ -91,6 +91,7 @@ namespace klio {
         void insert_reading_record(sqlite3_stmt* stmt, timestamp_t timestamp, double value);
         readings_t_Ptr get_readings(sqlite3_stmt* stmt);
         sqlite3_stmt *prepare(const std::string& stmt_str);
+        sqlite3_stmt *get_statement(const std::string& sql);
         int execute(sqlite3_stmt *stmt, int expected_code);
         void reset(sqlite3_stmt *stmt);
         void finalize(sqlite3_stmt **stmt);
@@ -106,6 +107,8 @@ namespace klio {
         sqlite3_stmt* _select_sensor_by_name_stmt;
         sqlite3_stmt* _select_sensors_stmt;
         sqlite3_stmt* _select_all_sensor_uuids_stmt;
+
+        std::map<std::string, sqlite3_stmt*> _statements;
     };
 };
 

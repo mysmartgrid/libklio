@@ -76,19 +76,43 @@ MSGStore::Ptr StoreFactory::create_msg_store(
 
 RocksDBStore::Ptr StoreFactory::create_rocksdb_store(const bfs::path& path) {
 
-    std::map<std::string, std::string> db_options;
-    std::map<std::string, std::string> read_options;
-    std::map<std::string, std::string> write_options;
+    std::map<const std::string, const std::string> db_options;
+    std::map<const std::string, const std::string> read_options;
+    std::map<const std::string, const std::string> write_options;
 
     return create_rocksdb_store(path, db_options, read_options, write_options);
 }
 
 RocksDBStore::Ptr StoreFactory::create_rocksdb_store(const bfs::path& path,
-        const std::map<std::string, std::string>& db_options,
-        const std::map<std::string, std::string>& read_options,
-        const std::map<std::string, std::string>& write_options) {
+        const std::map<const std::string, const std::string>& db_options,
+        const std::map<const std::string, const std::string>& read_options,
+        const std::map<const std::string, const std::string>& write_options) {
 
-    return RocksDBStore::Ptr(new RocksDBStore(path, db_options, read_options, write_options));
+    RocksDBStore::Ptr store = RocksDBStore::Ptr(new RocksDBStore(path, db_options, read_options, write_options));
+    store->open();
+    store->initialize();
+    return store;
+}
+
+RocksDBStore::Ptr StoreFactory::open_rocksdb_store(const bfs::path& path) {
+
+    std::map<const std::string, const std::string> db_options;
+    std::map<const std::string, const std::string> read_options;
+    std::map<const std::string, const std::string> write_options;
+
+    return open_rocksdb_store(path, db_options, read_options, write_options);
+}
+
+RocksDBStore::Ptr StoreFactory::open_rocksdb_store(const bfs::path& path,
+        const std::map<const std::string, const std::string>& db_options,
+        const std::map<const std::string, const std::string>& read_options,
+        const std::map<const std::string, const std::string>& write_options) {
+
+    RocksDBStore::Ptr store = RocksDBStore::Ptr(new RocksDBStore(path, db_options, read_options, write_options));
+    store->open();
+    store->check_integrity();
+    store->prepare();
+    return store;
 }
 
 #endif /* ENABLE_ROCKSDB */

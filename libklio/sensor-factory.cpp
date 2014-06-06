@@ -24,7 +24,19 @@ klio::Sensor::Ptr SensorFactory::createSensor(
         const klio::DeviceType::Ptr device_type
         ) {
     boost::uuids::random_generator gen_uuid;
-    return createSensor(gen_uuid(), external_id, name, klio::DEFAULT_SENSOR_DESCRIPTION, unit, timezone, device_type);
+    return createSensor(external_id, name, klio::DEFAULT_SENSOR_DESCRIPTION, unit, timezone, device_type);
+}
+
+klio::Sensor::Ptr SensorFactory::createSensor(
+        const std::string& external_id,
+        const std::string& name,
+        const std::string& description,
+        const std::string& unit,
+        const std::string& timezone,
+        const klio::DeviceType::Ptr device_type
+        ) {
+    boost::uuids::random_generator gen_uuid;
+    return createSensor(gen_uuid(), external_id, name, description, unit, timezone, device_type);
 }
 
 klio::Sensor::Ptr SensorFactory::createSensor(

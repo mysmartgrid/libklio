@@ -40,6 +40,7 @@ namespace klio {
         typedef boost::shared_ptr<SQLite3Store> Ptr;
 
         SQLite3Store(const bfs::path& path) :
+        Store(0),
         _path(path),
         _db(NULL),
         _insert_sensor_stmt(NULL),
@@ -65,29 +66,27 @@ namespace klio {
         void dispose();
         const std::string str();
 
-        virtual void add_sensor(Sensor::Ptr sensor);
-        virtual void remove_sensor(const Sensor::Ptr sensor);
-        virtual void update_sensor(const Sensor::Ptr sensor);
-        virtual Sensor::Ptr get_sensor(const Sensor::uuid_t& uuid);
-        virtual std::vector<Sensor::Ptr> get_sensors_by_external_id(const std::string& external_id);
-        virtual std::vector<Sensor::Ptr> get_sensors_by_name(const std::string& sensor_id);
-        virtual std::vector<Sensor::uuid_t> get_sensor_uuids();
-        virtual std::vector<Sensor::Ptr> get_sensors();
+        void add_sensor(const Sensor::Ptr sensor);
+        void remove_sensor(const Sensor::Ptr sensor);
+        void update_sensor(const Sensor::Ptr sensor);
+        std::vector<Sensor::Ptr> get_sensors();
 
-        virtual void add_reading(Sensor::Ptr sensor, timestamp_t timestamp, double value);
-        virtual void add_readings(Sensor::Ptr sensor, const readings_t& readings);
-        virtual void update_readings(Sensor::Ptr sensor, const readings_t& readings);
-        virtual readings_t_Ptr get_all_readings(Sensor::Ptr sensor);
-        virtual readings_t_Ptr get_timeframe_readings(klio::Sensor::Ptr sensor, timestamp_t begin, timestamp_t end);
-        virtual unsigned long int get_num_readings(Sensor::Ptr sensor);
-        virtual reading_t get_last_reading(Sensor::Ptr sensor);
+        void add_reading(const Sensor::Ptr sensor, timestamp_t timestamp, double value);
+        void add_readings(const Sensor::Ptr sensor, const readings_t& readings);
+        void update_readings(const Sensor::Ptr sensor, const readings_t& readings);
+        
+        readings_t_Ptr get_all_readings(const Sensor::Ptr sensor);
+        readings_t_Ptr get_timeframe_readings(const Sensor::Ptr sensor, timestamp_t begin, timestamp_t end);
+        unsigned long int get_num_readings(const Sensor::Ptr sensor);
+        reading_t get_last_reading(const Sensor::Ptr sensor);
+        reading_t get_reading(const Sensor::Ptr sensor, timestamp_t timestamp);
 
     private:
         SQLite3Store(const SQLite3Store& original);
         SQLite3Store& operator =(const SQLite3Store& rhs);
 
-        bool has_table(std::string name);
-        bool has_column(std::string table, std::string column);
+        bool has_table(const std::string& name);
+        bool has_column(const std::string& table, const std::string& column);
         void insert_reading_record(sqlite3_stmt* stmt, timestamp_t timestamp, double value);
         readings_t_Ptr get_readings(sqlite3_stmt* stmt);
         sqlite3_stmt *prepare(const std::string& stmt_str);
@@ -107,8 +106,7 @@ namespace klio {
         sqlite3_stmt* _select_sensor_by_name_stmt;
         sqlite3_stmt* _select_sensors_stmt;
         sqlite3_stmt* _select_all_sensor_uuids_stmt;
-
-        std::map<std::string, sqlite3_stmt*> _statements;
+        std::map<const std::string, sqlite3_stmt*> _statements;
     };
 };
 

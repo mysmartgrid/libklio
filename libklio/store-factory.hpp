@@ -48,27 +48,39 @@ namespace klio {
         };
 
         SQLite3Store::Ptr create_sqlite3_store(const bfs::path& path);
+
         SQLite3Store::Ptr create_sqlite3_store(const bfs::path& path, bool prepare);
+
         SQLite3Store::Ptr open_sqlite3_store(const bfs::path& path);
 
 #ifdef ENABLE_MSG        
-        
+
         MSGStore::Ptr create_msg_store();
+
         MSGStore::Ptr create_msg_store(const std::string& id, const std::string& key);
+
         MSGStore::Ptr create_msg_store(const std::string& url, const std::string& id, const std::string& key, const std::string& description, const std::string& type);
 
 #endif /* ENABLE_MSG */
-        
+
 #ifdef ENABLE_ROCKSDB
 
         RocksDBStore::Ptr create_rocksdb_store(const bfs::path& path);
+
         RocksDBStore::Ptr create_rocksdb_store(const bfs::path& path,
-                const std::map<std::string, std::string>& db_options,
-                const std::map<std::string, std::string>& read_options,
-                const std::map<std::string, std::string>& write_options);
+                const std::map<const std::string, const std::string>& db_options,
+                const std::map<const std::string, const std::string>& read_options,
+                const std::map<const std::string, const std::string>& write_options);
+
+        RocksDBStore::Ptr open_rocksdb_store(const bfs::path& path);
+        
+        RocksDBStore::Ptr open_rocksdb_store(const bfs::path& path,
+                const std::map<const std::string, const std::string>& db_options,
+                const std::map<const std::string, const std::string>& read_options,
+                const std::map<const std::string, const std::string>& write_options);
 
 #endif /* ENABLE_ROCKSDB */
-        
+
     private:
         StoreFactory(const StoreFactory& original);
         StoreFactory& operator =(const StoreFactory& rhs);

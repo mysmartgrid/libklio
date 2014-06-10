@@ -282,6 +282,14 @@ BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensor) {
                 "watt",
                 "Europe/Berlin"));
 
+        sensor_factory->createSensor(
+                "78c18074-8bcf-890b-db7c-c1281038adcb",
+                "GetTest2",
+                "GetTest2",
+                "GetDescription2",
+                "watt",
+                "Europe/Berlin");
+        
         store->add_sensor(sensor);
 
         klio::Sensor::Ptr retrieved = store->get_sensor(sensor->uuid());
@@ -327,7 +335,7 @@ BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensor_by_name) {
 
         klio::Sensor::Ptr sensor1(sensor_factory->createSensor(
                 "98c18074-8bcf-890b-db7c-c1281038adcb",
-                "Unique External Id",
+                "Id1",
                 "Unique Name",
                 "Unique Description",
                 "watt",
@@ -337,7 +345,7 @@ BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensor_by_name) {
 
         klio::Sensor::Ptr sensor2(sensor_factory->createSensor(
                 "88c18074-890b-8bcf-db7c-c1281038adcb",
-                "Duplicated External Id",
+                "Id2",
                 "Duplicated Name",
                 "Duplicated Description",
                 "watt",
@@ -347,7 +355,7 @@ BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensor_by_name) {
 
         klio::Sensor::Ptr sensor3(sensor_factory->createSensor(
                 "99c18074-890b-8bcf-db7c-c1281038adcb",
-                "Duplicated External Id",
+                "Id3",
                 "Duplicated Name",
                 "Duplicated Description",
                 "watt",
@@ -355,9 +363,11 @@ BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensor_by_name) {
 
         store->add_sensor(sensor3);
 
+        std::vector<klio::Sensor::Ptr> sensors = store->get_sensors();
         std::vector<klio::Sensor::Ptr> duplicated = store->get_sensors_by_name("Duplicated Name");
         std::vector<klio::Sensor::Ptr> unique = store->get_sensors_by_name("Unique Name");
 
+        BOOST_CHECK_EQUAL(3, sensors.size());
         BOOST_CHECK_EQUAL(2, duplicated.size());
         BOOST_CHECK_EQUAL(1, unique.size());
 

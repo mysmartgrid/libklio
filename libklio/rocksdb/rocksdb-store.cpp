@@ -30,7 +30,9 @@ void RocksDBStore::open() {
 
 void RocksDBStore::close() {
 
-    Store::close();
+    Store::flush();
+    clear_buffers();
+
     for (std::map<std::string, rocksdb::DB*>::const_iterator it = _db_buffer.begin(); it != _db_buffer.end(); ++it) {
         delete (*it).second;
     }
@@ -54,7 +56,7 @@ void RocksDBStore::initialize() {
 
 void RocksDBStore::dispose() {
 
-    Store::dispose();
+    clear_buffers();
     bfs::remove_all(_path);
 }
 

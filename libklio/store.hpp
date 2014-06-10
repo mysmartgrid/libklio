@@ -46,10 +46,10 @@ namespace klio {
         };
 
         virtual void open() = 0;
-        virtual void close();
+        virtual void close() = 0;
         virtual void check_integrity() = 0;
         virtual void initialize() = 0;
-        virtual void dispose();
+        virtual void dispose() = 0;
         virtual void prepare();
         virtual void flush();
         virtual const std::string str() = 0;

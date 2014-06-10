@@ -26,6 +26,12 @@ using namespace klio;
 void MSGStore::open() {
 }
 
+void MSGStore::close() {
+
+    Store::flush();
+    clear_buffers();
+}
+
 void MSGStore::initialize() {
 
     json_object *jobject = NULL;
@@ -64,7 +70,6 @@ void MSGStore::check_integrity() {
 
 void MSGStore::dispose() {
 
-    Store::dispose();
     //Tries to delete the remote store
     try {
         std::string url = compose_device_url();

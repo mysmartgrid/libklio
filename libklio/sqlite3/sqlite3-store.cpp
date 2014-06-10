@@ -38,7 +38,8 @@ void SQLite3Store::open() {
 
 void SQLite3Store::close() {
 
-    Store::close();
+    Store::flush();
+    Store::clear_buffers();
 
     if (_db) {
         _insert_sensor_stmt = NULL;
@@ -218,7 +219,7 @@ void SQLite3Store::prepare() {
 
 void SQLite3Store::dispose() {
 
-    Store::dispose();
+    Store::clear_buffers();
     bfs::remove(_path);
 }
 
@@ -316,7 +317,7 @@ void SQLite3Store::remove_sensor(const Sensor::Ptr sensor) {
         execute(drop_table_stmt, SQLITE_DONE);
         transaction->commit();
 
-        clear_buffers(sensor);
+        Store::clear_buffers(sensor);
 
     } catch (std::exception const& e) {
         reset(_remove_sensor_stmt);

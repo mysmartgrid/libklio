@@ -8,10 +8,6 @@ using namespace klio;
 const SensorFactory::Ptr Store::sensor_factory(new SensorFactory());
 const TimeConverter::Ptr Store::time_converter(new TimeConverter());
 
-void Store::dispose() {
-    close();
-}
-
 Sensor::Ptr Store::get_sensor(const Sensor::uuid_t& uuid) {
 
     if (_sensors_buffer.count(uuid)) {
@@ -159,11 +155,6 @@ void Store::prepare() {
     for (std::vector<Sensor::Ptr>::const_iterator sensor = sensors.begin(); sensor != sensors.end(); ++sensor) {
         set_buffers(*sensor);
     }
-}
-
-void Store::close() {
-    flush();
-    clear_buffers();
 }
 
 void Store::flush() {

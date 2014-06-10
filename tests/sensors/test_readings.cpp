@@ -70,11 +70,10 @@ BOOST_AUTO_TEST_CASE(check_add_retrieve_reading) {
             BOOST_CHECK_EQUAL(timestamp, retrieved.first);
             BOOST_CHECK_EQUAL(reading, retrieved.second);
 
-            // cleanup
-            store->remove_sensor(sensor);
+            store->dispose();
 
         } catch (klio::StoreException const& ex) {
-            //store->remove_sensor(sensor);
+            store->dispose();
             std::cout << "Caught invalid exception: " << ex.what() << std::endl;
             BOOST_FAIL("Unexpected store exception occurred during sensor test");
         }

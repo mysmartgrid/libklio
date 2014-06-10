@@ -268,7 +268,7 @@ const std::string SQLite3Store::str() {
     return oss.str();
 };
 
-void SQLite3Store::add_sensor(const Sensor::Ptr sensor) {
+void SQLite3Store::add_sensor_record(const Sensor::Ptr sensor) {
 
     LOG("Adding sensor: " << sensor->str());
 
@@ -290,8 +290,6 @@ void SQLite3Store::add_sensor(const Sensor::Ptr sensor) {
         execute(create_table_stmt, SQLITE_DONE);
         transaction->commit();
 
-        set_buffers(sensor);
-
     } catch (std::exception const& e) {
         reset(_insert_sensor_stmt);
         finalize(&create_table_stmt);
@@ -301,7 +299,7 @@ void SQLite3Store::add_sensor(const Sensor::Ptr sensor) {
     finalize(&create_table_stmt);
 }
 
-void SQLite3Store::remove_sensor(const Sensor::Ptr sensor) {
+void SQLite3Store::remove_sensor_record(const Sensor::Ptr sensor) {
 
     LOG("Removing sensor: " << sensor->str());
 
@@ -317,8 +315,6 @@ void SQLite3Store::remove_sensor(const Sensor::Ptr sensor) {
         execute(drop_table_stmt, SQLITE_DONE);
         transaction->commit();
 
-        Store::clear_buffers(sensor);
-
     } catch (std::exception const& e) {
         reset(_remove_sensor_stmt);
         finalize(&drop_table_stmt);
@@ -328,7 +324,7 @@ void SQLite3Store::remove_sensor(const Sensor::Ptr sensor) {
     finalize(&drop_table_stmt);
 }
 
-void SQLite3Store::update_sensor(const Sensor::Ptr sensor) {
+void SQLite3Store::update_sensor_record(const Sensor::Ptr sensor) {
 
     LOG("Updating sensor: " << sensor->str());
 
@@ -344,8 +340,6 @@ void SQLite3Store::update_sensor(const Sensor::Ptr sensor) {
         Transaction::Ptr transaction(Transaction::Ptr(new Transaction(_db)));
         execute(_update_sensor_stmt, SQLITE_DONE);
         transaction->commit();
-
-        set_buffers(sensor);
 
     } catch (std::exception const& e) {
         reset(_update_sensor_stmt);

@@ -95,17 +95,16 @@ const std::string MSGStore::str() {
     return str.str();
 };
 
-void MSGStore::add_sensor(const Sensor::Ptr sensor) {
+void MSGStore::add_sensor_record(const Sensor::Ptr sensor) {
 
-    update_sensor(sensor);
+    update_sensor_record(sensor);
 }
 
-void MSGStore::remove_sensor(const Sensor::Ptr sensor) {
+void MSGStore::remove_sensor_record(const Sensor::Ptr sensor) {
 
     try {
         std::string url = compose_sensor_url(sensor);
         perform_http_delete(url, _key);
-        clear_buffers(sensor);
 
     } catch (GenericException const& e) {
         throw;
@@ -115,7 +114,7 @@ void MSGStore::remove_sensor(const Sensor::Ptr sensor) {
     }
 }
 
-void MSGStore::update_sensor(const Sensor::Ptr sensor) {
+void MSGStore::update_sensor_record(const Sensor::Ptr sensor) {
 
     json_object *jconfig = NULL;
 
@@ -144,7 +143,6 @@ void MSGStore::update_sensor(const Sensor::Ptr sensor) {
         std::string url = compose_sensor_url(sensor);
 
         json_object *jresponse = perform_http_post(url, _key, jconfig);
-        set_buffers(sensor);
 
         destroy_object(jresponse);
         destroy_object(jconfig);

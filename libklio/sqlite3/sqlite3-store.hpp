@@ -66,9 +66,6 @@ namespace klio {
         void dispose();
         const std::string str();
 
-        void add_sensor(const Sensor::Ptr sensor);
-        void remove_sensor(const Sensor::Ptr sensor);
-        void update_sensor(const Sensor::Ptr sensor);
         std::vector<Sensor::Ptr> get_sensors();
 
         void add_reading(const Sensor::Ptr sensor, timestamp_t timestamp, double value);
@@ -81,6 +78,11 @@ namespace klio {
         reading_t get_last_reading(const Sensor::Ptr sensor);
         reading_t get_reading(const Sensor::Ptr sensor, timestamp_t timestamp);
 
+    protected:
+        void add_sensor_record(const Sensor::Ptr sensor);
+        void remove_sensor_record(const klio::Sensor::Ptr sensor);
+        void update_sensor_record(const klio::Sensor::Ptr sensor);
+        
     private:
         SQLite3Store(const SQLite3Store& original);
         SQLite3Store& operator =(const SQLite3Store& rhs);

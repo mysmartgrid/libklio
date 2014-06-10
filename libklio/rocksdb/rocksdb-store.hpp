@@ -61,13 +61,6 @@ namespace klio {
         void dispose();
         const std::string str();
 
-        void add_sensor(const Sensor::Ptr sensor);
-        void remove_sensor(const Sensor::Ptr sensor);
-        void update_sensor(const Sensor::Ptr sensor);
-        Sensor::Ptr get_sensor(const Sensor::uuid_t& uuid);
-        std::vector<Sensor::Ptr> get_sensors_by_external_id(const std::string& external_id);
-        std::vector<Sensor::Ptr> get_sensors_by_name(const std::string& name);
-        std::vector<Sensor::uuid_t> get_sensor_uuids();
         std::vector<Sensor::Ptr> get_sensors();
 
         void add_reading(const Sensor::Ptr sensor, timestamp_t timestamp, double value);
@@ -81,6 +74,9 @@ namespace klio {
         reading_t get_reading(const Sensor::Ptr sensor, timestamp_t timestamp);
 
     protected:
+        void add_sensor_record(const Sensor::Ptr sensor);
+        void remove_sensor_record(const klio::Sensor::Ptr sensor);
+        void update_sensor_record(const klio::Sensor::Ptr sensor);
         void clear_buffers();
 
     private:
@@ -101,6 +97,7 @@ namespace klio {
         void put_value(rocksdb::DB* db, const std::string& key, const std::string& value);
         std::string get_value(rocksdb::DB* db, const std::string& key);
         void delete_value(rocksdb::DB* db, const std::string& key);
+        Sensor::Ptr load_sensor(const Sensor::uuid_t& uuid);
 
         const std::string compose_db_path();
         const std::string compose_sensors_path();

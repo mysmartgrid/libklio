@@ -54,14 +54,14 @@ namespace klio {
         virtual void flush();
         virtual const std::string str() = 0;
 
-        virtual void add_sensor(const Sensor::Ptr sensor) = 0;
-        virtual void remove_sensor(const klio::Sensor::Ptr sensor) = 0;
-        virtual void update_sensor(const klio::Sensor::Ptr sensor) = 0;
+        void add_sensor(const Sensor::Ptr sensor);
+        void remove_sensor(const klio::Sensor::Ptr sensor);
+        void update_sensor(const klio::Sensor::Ptr sensor);
 
-        virtual Sensor::Ptr get_sensor(const klio::Sensor::uuid_t& uuid);
-        virtual std::vector<klio::Sensor::Ptr> get_sensors_by_external_id(const std::string& external_id);
-        virtual std::vector<klio::Sensor::Ptr> get_sensors_by_name(const std::string& name);
-        virtual std::vector<klio::Sensor::uuid_t> get_sensor_uuids();
+        Sensor::Ptr get_sensor(const klio::Sensor::uuid_t& uuid);
+        std::vector<klio::Sensor::Ptr> get_sensors_by_external_id(const std::string& external_id);
+        std::vector<klio::Sensor::Ptr> get_sensors_by_name(const std::string& name);
+        std::vector<klio::Sensor::uuid_t> get_sensor_uuids();
         virtual std::vector<klio::Sensor::Ptr> get_sensors() = 0;
 
         virtual void add_reading(const Sensor::Ptr sensor, timestamp_t timestamp, double value) = 0;
@@ -84,6 +84,10 @@ namespace klio {
         std::map<Sensor::uuid_t, Sensor::Ptr> _sensors_buffer;
         std::map<Sensor::uuid_t, readings_t_Ptr> _readings_buffer;
         std::map<std::string, Sensor::uuid_t> _external_ids_buffer;
+
+        virtual void add_sensor_record(const Sensor::Ptr sensor) = 0;
+        virtual void remove_sensor_record(const klio::Sensor::Ptr sensor) = 0;
+        virtual void update_sensor_record(const klio::Sensor::Ptr sensor) = 0;
 
         void set_buffers(const Sensor::Ptr sensor);
         void clear_buffers(const Sensor::Ptr sensor);

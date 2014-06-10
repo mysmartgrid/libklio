@@ -280,7 +280,7 @@ BOOST_AUTO_TEST_CASE(check_get_rocksdb_sensor_by_name) {
 
         klio::Sensor::Ptr sensor2(sensor_factory->createSensor(
                 "88c18074-890b-8bcf-db7c-c1281038adcb",
-                "Duplicated External Id",
+                "External Id 1",
                 "Duplicated Name",
                 "Duplicated Description",
                 "watt",
@@ -290,7 +290,7 @@ BOOST_AUTO_TEST_CASE(check_get_rocksdb_sensor_by_name) {
 
         klio::Sensor::Ptr sensor3(sensor_factory->createSensor(
                 "99c18074-890b-8bcf-db7c-c1281038adcb",
-                "Duplicated External Id",
+                "External Id 2",
                 "Duplicated Name",
                 "Duplicated Description",
                 "watt",

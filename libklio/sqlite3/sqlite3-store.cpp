@@ -596,14 +596,13 @@ void SQLite3Store::insert_reading_record(sqlite3_stmt* stmt, timestamp_t timesta
 sqlite3_stmt *SQLite3Store::prepare(const std::string& stmt_str) {
 
     sqlite3_stmt* stmt;
-    const char* pz_tail;
 
     int rc = sqlite3_prepare_v2(
             _db, //Database handle
             stmt_str.c_str(), //SQL statement, UTF-8 encoded
             -1, //Maximum length of zSql in bytes. -1 means: read complete string.
             &stmt, //OUT: Statement handle
-            &pz_tail //OUT: Pointer to unused portion of zSql
+            NULL //OUT: Pointer to unused portion of zSql
             );
 
     if (rc != SQLITE_OK) {

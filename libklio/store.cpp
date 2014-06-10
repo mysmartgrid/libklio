@@ -24,13 +24,9 @@ std::vector<Sensor::Ptr> Store::get_sensors_by_external_id(const std::string& ex
 
     std::vector<Sensor::Ptr> sensors;
 
-    for (std::map<Sensor::uuid_t, Sensor::Ptr>::const_iterator it = _sensors_buffer.begin(); it != _sensors_buffer.end(); ++it) {
-
-        Sensor::Ptr sensor = (*it).second;
-
-        if (external_id == sensor->external_id()) {
-            sensors.push_back(sensor);
-        }
+    if (_external_ids_buffer.count(external_id)) {
+        Sensor::uuid_t uuid = _external_ids_buffer[external_id];
+        sensors.push_back(_sensors_buffer[uuid]);
     }
     return sensors;
 }
@@ -135,6 +131,10 @@ void Store::flush(bool force) {
         }
         _last_sync = now;
     }
+}
+
+void Store::flush(const Sensor::Ptr sensor) {
+    //FIXME
 }
 
 void Store::set_buffers(const Sensor::Ptr sensor) {

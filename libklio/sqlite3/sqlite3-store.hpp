@@ -81,9 +81,6 @@ namespace klio {
         reading_t get_last_reading(const Sensor::Ptr sensor);
         reading_t get_reading(const Sensor::Ptr sensor, timestamp_t timestamp);
 
-    protected:
-        void flush(const Sensor::Ptr sensor);
-
     private:
         SQLite3Store(const SQLite3Store& original);
         SQLite3Store& operator =(const SQLite3Store& rhs);

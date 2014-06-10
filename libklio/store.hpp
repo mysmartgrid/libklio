@@ -88,8 +88,8 @@ namespace klio {
         void set_buffers(const Sensor::Ptr sensor);
         void clear_buffers(const Sensor::Ptr sensor);
         virtual void clear_buffers();
-        virtual void flush(const Sensor::Ptr sensor) = 0;
         void flush(bool force);
+        virtual void flush(const Sensor::Ptr sensor);
 
     private:
         Store(const Store& original);

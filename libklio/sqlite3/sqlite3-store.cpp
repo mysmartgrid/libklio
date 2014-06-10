@@ -585,10 +585,6 @@ reading_t SQLite3Store::get_reading(const Sensor::Ptr sensor, timestamp_t timest
     return reading;
 }
 
-void SQLite3Store::flush(const Sensor::Ptr sensor) {
-    //FIXME
-}
-
 void SQLite3Store::insert_reading_record(sqlite3_stmt* stmt, timestamp_t timestamp, double value) {
 
     sqlite3_bind_int(stmt, 1, time_converter->convert_to_epoch(timestamp));

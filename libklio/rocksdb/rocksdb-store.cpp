@@ -286,10 +286,6 @@ reading_t RocksDBStore::get_reading(const Sensor::Ptr sensor, timestamp_t timest
     return reading;
 }
 
-void RocksDBStore::flush(const Sensor::Ptr sensor) {
-    //FIXME
-}
-
 void RocksDBStore::clear_buffers() {
 
     Store::clear_buffers();

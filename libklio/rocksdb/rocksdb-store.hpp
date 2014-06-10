@@ -81,7 +81,6 @@ namespace klio {
         reading_t get_reading(const Sensor::Ptr sensor, timestamp_t timestamp);
 
     protected:
-        void flush(const Sensor::Ptr sensor);
         void clear_buffers();
 
     private:

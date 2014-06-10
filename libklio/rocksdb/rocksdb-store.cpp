@@ -195,6 +195,11 @@ void RocksDBStore::add_readings(const Sensor::Ptr sensor, const readings_t& read
     }
 }
 
+void RocksDBStore::update_readings(const Sensor::Ptr sensor, const readings_t& readings) {
+
+    add_readings(sensor, readings);
+}
+
 readings_t_Ptr RocksDBStore::get_all_readings(const Sensor::Ptr sensor) {
 
     readings_t_Ptr readings(new readings_t());
@@ -265,6 +270,20 @@ reading_t RocksDBStore::get_last_reading(const Sensor::Ptr sensor) {
     const char* value = it->value().ToString().c_str();
 
     return std::pair<timestamp_t, double>(time_converter->convert_from_epoch(atol(epoch)), atof(value));
+}
+
+reading_t RocksDBStore::get_reading(const Sensor::Ptr sensor, timestamp_t timestamp) {
+
+    //FIXME: make this method more efficient
+    klio::readings_t_Ptr readings = get_all_readings(sensor);
+
+    std::pair<timestamp_t, double> reading = std::pair<timestamp_t, double>(0, 0);
+    
+    if (readings->count(timestamp)) {
+        reading.first = timestamp;
+        reading.second = readings->at(timestamp);
+    }
+    return reading;
 }
 
 void RocksDBStore::flush(const Sensor::Ptr sensor) {

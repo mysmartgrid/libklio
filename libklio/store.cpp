@@ -60,44 +60,6 @@ std::vector<Sensor::uuid_t> Store::get_sensor_uuids() {
     return uuids;
 }
 
-reading_t Store::get_reading(const Sensor::Ptr sensor, timestamp_t timestamp) {
-
-    //This default implementation should be overridden by concrete classes.
-
-    klio::readings_t_Ptr readings = get_all_readings(sensor);
-
-    klio::readings_cit_t it;
-    for (it = readings->begin(); it != readings->end(); ++it) {
-
-        if ((*it).first == timestamp) {
-            return (*it);
-        }
-    }
-    return std::pair<timestamp_t, double>(0, 0);
-}
-
-void Store::add_reading(const Sensor::Ptr sensor, timestamp_t timestamp, double value) {
-
-    set_buffers(sensor);
-    _readings_buffer[sensor->uuid()]->insert(reading_t(timestamp, value));
-    flush(false);
-}
-
-void Store::add_readings(const Sensor::Ptr sensor, const readings_t& readings) {
-
-    set_buffers(sensor);
-
-    for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
-        _readings_buffer[sensor->uuid()]->insert(reading_t((*it).first, (*it).second));
-    }
-    flush(false);
-}
-
-void Store::update_readings(const Sensor::Ptr sensor, const readings_t& readings) {
-
-    add_readings(sensor, readings);
-}
-
 void Store::sync(const Store::Ptr store) {
 
     const std::vector<Sensor::Ptr> sensors = store->get_sensors();

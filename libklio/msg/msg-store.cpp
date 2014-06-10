@@ -194,6 +194,28 @@ std::vector<Sensor::Ptr> MSGStore::get_sensors() {
     }
 }
 
+void MSGStore::add_reading(const Sensor::Ptr sensor, timestamp_t timestamp, double value) {
+
+    set_buffers(sensor);
+    _readings_buffer[sensor->uuid()]->insert(reading_t(timestamp, value));
+    Store::flush(false);
+}
+
+void MSGStore::add_readings(const Sensor::Ptr sensor, const readings_t& readings) {
+
+    set_buffers(sensor);
+
+    for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
+        _readings_buffer[sensor->uuid()]->insert(reading_t((*it).first, (*it).second));
+    }
+    Store::flush(false);
+}
+
+void MSGStore::update_readings(const Sensor::Ptr sensor, const readings_t& readings) {
+
+    add_readings(sensor, readings);
+}
+
 readings_t_Ptr MSGStore::get_all_readings(const Sensor::Ptr sensor) {
 
     struct json_object *jreadings = NULL;
@@ -298,6 +320,20 @@ reading_t MSGStore::get_last_reading(const Sensor::Ptr sensor) {
         destroy_object(jreadings);
         throw EnvironmentException(e.what());
     }
+}
+
+reading_t MSGStore::get_reading(const Sensor::Ptr sensor, timestamp_t timestamp) {
+
+    //FIXME: make this method more efficient
+    klio::readings_t_Ptr readings = get_all_readings(sensor);
+
+    std::pair<timestamp_t, double> reading = std::pair<timestamp_t, double>(0, 0);
+    
+    if (readings->count(timestamp)) {
+        reading.first = timestamp;
+        reading.second = readings->at(timestamp);
+    }
+    return reading;
 }
 
 void MSGStore::flush(const Sensor::Ptr sensor) {

@@ -116,11 +116,12 @@ void SQLite3Store::check_integrity() {
                         oss << "The store was created using a more recent version of libKlio. " <<
                                 "Please install the latest version of likKlio.";
                     }
+                } else {
+                    oss << "The store was created using an old version of libKlio. " <<
+                            "Please use the command " << std::endl <<
+                            " $ klio-store -a upgrade -s <FILE>" << std::endl
+                            << "to upgrade it to database version " << info->getVersion();
                 }
-                oss << "The store was created using an old version of libKlio. " <<
-                        "Please use the command " << std::endl <<
-                        " $ klio-store -a upgrade -s <FILE>" << std::endl
-                        << "to upgrade it to database version " << info->getVersion();
             } else {
                 oss << "The database is corrupt.";
             }
@@ -270,8 +271,6 @@ const std::string SQLite3Store::str() {
 
 void SQLite3Store::add_sensor_record(const Sensor::Ptr sensor) {
 
-    LOG("Adding sensor: " << sensor->str());
-
     std::ostringstream oss;
     oss << "CREATE TABLE '" << sensor->uuid_string() << "'(timestamp INTEGER PRIMARY KEY, value DOUBLE)";
     sqlite3_stmt* create_table_stmt = prepare(oss.str());
@@ -301,8 +300,6 @@ void SQLite3Store::add_sensor_record(const Sensor::Ptr sensor) {
 
 void SQLite3Store::remove_sensor_record(const Sensor::Ptr sensor) {
 
-    LOG("Removing sensor: " << sensor->str());
-
     std::ostringstream oss;
     oss << "DROP TABLE '" << sensor->uuid_string() << "'";
     sqlite3_stmt* drop_table_stmt = prepare(oss.str());
@@ -325,8 +322,6 @@ void SQLite3Store::remove_sensor_record(const Sensor::Ptr sensor) {
 }
 
 void SQLite3Store::update_sensor_record(const Sensor::Ptr sensor) {
-
-    LOG("Updating sensor: " << sensor->str());
 
     try {
         sqlite3_bind_text(_update_sensor_stmt, 1, sensor->uuid_string().c_str(), -1, SQLITE_TRANSIENT);

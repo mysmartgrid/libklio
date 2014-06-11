@@ -10,18 +10,24 @@ const TimeConverter::Ptr Store::time_converter(new TimeConverter());
 
 void Store::add_sensor(const Sensor::Ptr sensor) {
 
+    LOG("Adding sensor: " << sensor->str());
+    
     add_sensor_record(sensor);
     set_buffers(sensor);
 }
 
 void Store::remove_sensor(const Sensor::Ptr sensor) {
 
+    LOG("Removing sensor: " << sensor->str());
+    
     remove_sensor_record(sensor);
     Store::clear_buffers(sensor);
 }
 
 void Store::update_sensor(const Sensor::Ptr sensor) {
 
+    LOG("Updating sensor: " << sensor->str());
+    
     update_sensor_record(sensor);
     set_buffers(sensor);
 }

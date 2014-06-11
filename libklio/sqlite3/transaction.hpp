@@ -35,21 +35,20 @@ namespace klio {
         Transaction(sqlite3* _db) :
         _db(_db),
         _pending(false) {
-            start();
         }
 
         virtual ~Transaction() {
             rollback();
         }
 
+        void start();
         void commit();
+        void rollback();
 
     private:
         Transaction(const Transaction& original);
         Transaction& operator=(const Transaction& rhs);
 
-        void start();
-        void rollback();
         void log_error(const std::string& operation);
 
         sqlite3* _db;

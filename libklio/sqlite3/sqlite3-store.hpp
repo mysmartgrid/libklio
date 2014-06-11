@@ -39,10 +39,11 @@ namespace klio {
     public:
         typedef boost::shared_ptr<SQLite3Store> Ptr;
 
-        SQLite3Store(const bfs::path& path) :
+        SQLite3Store(const bfs::path& path, bool auto_commit) :
         Store(0),
         _path(path),
         _db(NULL),
+        _auto_commit(auto_commit),
         _insert_sensor_stmt(NULL),
         _remove_sensor_stmt(NULL),
         _update_sensor_stmt(NULL),
@@ -65,6 +66,11 @@ namespace klio {
         void prepare();
         void dispose();
         const std::string str();
+        
+        void start_transaction();
+        void commit_transaction();
+        void rollback_transaction();
+        void check_auto_commit();
 
     protected:
         void add_sensor_record(const Sensor::Ptr sensor);
@@ -75,7 +81,7 @@ namespace klio {
 
         void add_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp, double value);
         void update_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp, double value);
-        
+
         readings_t_Ptr get_all_readings_records(const Sensor::Ptr sensor);
         readings_t_Ptr get_timeframe_readings_records(const Sensor::Ptr sensor, timestamp_t begin, timestamp_t end);
         unsigned long int get_num_readings_value(const Sensor::Ptr sensor);
@@ -89,6 +95,9 @@ namespace klio {
         bool has_table(const std::string& name);
         bool has_column(const std::string& table, const std::string& column);
 
+        Transaction::Ptr create_inner_transaction();
+        void commit_inner_transaction(Transaction::Ptr transaction);
+        
         void add_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp, double value, const bool update);
         readings_t_Ptr get_readings_records(sqlite3_stmt* stmt);
 
@@ -101,6 +110,8 @@ namespace klio {
 
         bfs::path _path;
         sqlite3 *_db;
+        bool _auto_commit;
+        Transaction::Ptr _transaction;
         sqlite3_stmt* _insert_sensor_stmt;
         sqlite3_stmt* _remove_sensor_stmt;
         sqlite3_stmt* _update_sensor_stmt;

@@ -15,7 +15,12 @@ SQLite3Store::Ptr StoreFactory::create_sqlite3_store(const bfs::path& path) {
 
 SQLite3Store::Ptr StoreFactory::create_sqlite3_store(const bfs::path& path, bool prepare) {
 
-    SQLite3Store::Ptr store = SQLite3Store::Ptr(new SQLite3Store(path));
+    return create_sqlite3_store(path, prepare, true);
+}
+
+SQLite3Store::Ptr StoreFactory::create_sqlite3_store(const bfs::path& path, bool prepare, bool auto_commit) {
+
+    SQLite3Store::Ptr store = SQLite3Store::Ptr(new SQLite3Store(path, auto_commit));
     store->open();
     store->initialize();
     if (prepare) {
@@ -26,7 +31,12 @@ SQLite3Store::Ptr StoreFactory::create_sqlite3_store(const bfs::path& path, bool
 
 SQLite3Store::Ptr StoreFactory::open_sqlite3_store(const bfs::path& path) {
 
-    SQLite3Store::Ptr store = SQLite3Store::Ptr(new SQLite3Store(path));
+    return open_sqlite3_store(path, true);
+}
+
+SQLite3Store::Ptr StoreFactory::open_sqlite3_store(const bfs::path& path, bool auto_commit) {
+
+    SQLite3Store::Ptr store = SQLite3Store::Ptr(new SQLite3Store(path, auto_commit));
     store->open();
     store->check_integrity();
     store->prepare();

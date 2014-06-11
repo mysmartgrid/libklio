@@ -11,7 +11,7 @@ const TimeConverter::Ptr Store::time_converter(new TimeConverter());
 void Store::add_sensor(const Sensor::Ptr sensor) {
 
     LOG("Adding sensor: " << sensor->str());
-    
+
     add_sensor_record(sensor);
     set_buffers(sensor);
 }
@@ -19,7 +19,7 @@ void Store::add_sensor(const Sensor::Ptr sensor) {
 void Store::remove_sensor(const Sensor::Ptr sensor) {
 
     LOG("Removing sensor: " << sensor->str());
-    
+
     remove_sensor_record(sensor);
     Store::clear_buffers(sensor);
 }
@@ -27,7 +27,7 @@ void Store::remove_sensor(const Sensor::Ptr sensor) {
 void Store::update_sensor(const Sensor::Ptr sensor) {
 
     LOG("Updating sensor: " << sensor->str());
-    
+
     update_sensor_record(sensor);
     set_buffers(sensor);
 }
@@ -42,6 +42,13 @@ Sensor::Ptr Store::get_sensor(const Sensor::uuid_t& uuid) {
         err << "Sensor " << boost::uuids::to_string(uuid) << " could not be found.";
         throw StoreException(err.str());
     }
+}
+
+std::vector<Sensor::Ptr> Store::get_sensors() {
+
+    LOG("Attempting to load sensors");
+
+    return get_sensors_records();
 }
 
 std::vector<Sensor::Ptr> Store::get_sensors_by_external_id(const std::string& external_id) {
@@ -121,8 +128,55 @@ void Store::update_reading_record(const Sensor::Ptr sensor, timestamp_t timestam
     _readings_buffer[sensor->uuid()]->insert(reading_t(timestamp, value));
 }
 
+readings_t_Ptr Store::get_all_readings(const Sensor::Ptr sensor) {
+
+    LOG("Retrieving all readings of sensor " << sensor->str());
+
+    flush(sensor);
+
+    return get_all_readings_records(sensor);
+}
+
+readings_t_Ptr Store::get_timeframe_readings(const Sensor::Ptr sensor, timestamp_t begin, timestamp_t end) {
+
+    LOG("Retrieving readings of sensor " << sensor->str() << " between " << begin << " and " << end);
+
+    flush(sensor);
+
+    return get_timeframe_readings_records(sensor, begin, end);
+}
+
+unsigned long int Store::get_num_readings(const Sensor::Ptr sensor) {
+
+    LOG("Retrieving number of readings for sensor " << sensor->str());
+
+    flush(sensor);
+
+    return get_num_readings_value(sensor);
+}
+
+reading_t Store::get_last_reading(const Sensor::Ptr sensor) {
+
+    LOG("Retrieving last reading of sensor " << sensor->str());
+
+    flush(sensor);
+
+    return get_last_reading_record(sensor);
+}
+
+reading_t Store::get_reading(const Sensor::Ptr sensor, timestamp_t timestamp) {
+
+    LOG("Retrieving reading of sensor " << sensor->str());
+
+    flush(sensor);
+
+    return get_reading_record(sensor, timestamp);
+}
+
 void Store::sync(const Store::Ptr store) {
 
+    LOG("Synchronizing this store with store " << store->str());
+    
     const std::vector<Sensor::Ptr> sensors = store->get_sensors();
 
     for (std::vector<Sensor::Ptr>::const_iterator sensor = sensors.begin(); sensor != sensors.end(); ++sensor) {
@@ -132,6 +186,8 @@ void Store::sync(const Store::Ptr store) {
 }
 
 void Store::sync_readings(const Sensor::Ptr sensor, const Store::Ptr store) {
+
+    LOG("Synchronizing this store readings with the readings of sensor " << sensor->str() << " from store " << store->str());
 
     klio::readings_t_Ptr readings = store->get_all_readings(sensor);
     std::vector<Sensor::Ptr> sensors = get_sensors_by_external_id(sensor->external_id());
@@ -199,7 +255,7 @@ void Store::flush(bool force) {
 }
 
 void Store::flush(const Sensor::Ptr sensor) {
-    //FIXME
+    //TODO: default implementation
 }
 
 void Store::set_buffers(const Sensor::Ptr sensor) {

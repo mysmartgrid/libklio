@@ -157,7 +157,7 @@ void MSGStore::update_sensor_record(const Sensor::Ptr sensor) {
     }
 }
 
-std::vector<Sensor::Ptr> MSGStore::get_sensors() {
+std::vector<Sensor::Ptr> MSGStore::get_sensors_records() {
 
     struct json_object *jobject = NULL;
 
@@ -192,12 +192,11 @@ std::vector<Sensor::Ptr> MSGStore::get_sensors() {
     }
 }
 
-readings_t_Ptr MSGStore::get_all_readings(const Sensor::Ptr sensor) {
+readings_t_Ptr MSGStore::get_all_readings_records(const Sensor::Ptr sensor) {
 
     struct json_object *jreadings = NULL;
 
     try {
-        flush(sensor);
         jreadings = get_json_readings(sensor);
 
         int length = json_object_array_length(jreadings);
@@ -226,7 +225,7 @@ readings_t_Ptr MSGStore::get_all_readings(const Sensor::Ptr sensor) {
     }
 }
 
-readings_t_Ptr MSGStore::get_timeframe_readings(const Sensor::Ptr sensor,
+readings_t_Ptr MSGStore::get_timeframe_readings_records(const Sensor::Ptr sensor,
         timestamp_t begin, timestamp_t end) {
 
     //TODO: improve this method
@@ -243,12 +242,11 @@ readings_t_Ptr MSGStore::get_timeframe_readings(const Sensor::Ptr sensor,
     return selected;
 }
 
-unsigned long int MSGStore::get_num_readings(const Sensor::Ptr sensor) {
+unsigned long int MSGStore::get_num_readings_value(const Sensor::Ptr sensor) {
 
     struct json_object *jreadings = NULL;
 
     try {
-        flush(sensor);
         jreadings = get_json_readings(sensor);
         long int num = json_object_array_length(jreadings);
 
@@ -265,12 +263,11 @@ unsigned long int MSGStore::get_num_readings(const Sensor::Ptr sensor) {
     }
 }
 
-reading_t MSGStore::get_last_reading(const Sensor::Ptr sensor) {
+reading_t MSGStore::get_last_reading_record(const Sensor::Ptr sensor) {
 
     json_object *jreadings = NULL;
 
     try {
-        flush(sensor);
         jreadings = get_json_readings(sensor);
 
         int i = json_object_array_length(jreadings) - 1;
@@ -298,7 +295,7 @@ reading_t MSGStore::get_last_reading(const Sensor::Ptr sensor) {
     }
 }
 
-reading_t MSGStore::get_reading(const Sensor::Ptr sensor, timestamp_t timestamp) {
+reading_t MSGStore::get_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp) {
 
     //FIXME: make this method more efficient
     klio::readings_t_Ptr readings = get_all_readings(sensor);

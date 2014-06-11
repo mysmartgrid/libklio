@@ -61,22 +61,23 @@ namespace klio {
         void dispose();
         const std::string str();
 
-        std::vector<Sensor::Ptr> get_sensors();
-
-        readings_t_Ptr get_all_readings(const Sensor::Ptr sensor);
-        readings_t_Ptr get_timeframe_readings(const Sensor::Ptr sensor, timestamp_t begin, timestamp_t end);
-        unsigned long int get_num_readings(const Sensor::Ptr sensor);
-        reading_t get_last_reading(const Sensor::Ptr sensor);
-        reading_t get_reading(const Sensor::Ptr sensor, timestamp_t timestamp);
-
     protected:
         void add_sensor_record(const Sensor::Ptr sensor);
         void remove_sensor_record(const klio::Sensor::Ptr sensor);
         void update_sensor_record(const klio::Sensor::Ptr sensor);
-        void clear_buffers();
+
+        std::vector<Sensor::Ptr> get_sensors_records();
 
         void add_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp, double value);
         void update_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp, double value);
+
+        readings_t_Ptr get_all_readings_records(const Sensor::Ptr sensor);
+        readings_t_Ptr get_timeframe_readings_records(const Sensor::Ptr sensor, timestamp_t begin, timestamp_t end);
+        unsigned long int get_num_readings_value(const Sensor::Ptr sensor);
+        reading_t get_last_reading_record(const Sensor::Ptr sensor);
+        reading_t get_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp);
+
+        void clear_buffers();
 
     private:
         RocksDBStore(const RocksDBStore& original);
@@ -96,7 +97,6 @@ namespace klio {
         void put_value(rocksdb::DB* db, const std::string& key, const std::string& value);
         std::string get_value(rocksdb::DB* db, const std::string& key);
         void delete_value(rocksdb::DB* db, const std::string& key);
-        Sensor::Ptr load_sensor(const Sensor::uuid_t& uuid);
 
         const std::string compose_db_path();
         const std::string compose_sensors_path();

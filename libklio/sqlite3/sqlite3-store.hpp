@@ -66,21 +66,21 @@ namespace klio {
         void dispose();
         const std::string str();
 
-        std::vector<Sensor::Ptr> get_sensors();
-
-        readings_t_Ptr get_all_readings(const Sensor::Ptr sensor);
-        readings_t_Ptr get_timeframe_readings(const Sensor::Ptr sensor, timestamp_t begin, timestamp_t end);
-        unsigned long int get_num_readings(const Sensor::Ptr sensor);
-        reading_t get_last_reading(const Sensor::Ptr sensor);
-        reading_t get_reading(const Sensor::Ptr sensor, timestamp_t timestamp);
-
     protected:
         void add_sensor_record(const Sensor::Ptr sensor);
         void remove_sensor_record(const klio::Sensor::Ptr sensor);
         void update_sensor_record(const klio::Sensor::Ptr sensor);
 
+        std::vector<klio::Sensor::Ptr> get_sensors_records();
+
         void add_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp, double value);
         void update_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp, double value);
+        
+        readings_t_Ptr get_all_readings_records(const Sensor::Ptr sensor);
+        readings_t_Ptr get_timeframe_readings_records(const Sensor::Ptr sensor, timestamp_t begin, timestamp_t end);
+        unsigned long int get_num_readings_value(const Sensor::Ptr sensor);
+        reading_t get_last_reading_record(const Sensor::Ptr sensor);
+        reading_t get_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp);
 
     private:
         SQLite3Store(const SQLite3Store& original);
@@ -88,8 +88,10 @@ namespace klio {
 
         bool has_table(const std::string& name);
         bool has_column(const std::string& table, const std::string& column);
+
         void add_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp, double value, const bool update);
-        readings_t_Ptr get_readings(sqlite3_stmt* stmt);
+        readings_t_Ptr get_readings_records(sqlite3_stmt* stmt);
+
         sqlite3_stmt *prepare(const std::string& stmt_str);
         sqlite3_stmt *get_statement(const std::string& sql);
         int execute(sqlite3_stmt *stmt, int expected_code);

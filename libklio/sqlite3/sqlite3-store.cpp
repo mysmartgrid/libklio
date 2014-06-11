@@ -343,9 +343,7 @@ void SQLite3Store::update_sensor_record(const Sensor::Ptr sensor) {
     reset(_update_sensor_stmt);
 }
 
-std::vector<Sensor::Ptr> SQLite3Store::get_sensors() {
-
-    LOG("Attempting to load sensors");
+std::vector<Sensor::Ptr> SQLite3Store::get_sensors_records() {
 
     std::vector<Sensor::Ptr> sensors;
 
@@ -362,11 +360,7 @@ std::vector<Sensor::Ptr> SQLite3Store::get_sensors() {
     return sensors;
 }
 
-readings_t_Ptr SQLite3Store::get_all_readings(const Sensor::Ptr sensor) {
-
-    LOG("Retrieving all readings of sensor " << sensor->str());
-
-    flush(sensor);
+readings_t_Ptr SQLite3Store::get_all_readings_records(const Sensor::Ptr sensor) {
 
     std::ostringstream oss;
     oss << "SELECT timestamp, value FROM '" << sensor->uuid_string() << "'";
@@ -374,7 +368,7 @@ readings_t_Ptr SQLite3Store::get_all_readings(const Sensor::Ptr sensor) {
 
     readings_t_Ptr readings;
     try {
-        readings = get_readings(stmt);
+        readings = get_readings_records(stmt);
 
     } catch (std::exception const& e) {
         reset(stmt);
@@ -384,11 +378,7 @@ readings_t_Ptr SQLite3Store::get_all_readings(const Sensor::Ptr sensor) {
     return readings;
 }
 
-readings_t_Ptr SQLite3Store::get_timeframe_readings(const Sensor::Ptr sensor, timestamp_t begin, timestamp_t end) {
-
-    LOG("Retrieving readings of sensor " << sensor->str() << " between " << begin << " and " << end);
-
-    flush(sensor);
+readings_t_Ptr SQLite3Store::get_timeframe_readings_records(const Sensor::Ptr sensor, timestamp_t begin, timestamp_t end) {
 
     std::ostringstream oss;
     oss << "SELECT timestamp, value FROM '" << sensor->uuid_string() << "' WHERE timestamp BETWEEN ? AND ?";
@@ -399,7 +389,7 @@ readings_t_Ptr SQLite3Store::get_timeframe_readings(const Sensor::Ptr sensor, ti
         sqlite3_bind_int(stmt, 1, begin);
         sqlite3_bind_int(stmt, 2, end);
 
-        readings = get_readings(stmt);
+        readings = get_readings_records(stmt);
 
     } catch (std::exception const& e) {
         reset(stmt);
@@ -409,7 +399,7 @@ readings_t_Ptr SQLite3Store::get_timeframe_readings(const Sensor::Ptr sensor, ti
     return readings;
 }
 
-readings_t_Ptr SQLite3Store::get_readings(sqlite3_stmt* stmt) {
+readings_t_Ptr SQLite3Store::get_readings_records(sqlite3_stmt* stmt) {
 
     readings_t_Ptr readings(new readings_t());
 
@@ -426,11 +416,7 @@ readings_t_Ptr SQLite3Store::get_readings(sqlite3_stmt* stmt) {
     return readings;
 }
 
-unsigned long int SQLite3Store::get_num_readings(const Sensor::Ptr sensor) {
-
-    LOG("Retrieving number of readings for sensor " << sensor->str());
-
-    flush(sensor);
+unsigned long int SQLite3Store::get_num_readings_value(const Sensor::Ptr sensor) {
 
     std::ostringstream oss;
     oss << "SELECT count(*) FROM '" << sensor->uuid_string() << "'";
@@ -448,11 +434,7 @@ unsigned long int SQLite3Store::get_num_readings(const Sensor::Ptr sensor) {
     return num;
 }
 
-reading_t SQLite3Store::get_last_reading(const Sensor::Ptr sensor) {
-
-    LOG("Retrieving last reading of sensor " << sensor->str());
-
-    flush(sensor);
+reading_t SQLite3Store::get_last_reading_record(const Sensor::Ptr sensor) {
 
     std::ostringstream oss;
     oss << "SELECT timestamp, value FROM '" << sensor->uuid_string() << "' ORDER BY timestamp DESC LIMIT 1";
@@ -476,11 +458,7 @@ reading_t SQLite3Store::get_last_reading(const Sensor::Ptr sensor) {
     return reading;
 }
 
-reading_t SQLite3Store::get_reading(const Sensor::Ptr sensor, timestamp_t timestamp) {
-
-    LOG("Retrieving reading of sensor " << sensor->str());
-
-    flush(sensor);
+reading_t SQLite3Store::get_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp) {
 
     std::ostringstream oss;
     oss << "SELECT timestamp, value FROM '" << sensor->uuid_string() << "' WHERE timestamp = ?";

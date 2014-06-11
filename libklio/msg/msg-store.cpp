@@ -65,7 +65,7 @@ void MSGStore::initialize() {
 }
 
 void MSGStore::check_integrity() {
-   //TODO: implement this method
+    //TODO: implement this method
 }
 
 void MSGStore::dispose() {
@@ -95,17 +95,16 @@ const std::string MSGStore::str() {
     return str.str();
 };
 
-void MSGStore::add_sensor(const Sensor::Ptr sensor) {
+void MSGStore::add_sensor_record(const Sensor::Ptr sensor) {
 
-    update_sensor(sensor);
+    update_sensor_record(sensor);
 }
 
-void MSGStore::remove_sensor(const Sensor::Ptr sensor) {
+void MSGStore::remove_sensor_record(const Sensor::Ptr sensor) {
 
     try {
         std::string url = compose_sensor_url(sensor);
         perform_http_delete(url, _key);
-        clear_buffers(sensor);
 
     } catch (GenericException const& e) {
         throw;
@@ -115,7 +114,7 @@ void MSGStore::remove_sensor(const Sensor::Ptr sensor) {
     }
 }
 
-void MSGStore::update_sensor(const Sensor::Ptr sensor) {
+void MSGStore::update_sensor_record(const Sensor::Ptr sensor) {
 
     json_object *jconfig = NULL;
 
@@ -144,7 +143,6 @@ void MSGStore::update_sensor(const Sensor::Ptr sensor) {
         std::string url = compose_sensor_url(sensor);
 
         json_object *jresponse = perform_http_post(url, _key, jconfig);
-        set_buffers(sensor);
 
         destroy_object(jresponse);
         destroy_object(jconfig);
@@ -192,28 +190,6 @@ std::vector<Sensor::Ptr> MSGStore::get_sensors() {
         destroy_object(jobject);
         throw EnvironmentException(e.what());
     }
-}
-
-void MSGStore::add_reading(const Sensor::Ptr sensor, timestamp_t timestamp, double value) {
-
-    set_buffers(sensor);
-    _readings_buffer[sensor->uuid()]->insert(reading_t(timestamp, value));
-    Store::flush(false);
-}
-
-void MSGStore::add_readings(const Sensor::Ptr sensor, const readings_t& readings) {
-
-    set_buffers(sensor);
-
-    for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
-        _readings_buffer[sensor->uuid()]->insert(reading_t((*it).first, (*it).second));
-    }
-    Store::flush(false);
-}
-
-void MSGStore::update_readings(const Sensor::Ptr sensor, const readings_t& readings) {
-
-    add_readings(sensor, readings);
 }
 
 readings_t_Ptr MSGStore::get_all_readings(const Sensor::Ptr sensor) {
@@ -328,7 +304,7 @@ reading_t MSGStore::get_reading(const Sensor::Ptr sensor, timestamp_t timestamp)
     klio::readings_t_Ptr readings = get_all_readings(sensor);
 
     std::pair<timestamp_t, double> reading = std::pair<timestamp_t, double>(0, 0);
-    
+
     if (readings->count(timestamp)) {
         reading.first = timestamp;
         reading.second = readings->at(timestamp);

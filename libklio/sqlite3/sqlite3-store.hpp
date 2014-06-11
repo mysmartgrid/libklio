@@ -66,20 +66,21 @@ namespace klio {
         void dispose();
         const std::string str();
 
-        void add_sensor(const Sensor::Ptr sensor);
-        void remove_sensor(const Sensor::Ptr sensor);
-        void update_sensor(const Sensor::Ptr sensor);
         std::vector<Sensor::Ptr> get_sensors();
 
-        void add_reading(const Sensor::Ptr sensor, timestamp_t timestamp, double value);
-        void add_readings(const Sensor::Ptr sensor, const readings_t& readings);
-        void update_readings(const Sensor::Ptr sensor, const readings_t& readings);
-        
         readings_t_Ptr get_all_readings(const Sensor::Ptr sensor);
         readings_t_Ptr get_timeframe_readings(const Sensor::Ptr sensor, timestamp_t begin, timestamp_t end);
         unsigned long int get_num_readings(const Sensor::Ptr sensor);
         reading_t get_last_reading(const Sensor::Ptr sensor);
         reading_t get_reading(const Sensor::Ptr sensor, timestamp_t timestamp);
+
+    protected:
+        void add_sensor_record(const Sensor::Ptr sensor);
+        void remove_sensor_record(const klio::Sensor::Ptr sensor);
+        void update_sensor_record(const klio::Sensor::Ptr sensor);
+
+        void add_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp, double value);
+        void update_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp, double value);
 
     private:
         SQLite3Store(const SQLite3Store& original);
@@ -87,7 +88,7 @@ namespace klio {
 
         bool has_table(const std::string& name);
         bool has_column(const std::string& table, const std::string& column);
-        void insert_reading_record(sqlite3_stmt* stmt, timestamp_t timestamp, double value);
+        void add_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp, double value, const bool update);
         readings_t_Ptr get_readings(sqlite3_stmt* stmt);
         sqlite3_stmt *prepare(const std::string& stmt_str);
         sqlite3_stmt *get_statement(const std::string& sql);

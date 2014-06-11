@@ -8,6 +8,24 @@ using namespace klio;
 const SensorFactory::Ptr Store::sensor_factory(new SensorFactory());
 const TimeConverter::Ptr Store::time_converter(new TimeConverter());
 
+void Store::add_sensor(const Sensor::Ptr sensor) {
+
+    add_sensor_record(sensor);
+    set_buffers(sensor);
+}
+
+void Store::remove_sensor(const Sensor::Ptr sensor) {
+
+    remove_sensor_record(sensor);
+    Store::clear_buffers(sensor);
+}
+
+void Store::update_sensor(const Sensor::Ptr sensor) {
+
+    update_sensor_record(sensor);
+    set_buffers(sensor);
+}
+
 Sensor::Ptr Store::get_sensor(const Sensor::uuid_t& uuid) {
 
     if (_sensors_buffer.count(uuid)) {
@@ -24,7 +42,7 @@ std::vector<Sensor::Ptr> Store::get_sensors_by_external_id(const std::string& ex
 
     std::vector<Sensor::Ptr> sensors;
 
-    if (_external_ids_buffer.count(external_id)) {
+    if (_external_ids_buffer.count(external_id) > 0) {
         Sensor::uuid_t uuid = _external_ids_buffer[external_id];
         sensors.push_back(_sensors_buffer[uuid]);
     }
@@ -39,7 +57,7 @@ std::vector<Sensor::Ptr> Store::get_sensors_by_name(const std::string& name) {
 
         Sensor::Ptr sensor = (*it).second;
 
-        if (name == sensor->name()) {
+        if (sensor->name() == name) {
             sensors.push_back(sensor);
         }
     }
@@ -54,6 +72,47 @@ std::vector<Sensor::uuid_t> Store::get_sensor_uuids() {
         uuids.push_back((*it).first);
     }
     return uuids;
+}
+
+void Store::add_reading(const Sensor::Ptr sensor, timestamp_t timestamp, double value) {
+
+    LOG("Adding to sensor: " << sensor->str() << " time=" << timestamp << " value=" << value);
+
+    set_buffers(sensor);
+    add_reading_record(sensor, timestamp, value);
+    Store::flush(false);
+}
+
+void Store::add_readings(const Sensor::Ptr sensor, const readings_t& readings) {
+
+    LOG("Adding " << readings->size() << " readings to sensor: " << sensor->str());
+
+    set_buffers(sensor);
+    for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
+        add_reading_record(sensor, (*it).first, (*it).second);
+    }
+    Store::flush(false);
+}
+
+void Store::update_readings(const Sensor::Ptr sensor, const readings_t& readings) {
+
+    LOG("Updating " << readings->size() << " readings of sensor: " << sensor->str());
+
+    set_buffers(sensor);
+    for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
+        update_reading_record(sensor, (*it).first, (*it).second);
+    }
+    Store::flush(false);
+}
+
+void Store::add_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp, double value) {
+
+    _readings_buffer[sensor->uuid()]->insert(reading_t(timestamp, value));
+}
+
+void Store::update_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp, double value) {
+
+    _readings_buffer[sensor->uuid()]->insert(reading_t(timestamp, value));
 }
 
 void Store::sync(const Store::Ptr store) {
@@ -144,7 +203,7 @@ void Store::set_buffers(const Sensor::Ptr sensor) {
         Sensor::uuid_t other_uuid = _external_ids_buffer[sensor->external_id()];
         _sensors_buffer.erase(other_uuid);
 
-        if (_readings_buffer[other_uuid]) {
+        if (_readings_buffer.count(other_uuid) > 0) {
             _readings_buffer[sensor->uuid()] = _readings_buffer[other_uuid];
             _readings_buffer.erase(other_uuid);
         }

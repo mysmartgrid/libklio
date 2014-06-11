@@ -42,12 +42,24 @@ BOOST_AUTO_TEST_CASE(check_add_retrieve_reading) {
         std::cout << "Created: " << store->str() << std::endl;
 
         try {
+            klio::TimeConverter::Ptr tc(new klio::TimeConverter());
+            klio::timestamp_t timestamp = tc->get_timestamp();
+
+            try {
+                //Non existent sensor
+                store->add_reading(sensor, timestamp, 24);
+
+                BOOST_FAIL("An exception must be raised if the sensor is not found.");
+
+            } catch (klio::StoreException const& ok) {
+                //This exception is expected
+            }
+
             store->add_sensor(sensor);
             std::cout << "added to store: " << sensor->str() << std::endl;
 
             // insert a reading.
-            klio::TimeConverter::Ptr tc(new klio::TimeConverter());
-            klio::timestamp_t timestamp = tc->get_timestamp();
+            timestamp = tc->get_timestamp();
             double reading = 23;
             store->add_reading(sensor, timestamp, reading);
 
@@ -105,22 +117,33 @@ BOOST_AUTO_TEST_CASE(check_retrieve_reading_timeframe) {
         std::cout << "Created: " << store->str() << std::endl;
 
         try {
+            klio::timestamp_t marker_begin = 1393418290;
+            klio::timestamp_t marker_end = 1393418296;
+
+            try {
+                //Non existent sensor
+                store->get_timeframe_readings(sensor, marker_begin, marker_end);
+
+                BOOST_FAIL("An exception must be raised if the sensor is not found.");
+
+            } catch (klio::StoreException const& ok) {
+                //This exception is expected
+            }
+
             store->add_sensor(sensor);
             std::cout << "added to store: " << sensor->str() << std::endl;
 
-            klio::timestamp_t marker_begin = 1393418290;
-            klio::timestamp_t marker_end = 1393418296;
             // insert a reading.
             // Create a pattern in the database: lets have 23....42....23....
-            for(klio::timestamp_t ts = 1393418246; ts < marker_begin; ts += 1) {
-              store->add_reading(sensor, ts, 23);
+            for (klio::timestamp_t ts = 1393418246; ts < marker_begin; ts += 1) {
+                store->add_reading(sensor, ts, 23);
             }
             // five times 42 in the middle!
-            for(klio::timestamp_t ts = marker_begin; ts < marker_end; ts += 1) {
-              store->add_reading(sensor, ts, 42);
+            for (klio::timestamp_t ts = marker_begin; ts < marker_end; ts += 1) {
+                store->add_reading(sensor, ts, 42);
             }
-            for(klio::timestamp_t ts = marker_end; ts < 1393418396; ts += 1) {
-              store->add_reading(sensor, ts, 23);
+            for (klio::timestamp_t ts = marker_end; ts < 1393418396; ts += 1) {
+                store->add_reading(sensor, ts, 23);
             }
 
             // Now check if we can retrieve the 42s.
@@ -132,21 +155,21 @@ BOOST_AUTO_TEST_CASE(check_retrieve_reading_timeframe) {
             uint32_t result_counter = 0;
             std::map<klio::timestamp_t, double>::iterator it;
             for (it = readings->begin(); it != readings->end(); it++) {
-              klio::timestamp_t ts1 = (*it).first;
-              double val1 = (*it).second;
-              std::cout << "Got timestamp " << ts1 << " -> value " << val1 << std::endl;
-              BOOST_CHECK(42 == val1 || 23 == val1);
-              result_counter++;
+                klio::timestamp_t ts1 = (*it).first;
+                double val1 = (*it).second;
+                std::cout << "Got timestamp " << ts1 << " -> value " << val1 << std::endl;
+                BOOST_CHECK(42 == val1 || 23 == val1);
+                result_counter++;
             }
             BOOST_CHECK_EQUAL(7, result_counter);
 
         } catch (klio::StoreException const& ex) {
-          //store->remove_sensor(sensor);
-          std::cout << "Caught invalid exception: " << ex.what() << std::endl;
-          BOOST_FAIL("Unexpected store exception occurred during sensor test");
+            //store->remove_sensor(sensor);
+            std::cout << "Caught invalid exception: " << ex.what() << std::endl;
+            BOOST_FAIL("Unexpected store exception occurred during sensor test");
         }
     } catch (std::exception const& ex) {
-      BOOST_FAIL("Unexpected exception occurred during sensor test");
+        BOOST_FAIL("Unexpected exception occurred during sensor test");
     }
 }
 
@@ -164,6 +187,16 @@ BOOST_AUTO_TEST_CASE(check_retrieve_last_reading) {
         std::cout << "Created: " << store->str() << std::endl;
 
         try {
+            try {
+                //Non existent sensor
+                store->get_last_reading(sensor);
+
+                BOOST_FAIL("An exception must be raised if the sensor is not found.");
+
+            } catch (klio::StoreException const& ok) {
+                //This exception is expected
+            }
+
             store->add_sensor(sensor);
             std::cout << "added to store: " << sensor->str() << std::endl;
 
@@ -214,10 +247,6 @@ BOOST_AUTO_TEST_CASE(check_sqlite3_bulk_insert) {
         std::cout << "Created: " << store->str() << std::endl;
 
         try {
-            store->add_sensor(sensor);
-            std::cout << "added to store: " << sensor->str() << std::endl;
-
-            // insert a reading.
             klio::TimeConverter::Ptr tc(new klio::TimeConverter());
             klio::readings_t readings;
             size_t num_readings = 100;
@@ -227,6 +256,20 @@ BOOST_AUTO_TEST_CASE(check_sqlite3_bulk_insert) {
                 klio::reading_t foo(timestamp, reading);
                 readings.insert(foo);
             }
+
+            try {
+                //Non existent sensor
+                store->add_readings(sensor, readings);
+
+                BOOST_FAIL("An exception must be raised if the sensor is not found.");
+
+            } catch (klio::StoreException const& ok) {
+                //This exception is expected
+            }
+
+            store->add_sensor(sensor);
+            std::cout << "added to store: " << sensor->str() << std::endl;
+
             std::cout << "Inserting " << readings.size() << " readings." << std::endl;
             boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
 
@@ -342,7 +385,6 @@ BOOST_AUTO_TEST_CASE(check_roksdb_bulk_insert) {
 }
 
 #endif /* ENABLE_ROCKSDB */
-
 
 BOOST_AUTO_TEST_CASE(check_bulk_insert_duplicates) {
 

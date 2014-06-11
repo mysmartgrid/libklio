@@ -86,7 +86,7 @@ BOOST_AUTO_TEST_CASE(check_open_close_sqlite3_storage) {
 
         store->open();
         store->open();
-        
+
         store->close();
         store->close();
 
@@ -127,7 +127,7 @@ BOOST_AUTO_TEST_CASE(check_open_corrupt_sqlite3_file) {
 
     } catch (klio::StoreException const& ex) {
         //This exception is expected
-        bfs::remove(db);//TODO: use dispose() here
+        bfs::remove(db); //TODO: use dispose() here
     }
 }
 
@@ -162,6 +162,88 @@ BOOST_AUTO_TEST_CASE(check_add_sqlite3_sensor) {
         BOOST_CHECK_EQUAL(sensor->description(), retrieved->description());
         BOOST_CHECK_EQUAL(sensor->unit(), retrieved->unit());
         BOOST_CHECK_EQUAL(sensor->timezone(), retrieved->timezone());
+
+        store->dispose();
+
+    } catch (klio::GenericException const& ex) {
+        store->dispose();
+        std::cout << "Caught invalid exception: " << ex.what() << std::endl;
+        BOOST_FAIL("Unexpected exception occurred for initialize request");
+    }
+}
+
+BOOST_AUTO_TEST_CASE(check_sqlite3_no_auto_commit) {
+
+    std::cout << "Testing SQLite3 store with no auto commit" << std::endl;
+    klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
+    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+    bfs::path db(TEST_DB1_FILE);
+    klio::SQLite3Store::Ptr store;
+
+    try {
+        std::cout << "Attempting to create " << db << std::endl;
+        store = store_factory->create_sqlite3_store(db, true, false);
+        std::cout << "Created database: " << store->str() << std::endl;
+
+        store->start_transaction();
+
+        klio::Sensor::Ptr sensor(sensor_factory->createSensor(
+                "89c18074-8bcf-240b-db7c-c1281038adcb",
+                "Test",
+                "Test libklio",
+                "this is a sensor description",
+                "kwh",
+                "Europe/Berlin"));
+
+        store->add_sensor(sensor);
+        
+        klio::TimeConverter::Ptr tc(new klio::TimeConverter());
+        for (size_t i = 0; i < 10; i++) {
+            store->add_reading(sensor, tc->get_timestamp() - i, 23);
+        }
+
+        store->rollback_transaction();
+
+        try {
+            store->get_sensor(sensor->uuid());
+
+            BOOST_FAIL("The sensor addition should have been rolled back.");
+
+        } catch (klio::StoreException e) {
+            //expected
+        }
+        
+         try {
+            store->get_num_readings(sensor);
+
+            BOOST_FAIL("The sensor and readings addition should have been rolled back.");
+
+        } catch (klio::StoreException e) {
+            //expected
+        }
+
+        store->start_transaction();
+
+        sensor = sensor_factory->createSensor(
+                "89c18074-8bcf-240b-db7c-c1281038adcb",
+                "Test",
+                "Test libklio",
+                "this is a sensor description",
+                "kwh",
+                "Europe/Berlin");
+
+        store->add_sensor(sensor);
+
+        for (size_t i = 0; i < 10; i++) {
+            store->add_reading(sensor, tc->get_timestamp() - i, 23);
+        }
+
+        store->commit_transaction();
+
+        klio::Sensor::Ptr retrieved = store->get_sensor(sensor->uuid());
+
+        BOOST_CHECK_EQUAL(sensor->uuid(), retrieved->uuid());
+        BOOST_CHECK_EQUAL(10, store->get_num_readings(sensor));
 
         store->dispose();
 
@@ -289,7 +371,7 @@ BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensor) {
                 "GetDescription2",
                 "watt",
                 "Europe/Berlin");
-        
+
         store->add_sensor(sensor);
 
         klio::Sensor::Ptr retrieved = store->get_sensor(sensor->uuid());
@@ -501,6 +583,6 @@ BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensor_uuids) {
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
     }
-} 
+}
 
 //BOOST_AUTO_TEST_SUITE_END()

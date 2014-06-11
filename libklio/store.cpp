@@ -21,7 +21,7 @@ void Store::remove_sensor(const Sensor::Ptr sensor) {
     LOG("Removing sensor: " << sensor->str());
 
     remove_sensor_record(sensor);
-    Store::clear_buffers(sensor);
+    clear_buffers(sensor);
 }
 
 void Store::update_sensor(const Sensor::Ptr sensor) {
@@ -34,7 +34,7 @@ void Store::update_sensor(const Sensor::Ptr sensor) {
 
 Sensor::Ptr Store::get_sensor(const Sensor::uuid_t& uuid) {
 
-    if (_sensors_buffer.count(uuid)) {
+    if (_sensors_buffer.count(uuid) > 0) {
         return _sensors_buffer[uuid];
 
     } else {
@@ -91,6 +91,9 @@ void Store::add_reading(const Sensor::Ptr sensor, timestamp_t timestamp, double 
 
     LOG("Adding to sensor: " << sensor->str() << " time=" << timestamp << " value=" << value);
 
+    //Check if sensor exists
+    get_sensor(sensor->uuid());
+    
     set_buffers(sensor);
     add_reading_record(sensor, timestamp, value);
     Store::flush(false);
@@ -99,6 +102,9 @@ void Store::add_reading(const Sensor::Ptr sensor, timestamp_t timestamp, double 
 void Store::add_readings(const Sensor::Ptr sensor, const readings_t& readings) {
 
     LOG("Adding " << readings->size() << " readings to sensor: " << sensor->str());
+
+    //Check if sensor exists
+    get_sensor(sensor->uuid());
 
     set_buffers(sensor);
     for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
@@ -110,6 +116,9 @@ void Store::add_readings(const Sensor::Ptr sensor, const readings_t& readings) {
 void Store::update_readings(const Sensor::Ptr sensor, const readings_t& readings) {
 
     LOG("Updating " << readings->size() << " readings of sensor: " << sensor->str());
+
+    //Check if sensor exists
+    get_sensor(sensor->uuid());
 
     set_buffers(sensor);
     for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
@@ -132,6 +141,9 @@ readings_t_Ptr Store::get_all_readings(const Sensor::Ptr sensor) {
 
     LOG("Retrieving all readings of sensor " << sensor->str());
 
+    //Check if sensor exists
+    get_sensor(sensor->uuid());
+
     flush(sensor);
 
     return get_all_readings_records(sensor);
@@ -140,6 +152,9 @@ readings_t_Ptr Store::get_all_readings(const Sensor::Ptr sensor) {
 readings_t_Ptr Store::get_timeframe_readings(const Sensor::Ptr sensor, timestamp_t begin, timestamp_t end) {
 
     LOG("Retrieving readings of sensor " << sensor->str() << " between " << begin << " and " << end);
+
+    //Check if sensor exists
+    get_sensor(sensor->uuid());
 
     flush(sensor);
 
@@ -150,6 +165,9 @@ unsigned long int Store::get_num_readings(const Sensor::Ptr sensor) {
 
     LOG("Retrieving number of readings for sensor " << sensor->str());
 
+    //Check if sensor exists
+    get_sensor(sensor->uuid());
+
     flush(sensor);
 
     return get_num_readings_value(sensor);
@@ -159,6 +177,9 @@ reading_t Store::get_last_reading(const Sensor::Ptr sensor) {
 
     LOG("Retrieving last reading of sensor " << sensor->str());
 
+    //Check if sensor exists
+    get_sensor(sensor->uuid());
+
     flush(sensor);
 
     return get_last_reading_record(sensor);
@@ -167,6 +188,9 @@ reading_t Store::get_last_reading(const Sensor::Ptr sensor) {
 reading_t Store::get_reading(const Sensor::Ptr sensor, timestamp_t timestamp) {
 
     LOG("Retrieving reading of sensor " << sensor->str());
+
+    //Check if sensor exists
+    get_sensor(sensor->uuid());
 
     flush(sensor);
 

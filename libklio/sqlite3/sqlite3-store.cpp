@@ -294,6 +294,7 @@ void SQLite3Store::rollback_transaction() {
 
     check_auto_commit();
     _transaction->rollback();
+    Store::prepare();
 }
 
 void SQLite3Store::check_auto_commit() {

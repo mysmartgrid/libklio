@@ -28,6 +28,7 @@
 #include <libklio/types.hpp>
 #include <libklio/sensor.hpp>
 #include <libklio/time.hpp>
+#include <libklio/transaction.hpp>
 #include <libklio/sensor-factory.hpp>
 
 
@@ -37,7 +38,8 @@ namespace klio {
     public:
         typedef boost::shared_ptr<Store> Ptr;
 
-        Store(const timestamp_t sync_timeout) :
+        Store(bool auto_commit, const timestamp_t sync_timeout) :
+        _auto_commit(auto_commit),
         _last_sync(0),
         _sync_timeout(sync_timeout) {
         };
@@ -53,6 +55,10 @@ namespace klio {
         virtual void prepare();
         virtual void flush();
         virtual const std::string str() = 0;
+
+        void start_transaction();
+        void commit_transaction();
+        void rollback_transaction();
 
         void add_sensor(const Sensor::Ptr sensor);
         void remove_sensor(const klio::Sensor::Ptr sensor);
@@ -85,15 +91,20 @@ namespace klio {
         std::map<Sensor::uuid_t, readings_t_Ptr> _readings_buffer;
         std::map<std::string, Sensor::uuid_t> _external_ids_buffer;
 
+        Transaction::Ptr get_transaction();
+        virtual Transaction::Ptr create_transaction();
+        virtual void start_inner_transaction(const Transaction::Ptr transaction);
+        virtual void commit_inner_transaction(const Transaction::Ptr transaction);
+
         virtual void add_sensor_record(const Sensor::Ptr sensor) = 0;
         virtual void remove_sensor_record(const klio::Sensor::Ptr sensor) = 0;
         virtual void update_sensor_record(const klio::Sensor::Ptr sensor) = 0;
 
         virtual std::vector<klio::Sensor::Ptr> get_sensors_records() = 0;
-        
+
         virtual void add_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value);
         virtual void update_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value);
-        
+
         virtual readings_t_Ptr get_all_readings_records(const Sensor::Ptr sensor) = 0;
         virtual readings_t_Ptr get_timeframe_readings_records(const Sensor::Ptr sensor, const timestamp_t begin, const timestamp_t end) = 0;
         virtual reading_t get_last_reading_record(const Sensor::Ptr sensor) = 0;
@@ -103,12 +114,17 @@ namespace klio {
         virtual void flush(const Sensor::Ptr sensor) = 0;
         virtual void clear_buffers();
 
+        bool _auto_commit;
+        Transaction::Ptr _transaction;
+
     private:
         Store(const Store& original);
         Store& operator=(const Store& rhs);
 
         timestamp_t _last_sync;
         timestamp_t _sync_timeout;
+
+        void check_auto_commit_disabled();
 
         void flush(bool force);
         void set_buffers(const Sensor::Ptr sensor);

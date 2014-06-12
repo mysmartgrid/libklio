@@ -6,7 +6,7 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <libklio/sensor-factory.hpp>
-#include <libklio/sqlite3/transaction.hpp>
+#include <libklio/sqlite3/sqlite3-transaction.hpp>
 #include <libklio/common.hpp>
 #include "sqlite3-store.hpp"
 
@@ -34,9 +34,8 @@ void SQLite3Store::open() {
         }
         throw StoreException(oss.str());
     }
-    if (!_auto_commit) {
-        _transaction = Transaction::Ptr(new Transaction(_db));
-    }
+    //FIXME: move this line to Store
+    _transaction = create_transaction();
 }
 
 void SQLite3Store::close() {
@@ -147,8 +146,9 @@ void SQLite3Store::initialize() {
     sqlite3_stmt* stmt = prepare("CREATE TABLE IF NOT EXISTS sensors(uuid VARCHAR(16) PRIMARY KEY, external_id VARCHAR(32), name VARCHAR(100), description VARCHAR(255), unit VARCHAR(20), timezone INTEGER, device_type_id INTEGER)");
 
     try {
-        Transaction::Ptr transaction(Transaction::Ptr(new Transaction(_db)));
+        Transaction::Ptr transaction = create_transaction();
         transaction->start();
+
         execute(stmt, SQLITE_DONE);
         finalize(&stmt);
 
@@ -185,8 +185,8 @@ void SQLite3Store::upgrade() {
         sqlite3_bind_text(stmt, 1, "version", -1, SQLITE_TRANSIENT);
         sqlite3_bind_text(stmt, 2, info->getVersion().c_str(), -1, SQLITE_TRANSIENT);
 
-        Transaction::Ptr transaction(Transaction::Ptr(new Transaction(_db)));
-        transaction->start();
+        Transaction::Ptr transaction = get_transaction();
+        start_inner_transaction(transaction);
 
         execute(stmt, SQLITE_DONE);
         finalize(&stmt);
@@ -205,7 +205,7 @@ void SQLite3Store::upgrade() {
         execute(stmt, SQLITE_DONE);
         finalize(&stmt);
 
-        transaction->commit();
+        commit_inner_transaction(transaction);
 
     } catch (std::exception const& e) {
         finalize(&stmt);
@@ -231,6 +231,11 @@ void SQLite3Store::dispose() {
 
     Store::clear_buffers();
     bfs::remove(_path);
+}
+
+Transaction::Ptr SQLite3Store::create_transaction() {
+
+    return SQLite3Transaction::Ptr(new SQLite3Transaction(_db));
 }
 
 bool SQLite3Store::has_table(const std::string& name) {
@@ -278,64 +283,6 @@ const std::string SQLite3Store::str() {
     return oss.str();
 };
 
-void SQLite3Store::start_transaction() {
-
-    check_auto_commit();
-    _transaction->start();
-}
-
-void SQLite3Store::commit_transaction() {
-
-    check_auto_commit();
-    _transaction->commit();
-}
-
-void SQLite3Store::rollback_transaction() {
-
-    check_auto_commit();
-    _transaction->rollback();
-    Store::prepare();
-}
-
-void SQLite3Store::check_auto_commit() {
-
-    if (_auto_commit) {
-        std::ostringstream oss;
-        oss << "This operation can not be performed because the store is configured to perform commits automatically.";
-        throw StoreException(oss.str());
-    }
-}
-
-void SQLite3Store::check_open_transaction() {
-
-    if (!_transaction->pending()) {
-        std::ostringstream oss;
-        oss << "Automatic commits are disabled for this store. Please, start a transaction manually before invoking this operation.";
-        throw StoreException(oss.str());
-    }
-}
-
-Transaction::Ptr SQLite3Store::create_inner_transaction() {
-
-    Transaction::Ptr transaction;
-    if (_auto_commit) {
-        transaction = Transaction::Ptr(new Transaction(_db));
-        transaction->start();
-    } else {
-        check_open_transaction();
-    }
-    return transaction;
-}
-
-void SQLite3Store::commit_inner_transaction(const Transaction::Ptr transaction) {
-
-    if (_auto_commit) {
-        transaction->commit();
-    } else {
-        check_open_transaction();
-    }
-}
-
 void SQLite3Store::add_sensor_record(const Sensor::Ptr sensor) {
 
     std::ostringstream oss;
@@ -351,10 +298,8 @@ void SQLite3Store::add_sensor_record(const Sensor::Ptr sensor) {
         sqlite3_bind_text(_insert_sensor_stmt, 6, sensor->timezone().c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_int(_insert_sensor_stmt, 7, sensor->device_type()->id());
 
-        Transaction::Ptr transaction = create_inner_transaction();
         execute(_insert_sensor_stmt, SQLITE_DONE);
         execute(create_table_stmt, SQLITE_DONE);
-        commit_inner_transaction(transaction);
 
     } catch (std::exception const& e) {
         reset(_insert_sensor_stmt);
@@ -374,10 +319,8 @@ void SQLite3Store::remove_sensor_record(const Sensor::Ptr sensor) {
     try {
         sqlite3_bind_text(_remove_sensor_stmt, 1, sensor->uuid_string().c_str(), -1, SQLITE_TRANSIENT);
 
-        Transaction::Ptr transaction = create_inner_transaction();
         execute(_remove_sensor_stmt, SQLITE_DONE);
         execute(drop_table_stmt, SQLITE_DONE);
-        commit_inner_transaction(transaction);
 
     } catch (std::exception const& e) {
         reset(_remove_sensor_stmt);
@@ -399,9 +342,7 @@ void SQLite3Store::update_sensor_record(const Sensor::Ptr sensor) {
         sqlite3_bind_text(_update_sensor_stmt, 6, sensor->timezone().c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_int(_update_sensor_stmt, 7, sensor->device_type()->id());
 
-        Transaction::Ptr transaction = create_inner_transaction();
         execute(_update_sensor_stmt, SQLITE_DONE);
-        commit_inner_transaction(transaction);
 
     } catch (std::exception const& e) {
         reset(_update_sensor_stmt);
@@ -573,15 +514,12 @@ void SQLite3Store::add_reading_record(klio::Sensor::Ptr sensor, const timestamp_
     sqlite3_stmt* stmt = get_statement(oss.str());
 
     try {
-        Transaction::Ptr transaction = create_inner_transaction();
-
         sqlite3_bind_int(stmt, 1, time_converter->convert_to_epoch(timestamp));
         sqlite3_bind_double(stmt, 2, value);
+
         execute(stmt, SQLITE_DONE);
         reset(stmt);
 
-        commit_inner_transaction(transaction);
-        
     } catch (std::exception const& e) {
         reset(stmt);
         throw;

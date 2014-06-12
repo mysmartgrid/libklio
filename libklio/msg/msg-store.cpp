@@ -24,6 +24,8 @@
 using namespace klio;
 
 void MSGStore::open() {
+    //FIXME: move this line to Store
+    _transaction = create_transaction();
 }
 
 void MSGStore::close() {

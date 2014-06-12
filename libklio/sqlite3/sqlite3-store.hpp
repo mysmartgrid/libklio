@@ -28,7 +28,7 @@
 #include <libklio/common.hpp>
 #include <libklio/store.hpp>
 #include <libklio/sensor-factory.hpp>
-#include "transaction.hpp"
+#include "sqlite3-transaction.hpp"
 
 
 namespace bfs = boost::filesystem;
@@ -40,10 +40,9 @@ namespace klio {
         typedef boost::shared_ptr<SQLite3Store> Ptr;
 
         SQLite3Store(const bfs::path& path, bool auto_commit) :
-        Store(0),
+        Store(auto_commit, 0),
         _path(path),
         _db(NULL),
-        _auto_commit(auto_commit),
         _insert_sensor_stmt(NULL),
         _remove_sensor_stmt(NULL),
         _update_sensor_stmt(NULL),
@@ -66,10 +65,6 @@ namespace klio {
         void prepare();
         void dispose();
         const std::string str();
-        
-        void start_transaction();
-        void commit_transaction();
-        void rollback_transaction();
 
     protected:
         void add_sensor_record(const Sensor::Ptr sensor);
@@ -91,12 +86,10 @@ namespace klio {
         SQLite3Store(const SQLite3Store& original);
         SQLite3Store& operator =(const SQLite3Store& rhs);
 
+        Transaction::Ptr create_transaction();
         bool has_table(const std::string& name);
         bool has_column(const std::string& table, const std::string& column);
 
-        Transaction::Ptr create_inner_transaction();
-        void commit_inner_transaction(const Transaction::Ptr transaction);
-        
         void add_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp, const double value, const bool update);
         readings_t_Ptr get_readings_records(sqlite3_stmt* stmt);
 
@@ -109,13 +102,8 @@ namespace klio {
         void finalize(sqlite3_stmt **stmt);
         Sensor::Ptr parse_sensor(sqlite3_stmt* stmt);
 
-        void check_auto_commit();
-        void check_open_transaction();
-
         bfs::path _path;
         sqlite3 *_db;
-        bool _auto_commit;
-        Transaction::Ptr _transaction;
         sqlite3_stmt* _insert_sensor_stmt;
         sqlite3_stmt* _remove_sensor_stmt;
         sqlite3_stmt* _update_sensor_stmt;

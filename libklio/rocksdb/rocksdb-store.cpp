@@ -26,6 +26,8 @@ void RocksDBStore::open() {
             open_db(true, false, compose_sensor_readings_path(uuid_str));
         }
     }
+    //FIXME: move this line to Store
+    _transaction = create_transaction();
 }
 
 void RocksDBStore::close() {

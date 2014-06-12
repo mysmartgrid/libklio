@@ -8,11 +8,78 @@ using namespace klio;
 const SensorFactory::Ptr Store::sensor_factory(new SensorFactory());
 const TimeConverter::Ptr Store::time_converter(new TimeConverter());
 
+void Store::start_transaction() {
+
+    check_auto_commit_disabled();
+    _transaction->start();
+}
+
+void Store::commit_transaction() {
+
+    check_auto_commit_disabled();
+    _transaction->commit();
+}
+
+void Store::rollback_transaction() {
+
+    check_auto_commit_disabled();
+    _transaction->rollback();
+    Store::prepare();
+}
+
+void Store::check_auto_commit_disabled() {
+
+    if (_auto_commit) {
+        std::ostringstream oss;
+        oss << "This operation can not be performed because the store is configured to perform commits automatically.";
+        throw StoreException(oss.str());
+    }
+}
+
+Transaction::Ptr Store::get_transaction() {
+
+    if (_auto_commit) {
+        return create_transaction();
+    } else {
+        return _transaction;
+    }
+}
+
+Transaction::Ptr Store::create_transaction() {
+
+    //Default
+    return Transaction::Ptr(new Transaction());
+}
+
+void Store::start_inner_transaction(const Transaction::Ptr transaction) {
+        
+    if (_auto_commit) {
+        transaction->start();
+
+    } else if (!_transaction->pending()) {
+        std::ostringstream oss;
+        oss << "Automatic commits are disabled for this store. Please, start a transaction manually before invoking this method.";
+        throw StoreException(oss.str());
+    }
+}
+
+void Store::commit_inner_transaction(const Transaction::Ptr transaction) {
+
+    if (_auto_commit) {
+        transaction->commit();
+    }
+}
+
 void Store::add_sensor(const Sensor::Ptr sensor) {
 
     LOG("Adding sensor: " << sensor->str());
-
+    
+    Transaction::Ptr transaction = get_transaction();
+    start_inner_transaction(transaction);
+        
     add_sensor_record(sensor);
+
+    commit_inner_transaction(transaction);
     set_buffers(sensor);
 }
 
@@ -20,7 +87,12 @@ void Store::remove_sensor(const Sensor::Ptr sensor) {
 
     LOG("Removing sensor: " << sensor->str());
 
+    Transaction::Ptr transaction = get_transaction();
+    start_inner_transaction(transaction);
+
     remove_sensor_record(sensor);
+
+    commit_inner_transaction(transaction);
     clear_buffers(sensor);
 }
 
@@ -28,7 +100,12 @@ void Store::update_sensor(const Sensor::Ptr sensor) {
 
     LOG("Updating sensor: " << sensor->str());
 
+    Transaction::Ptr transaction = get_transaction();
+    start_inner_transaction(transaction);
+
     update_sensor_record(sensor);
+
+    commit_inner_transaction(transaction);
     set_buffers(sensor);
 }
 
@@ -101,9 +178,14 @@ void Store::add_reading(const Sensor::Ptr sensor, const timestamp_t timestamp, c
 
     //Check if sensor exists
     get_sensor(sensor->uuid());
-    
     set_buffers(sensor);
+    
+    Transaction::Ptr transaction = get_transaction();
+    start_inner_transaction(transaction);
+    
     add_reading_record(sensor, timestamp, value);
+    
+    commit_inner_transaction(transaction);
     Store::flush(false);
 }
 
@@ -113,11 +195,16 @@ void Store::add_readings(const Sensor::Ptr sensor, const readings_t& readings) {
 
     //Check if sensor exists
     get_sensor(sensor->uuid());
-
     set_buffers(sensor);
+    
+    Transaction::Ptr transaction = get_transaction();
+    start_inner_transaction(transaction);
+    
     for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
         add_reading_record(sensor, (*it).first, (*it).second);
     }
+
+    commit_inner_transaction(transaction);
     Store::flush(false);
 }
 
@@ -127,11 +214,16 @@ void Store::update_readings(const Sensor::Ptr sensor, const readings_t& readings
 
     //Check if sensor exists
     get_sensor(sensor->uuid());
-
     set_buffers(sensor);
+
+    Transaction::Ptr transaction = get_transaction();
+    start_inner_transaction(transaction);
+    
     for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
         update_reading_record(sensor, (*it).first, (*it).second);
     }
+
+    commit_inner_transaction(transaction);
     Store::flush(false);
 }
 

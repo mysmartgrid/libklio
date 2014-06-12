@@ -308,7 +308,7 @@ void SQLite3Store::check_auto_commit() {
 
 void SQLite3Store::check_open_transaction() {
 
-    if (!_auto_commit && !_transaction->pending()) {
+    if (!_transaction->pending()) {
         std::ostringstream oss;
         oss << "Automatic commits are disabled for this store. Please, start a transaction manually before invoking this operation.";
         throw StoreException(oss.str());
@@ -317,22 +317,22 @@ void SQLite3Store::check_open_transaction() {
 
 Transaction::Ptr SQLite3Store::create_inner_transaction() {
 
-    check_open_transaction();
-
     Transaction::Ptr transaction;
     if (_auto_commit) {
         transaction = Transaction::Ptr(new Transaction(_db));
         transaction->start();
+    } else {
+        check_open_transaction();
     }
     return transaction;
 }
 
 void SQLite3Store::commit_inner_transaction(const Transaction::Ptr transaction) {
 
-    check_open_transaction();
-    
     if (_auto_commit) {
         transaction->commit();
+    } else {
+        check_open_transaction();
     }
 }
 
@@ -573,16 +573,15 @@ void SQLite3Store::add_reading_record(klio::Sensor::Ptr sensor, const timestamp_
     sqlite3_stmt* stmt = get_statement(oss.str());
 
     try {
-        Transaction::Ptr transaction(Transaction::Ptr(new Transaction(_db)));
-        transaction->start();
+        Transaction::Ptr transaction = create_inner_transaction();
 
         sqlite3_bind_int(stmt, 1, time_converter->convert_to_epoch(timestamp));
         sqlite3_bind_double(stmt, 2, value);
         execute(stmt, SQLITE_DONE);
         reset(stmt);
 
-        transaction->commit();
-
+        commit_inner_transaction(transaction);
+        
     } catch (std::exception const& e) {
         reset(stmt);
         throw;

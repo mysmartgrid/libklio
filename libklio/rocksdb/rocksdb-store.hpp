@@ -68,14 +68,14 @@ namespace klio {
 
         std::vector<Sensor::Ptr> get_sensors_records();
 
-        void add_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp, double value);
-        void update_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp, double value);
+        void add_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, double value);
+        void update_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, double value);
 
         readings_t_Ptr get_all_readings_records(const Sensor::Ptr sensor);
-        readings_t_Ptr get_timeframe_readings_records(const Sensor::Ptr sensor, timestamp_t begin, timestamp_t end);
+        readings_t_Ptr get_timeframe_readings_records(const Sensor::Ptr sensor, const timestamp_t begin, const timestamp_t end);
         unsigned long int get_num_readings_value(const Sensor::Ptr sensor);
         reading_t get_last_reading_record(const Sensor::Ptr sensor);
-        reading_t get_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp);
+        reading_t get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp);
 
         void flush(const Sensor::Ptr sensor);
         void clear_buffers();

@@ -64,14 +64,14 @@ namespace klio {
         std::vector<klio::Sensor::uuid_t> get_sensor_uuids();
         std::vector<klio::Sensor::Ptr> get_sensors();
 
-        void add_reading(const Sensor::Ptr sensor, timestamp_t timestamp, double value);
+        void add_reading(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value);
         void add_readings(const Sensor::Ptr sensor, const readings_t& readings);
         void update_readings(const Sensor::Ptr sensor, const readings_t& readings);
 
         readings_t_Ptr get_all_readings(const Sensor::Ptr sensor);
-        readings_t_Ptr get_timeframe_readings(const Sensor::Ptr sensor, timestamp_t begin, timestamp_t end);
+        readings_t_Ptr get_timeframe_readings(const Sensor::Ptr sensor, const timestamp_t begin, const timestamp_t end);
         reading_t get_last_reading(const Sensor::Ptr sensor);
-        reading_t get_reading(const Sensor::Ptr sensor, timestamp_t timestamp);
+        reading_t get_reading(const Sensor::Ptr sensor, const timestamp_t timestamp);
         unsigned long int get_num_readings(const Sensor::Ptr sensor);
 
         void sync(const Store::Ptr store);
@@ -91,13 +91,13 @@ namespace klio {
 
         virtual std::vector<klio::Sensor::Ptr> get_sensors_records() = 0;
         
-        virtual void add_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp, double value);
-        virtual void update_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp, double value);
+        virtual void add_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value);
+        virtual void update_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value);
         
         virtual readings_t_Ptr get_all_readings_records(const Sensor::Ptr sensor) = 0;
-        virtual readings_t_Ptr get_timeframe_readings_records(const Sensor::Ptr sensor, timestamp_t begin, timestamp_t end) = 0;
+        virtual readings_t_Ptr get_timeframe_readings_records(const Sensor::Ptr sensor, const timestamp_t begin, const timestamp_t end) = 0;
         virtual reading_t get_last_reading_record(const Sensor::Ptr sensor) = 0;
-        virtual reading_t get_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp) = 0;
+        virtual reading_t get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp) = 0;
         virtual unsigned long int get_num_readings_value(const Sensor::Ptr sensor) = 0;
 
         virtual void flush(const Sensor::Ptr sensor) = 0;

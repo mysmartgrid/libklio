@@ -295,7 +295,7 @@ reading_t MSGStore::get_last_reading_record(const Sensor::Ptr sensor) {
     }
 }
 
-reading_t MSGStore::get_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp) {
+reading_t MSGStore::get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp) {
 
     //FIXME: make this method more efficient
     klio::readings_t_Ptr readings = get_all_readings(sensor);
@@ -603,7 +603,7 @@ struct json_object * MSGStore::create_json_object() {
     return jobject;
 }
 
-struct json_object * MSGStore::create_json_string(const std::string & string) {
+struct json_object * MSGStore::create_json_string(const std::string& string) {
 
     json_object *jstring = json_object_new_string(string.c_str());
 

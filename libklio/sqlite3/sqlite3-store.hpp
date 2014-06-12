@@ -78,14 +78,14 @@ namespace klio {
 
         std::vector<klio::Sensor::Ptr> get_sensors_records();
 
-        void add_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp, double value);
-        void update_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp, double value);
+        void add_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value);
+        void update_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value);
 
         readings_t_Ptr get_all_readings_records(const Sensor::Ptr sensor);
-        readings_t_Ptr get_timeframe_readings_records(const Sensor::Ptr sensor, timestamp_t begin, timestamp_t end);
+        readings_t_Ptr get_timeframe_readings_records(const Sensor::Ptr sensor, const timestamp_t begin, const timestamp_t end);
         unsigned long int get_num_readings_value(const Sensor::Ptr sensor);
         reading_t get_last_reading_record(const Sensor::Ptr sensor);
-        reading_t get_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp);
+        reading_t get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp);
 
     private:
         SQLite3Store(const SQLite3Store& original);
@@ -95,16 +95,16 @@ namespace klio {
         bool has_column(const std::string& table, const std::string& column);
 
         Transaction::Ptr create_inner_transaction();
-        void commit_inner_transaction(Transaction::Ptr transaction);
+        void commit_inner_transaction(const Transaction::Ptr transaction);
         
-        void add_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp, double value, const bool update);
+        void add_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp, const double value, const bool update);
         readings_t_Ptr get_readings_records(sqlite3_stmt* stmt);
 
         void flush(const Sensor::Ptr sensor);
 
         sqlite3_stmt *prepare(const std::string& stmt_str);
         sqlite3_stmt *get_statement(const std::string& sql);
-        int execute(sqlite3_stmt *stmt, int expected_code);
+        int execute(sqlite3_stmt *stmt, const int expected_code);
         void reset(sqlite3_stmt *stmt);
         void finalize(sqlite3_stmt **stmt);
         Sensor::Ptr parse_sensor(sqlite3_stmt* stmt);

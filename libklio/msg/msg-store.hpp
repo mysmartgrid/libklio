@@ -103,10 +103,10 @@ namespace klio {
         std::vector<Sensor::Ptr> get_sensors_records();
 
         readings_t_Ptr get_all_readings_records(const Sensor::Ptr sensor);
-        readings_t_Ptr get_timeframe_readings_records(const klio::Sensor::Ptr sensor, timestamp_t begin, timestamp_t end);
+        readings_t_Ptr get_timeframe_readings_records(const klio::Sensor::Ptr sensor, const timestamp_t begin, const timestamp_t end);
         unsigned long int get_num_readings_value(const Sensor::Ptr sensor);
         reading_t get_last_reading_record(const Sensor::Ptr sensor);
-        reading_t get_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp);
+        reading_t get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp);
 
         void flush(const Sensor::Ptr sensor);
 
@@ -132,7 +132,7 @@ namespace klio {
         struct json_object *perform_http_get(const std::string& url, const std::string& key);
         struct json_object *perform_http_post(const std::string& url, const std::string& key, json_object *jobject);
         void perform_http_delete(const std::string& url, const std::string& key);
-        CURL *create_curl_handler(const std::string& url, curl_slist *headers);
+        CURL *create_curl_handler(const std::string& url, const curl_slist *headers);
         std::string digest_message(const std::string& data, const std::string& key);
         struct json_object *perform_http_request(const std::string& method, const std::string& url, const std::string& key, json_object *jbody);
 

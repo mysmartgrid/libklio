@@ -327,7 +327,7 @@ Transaction::Ptr SQLite3Store::create_inner_transaction() {
     return transaction;
 }
 
-void SQLite3Store::commit_inner_transaction(Transaction::Ptr transaction) {
+void SQLite3Store::commit_inner_transaction(const Transaction::Ptr transaction) {
 
     check_open_transaction();
     
@@ -445,7 +445,7 @@ readings_t_Ptr SQLite3Store::get_all_readings_records(const Sensor::Ptr sensor) 
     return readings;
 }
 
-readings_t_Ptr SQLite3Store::get_timeframe_readings_records(const Sensor::Ptr sensor, timestamp_t begin, timestamp_t end) {
+readings_t_Ptr SQLite3Store::get_timeframe_readings_records(const Sensor::Ptr sensor, const timestamp_t begin, const timestamp_t end) {
 
     std::ostringstream oss;
     oss << "SELECT timestamp, value FROM '" << sensor->uuid_string() << "' WHERE timestamp BETWEEN ? AND ?";
@@ -525,7 +525,7 @@ reading_t SQLite3Store::get_last_reading_record(const Sensor::Ptr sensor) {
     return reading;
 }
 
-reading_t SQLite3Store::get_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp) {
+reading_t SQLite3Store::get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp) {
 
     std::ostringstream oss;
     oss << "SELECT timestamp, value FROM '" << sensor->uuid_string() << "' WHERE timestamp = ?";
@@ -551,17 +551,17 @@ reading_t SQLite3Store::get_reading_record(const Sensor::Ptr sensor, timestamp_t
     return reading;
 }
 
-void SQLite3Store::add_reading_record(klio::Sensor::Ptr sensor, timestamp_t timestamp, double value) {
+void SQLite3Store::add_reading_record(klio::Sensor::Ptr sensor, const timestamp_t timestamp, const double value) {
 
     add_reading_record(sensor, timestamp, value, false);
 }
 
-void SQLite3Store::update_reading_record(klio::Sensor::Ptr sensor, timestamp_t timestamp, double value) {
+void SQLite3Store::update_reading_record(klio::Sensor::Ptr sensor, const timestamp_t timestamp, const double value) {
 
     add_reading_record(sensor, timestamp, value, true);
 }
 
-void SQLite3Store::add_reading_record(klio::Sensor::Ptr sensor, timestamp_t timestamp, double value, const bool update) {
+void SQLite3Store::add_reading_record(klio::Sensor::Ptr sensor, const timestamp_t timestamp, const double value, const bool update) {
 
     std::ostringstream oss;
     oss << "INSERT ";
@@ -623,7 +623,7 @@ sqlite3_stmt *SQLite3Store::get_statement(const std::string& sql) {
     return _statements[sql];
 }
 
-int SQLite3Store::execute(sqlite3_stmt *stmt, int expected_code) {
+int SQLite3Store::execute(sqlite3_stmt *stmt, const int expected_code) {
 
     int rc = sqlite3_step(stmt);
 

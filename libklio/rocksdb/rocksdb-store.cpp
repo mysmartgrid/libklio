@@ -167,7 +167,7 @@ readings_t_Ptr RocksDBStore::get_all_readings_records(const Sensor::Ptr sensor) 
     return readings;
 }
 
-readings_t_Ptr RocksDBStore::get_timeframe_readings_records(const Sensor::Ptr sensor, timestamp_t begin, timestamp_t end) {
+readings_t_Ptr RocksDBStore::get_timeframe_readings_records(const Sensor::Ptr sensor, const timestamp_t begin, const timestamp_t end) {
 
     readings_t_Ptr readings(new readings_t());
 
@@ -215,7 +215,7 @@ reading_t RocksDBStore::get_last_reading_record(const Sensor::Ptr sensor) {
     return std::pair<timestamp_t, double>(time_converter->convert_from_epoch(atol(epoch)), atof(value));
 }
 
-reading_t RocksDBStore::get_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp) {
+reading_t RocksDBStore::get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp) {
 
     //FIXME: make this method more efficient
     klio::readings_t_Ptr readings = get_all_readings(sensor);
@@ -229,7 +229,7 @@ reading_t RocksDBStore::get_reading_record(const Sensor::Ptr sensor, timestamp_t
     return reading;
 }
 
-void RocksDBStore::add_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp, double value) {
+void RocksDBStore::add_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value) {
 
     rocksdb::DB* db = open_db(true, false,
             compose_sensor_readings_path(sensor->uuid_string()));
@@ -237,7 +237,7 @@ void RocksDBStore::add_reading_record(const Sensor::Ptr sensor, timestamp_t time
     put_value(db, std::to_string(timestamp), std::to_string(value));
 }
 
-void RocksDBStore::update_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp, double value) {
+void RocksDBStore::update_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value) {
 
     add_reading_record(sensor, timestamp, value);
 }

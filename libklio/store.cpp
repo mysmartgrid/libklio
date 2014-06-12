@@ -95,7 +95,7 @@ std::vector<Sensor::uuid_t> Store::get_sensor_uuids() {
     return uuids;
 }
 
-void Store::add_reading(const Sensor::Ptr sensor, timestamp_t timestamp, double value) {
+void Store::add_reading(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value) {
 
     LOG("Adding to sensor: " << sensor->str() << " time=" << timestamp << " value=" << value);
 
@@ -135,12 +135,12 @@ void Store::update_readings(const Sensor::Ptr sensor, const readings_t& readings
     Store::flush(false);
 }
 
-void Store::add_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp, double value) {
+void Store::add_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value) {
 
     _readings_buffer[sensor->uuid()]->insert(reading_t(timestamp, value));
 }
 
-void Store::update_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp, double value) {
+void Store::update_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value) {
 
     _readings_buffer[sensor->uuid()]->insert(reading_t(timestamp, value));
 }
@@ -157,7 +157,7 @@ readings_t_Ptr Store::get_all_readings(const Sensor::Ptr sensor) {
     return get_all_readings_records(sensor);
 }
 
-readings_t_Ptr Store::get_timeframe_readings(const Sensor::Ptr sensor, timestamp_t begin, timestamp_t end) {
+readings_t_Ptr Store::get_timeframe_readings(const Sensor::Ptr sensor, const timestamp_t begin, const timestamp_t end) {
 
     LOG("Retrieving readings of sensor " << sensor->str() << " between " << begin << " and " << end);
 
@@ -193,7 +193,7 @@ reading_t Store::get_last_reading(const Sensor::Ptr sensor) {
     return get_last_reading_record(sensor);
 }
 
-reading_t Store::get_reading(const Sensor::Ptr sensor, timestamp_t timestamp) {
+reading_t Store::get_reading(const Sensor::Ptr sensor, const timestamp_t timestamp) {
 
     LOG("Retrieving reading of sensor " << sensor->str());
 

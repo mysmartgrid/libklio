@@ -70,7 +70,6 @@ namespace klio {
         void start_transaction();
         void commit_transaction();
         void rollback_transaction();
-        void check_auto_commit();
 
     protected:
         void add_sensor_record(const Sensor::Ptr sensor);
@@ -101,12 +100,17 @@ namespace klio {
         void add_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp, double value, const bool update);
         readings_t_Ptr get_readings_records(sqlite3_stmt* stmt);
 
+        void flush(const Sensor::Ptr sensor);
+
         sqlite3_stmt *prepare(const std::string& stmt_str);
         sqlite3_stmt *get_statement(const std::string& sql);
         int execute(sqlite3_stmt *stmt, int expected_code);
         void reset(sqlite3_stmt *stmt);
         void finalize(sqlite3_stmt **stmt);
         Sensor::Ptr parse_sensor(sqlite3_stmt* stmt);
+
+        void check_auto_commit();
+        void check_open_transaction();
 
         bfs::path _path;
         sqlite3 *_db;

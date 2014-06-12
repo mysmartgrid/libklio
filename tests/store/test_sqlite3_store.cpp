@@ -222,6 +222,15 @@ BOOST_AUTO_TEST_CASE(check_sqlite3_no_auto_commit) {
             //expected
         }
 
+        try {
+            store->add_sensor(sensor);
+
+            BOOST_FAIL("When automatic commits are off, a transaction must be open before any operation is invoked.");
+
+        } catch (klio::StoreException e) {
+            //expected
+        }
+        
         store->start_transaction();
 
         sensor = sensor_factory->createSensor(

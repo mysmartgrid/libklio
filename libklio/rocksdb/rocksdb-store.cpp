@@ -242,6 +242,10 @@ void RocksDBStore::update_reading_record(const Sensor::Ptr sensor, timestamp_t t
     add_reading_record(sensor, timestamp, value);
 }
 
+void RocksDBStore::flush(const Sensor::Ptr sensor) {
+    //This store does not use the readings buffer
+}
+
 void RocksDBStore::clear_buffers() {
 
     Store::clear_buffers();

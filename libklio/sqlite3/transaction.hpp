@@ -41,6 +41,10 @@ namespace klio {
             rollback();
         }
 
+        const bool pending() const {
+            return _pending;
+        };
+        
         void start();
         void commit();
         void rollback();

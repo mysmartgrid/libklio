@@ -100,8 +100,8 @@ namespace klio {
         virtual reading_t get_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp) = 0;
         virtual unsigned long int get_num_readings_value(const Sensor::Ptr sensor) = 0;
 
+        virtual void flush(const Sensor::Ptr sensor) = 0;
         virtual void clear_buffers();
-        virtual void flush(const Sensor::Ptr sensor);
 
     private:
         Store(const Store& original);
@@ -110,9 +110,9 @@ namespace klio {
         timestamp_t _last_sync;
         timestamp_t _sync_timeout;
 
+        void flush(bool force);
         void set_buffers(const Sensor::Ptr sensor);
         void clear_buffers(const Sensor::Ptr sensor);
-        void flush(bool force);
     };
 };
 

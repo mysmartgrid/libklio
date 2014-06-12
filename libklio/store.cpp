@@ -34,6 +34,8 @@ void Store::update_sensor(const Sensor::Ptr sensor) {
 
 Sensor::Ptr Store::get_sensor(const Sensor::uuid_t& uuid) {
 
+     LOG("Getting sensor by UUID: " << uuid);
+
     if (_sensors_buffer.count(uuid) > 0) {
         return _sensors_buffer[uuid];
 
@@ -46,13 +48,15 @@ Sensor::Ptr Store::get_sensor(const Sensor::uuid_t& uuid) {
 
 std::vector<Sensor::Ptr> Store::get_sensors() {
 
-    LOG("Attempting to load sensors");
+    LOG("Getting all sensors");
 
     return get_sensors_records();
 }
 
 std::vector<Sensor::Ptr> Store::get_sensors_by_external_id(const std::string& external_id) {
 
+    LOG("Getting sensors by external id");
+    
     std::vector<Sensor::Ptr> sensors;
 
     if (_external_ids_buffer.count(external_id) > 0) {
@@ -64,6 +68,8 @@ std::vector<Sensor::Ptr> Store::get_sensors_by_external_id(const std::string& ex
 
 std::vector<Sensor::Ptr> Store::get_sensors_by_name(const std::string& name) {
 
+    LOG("Getting sensors by name");
+    
     std::vector<Sensor::Ptr> sensors;
 
     for (std::map<Sensor::uuid_t, Sensor::Ptr>::const_iterator it = _sensors_buffer.begin(); it != _sensors_buffer.end(); ++it) {
@@ -79,6 +85,8 @@ std::vector<Sensor::Ptr> Store::get_sensors_by_name(const std::string& name) {
 
 std::vector<Sensor::uuid_t> Store::get_sensor_uuids() {
 
+    LOG("Getting sensor UUIDs");
+    
     std::vector<Sensor::uuid_t> uuids;
 
     for (std::map<Sensor::uuid_t, Sensor::Ptr>::const_iterator it = _sensors_buffer.begin(); it != _sensors_buffer.end(); ++it) {
@@ -276,10 +284,6 @@ void Store::flush(bool force) {
         }
         _last_sync = now;
     }
-}
-
-void Store::flush(const Sensor::Ptr sensor) {
-    //TODO: default implementation
 }
 
 void Store::set_buffers(const Sensor::Ptr sensor) {

@@ -302,11 +302,22 @@ void SQLite3Store::check_auto_commit() {
     if (_auto_commit) {
         std::ostringstream oss;
         oss << "This operation can not be performed because the store is configured to perform commits automatically.";
-        throw GenericException(oss.str());
+        throw StoreException(oss.str());
+    }
+}
+
+void SQLite3Store::check_open_transaction() {
+
+    if (!_auto_commit && !_transaction->pending()) {
+        std::ostringstream oss;
+        oss << "Automatic commits are disabled for this store. Please, start a transaction manually before invoking this operation.";
+        throw StoreException(oss.str());
     }
 }
 
 Transaction::Ptr SQLite3Store::create_inner_transaction() {
+
+    check_open_transaction();
 
     Transaction::Ptr transaction;
     if (_auto_commit) {
@@ -318,6 +329,8 @@ Transaction::Ptr SQLite3Store::create_inner_transaction() {
 
 void SQLite3Store::commit_inner_transaction(Transaction::Ptr transaction) {
 
+    check_open_transaction();
+    
     if (_auto_commit) {
         transaction->commit();
     }
@@ -574,6 +587,10 @@ void SQLite3Store::add_reading_record(klio::Sensor::Ptr sensor, timestamp_t time
         reset(stmt);
         throw;
     }
+}
+
+void SQLite3Store::flush(const Sensor::Ptr sensor) {
+    //This store does not use the readings buffer
 }
 
 sqlite3_stmt *SQLite3Store::prepare(const std::string& stmt_str) {

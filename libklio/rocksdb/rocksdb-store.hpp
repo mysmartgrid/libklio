@@ -77,6 +77,7 @@ namespace klio {
         reading_t get_last_reading_record(const Sensor::Ptr sensor);
         reading_t get_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp);
 
+        void flush(const Sensor::Ptr sensor);
         void clear_buffers();
 
     private:

@@ -197,7 +197,7 @@ BOOST_AUTO_TEST_CASE(check_sqlite3_no_auto_commit) {
                 "Europe/Berlin"));
 
         store->add_sensor(sensor);
-        
+
         klio::TimeConverter::Ptr tc(new klio::TimeConverter());
         for (size_t i = 0; i < 10; i++) {
             store->add_reading(sensor, tc->get_timestamp() - i, 23);
@@ -213,8 +213,8 @@ BOOST_AUTO_TEST_CASE(check_sqlite3_no_auto_commit) {
         } catch (klio::StoreException e) {
             //expected
         }
-        
-         try {
+
+        try {
             store->get_num_readings(sensor);
 
             BOOST_FAIL("The sensor and readings addition should have been rolled back.");
@@ -231,7 +231,7 @@ BOOST_AUTO_TEST_CASE(check_sqlite3_no_auto_commit) {
         } catch (klio::StoreException e) {
             //expected
         }
-        
+
         store->start_transaction();
 
         sensor = sensor_factory->createSensor(
@@ -598,7 +598,9 @@ BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensor_uuids) {
 BOOST_AUTO_TEST_CASE(check_sqlite3_store_performance) {
 
     try {
-        std::cout << std::endl << "Performance Test - SQLite3Store" << std::endl;
+        std::cout.precision(7);
+        std::cout << std::fixed;
+        std::cout << std::endl << "Performance Test - SQLite3Store - results in microseconds (s)" << std::endl;
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
         klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "sensor1", "Watt", "Europe/Berlin"));
         klio::Sensor::Ptr sensor2(sensor_factory->createSensor("sensor2", "sensor2", "Watt", "Europe/Berlin"));
@@ -608,51 +610,83 @@ BOOST_AUTO_TEST_CASE(check_sqlite3_store_performance) {
 
         klio::Store::Ptr store;
         boost::posix_time::time_duration elapsed_time;
+        double seconds = 0;
         boost::posix_time::ptime time_before;
         boost::posix_time::ptime time_after;
 
         time_before = boost::posix_time::microsec_clock::local_time();
-        store = store_factory->create_sqlite3_store(db);
+        store = store_factory->create_sqlite3_store(db, false, false);
         time_after = boost::posix_time::microsec_clock::local_time();
 
-        elapsed_time = time_after - time_before;
-        std::cout << "Performance Test - Create SQLite3Store with prepared statements and automatic commit: " << elapsed_time.total_milliseconds() << " ms" << std::endl;
-
         try {
+            elapsed_time = time_after - time_before;
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - SQLite3Store - " <<
+                    "Create store without prepared statements and with manual commit: "
+                    << seconds << " s" << std::endl;
+
+            store->dispose();
+
+            
+            
+            time_before = boost::posix_time::microsec_clock::local_time();
+            store = store_factory->create_sqlite3_store(db, true, false);
+            time_after = boost::posix_time::microsec_clock::local_time();
+
+            elapsed_time = time_after - time_before;
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - SQLite3Store - " <<
+                    "Create store with prepared statements and with manual commit:    "
+                    << seconds << " s" << std::endl;
+
+            store->start_transaction();
+            
             time_before = boost::posix_time::microsec_clock::local_time();
             store->add_sensor(sensor1);
             time_after = boost::posix_time::microsec_clock::local_time();
 
             elapsed_time = time_after - time_before;
-            std::cout << "Performance Test - Add first sensor to a SQLite3Store with prepared statements and automatic commit: " << elapsed_time.total_milliseconds() << " ms" << std::endl;
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - SQLite3Store - " <<
+                    "Add first sensor with manual commit:                             "
+                    << seconds << " s" << std::endl;
 
             time_before = boost::posix_time::microsec_clock::local_time();
             store->add_sensor(sensor2);
             time_after = boost::posix_time::microsec_clock::local_time();
 
             elapsed_time = time_after - time_before;
-            std::cout << "Performance Test - Add second sensor to a SQLite3Store with prepared statements and automatic commit: " << elapsed_time.total_milliseconds() << " ms" << std::endl;
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - SQLite3Store - " <<
+                    "Add second sensor with manual commit:                            "
+                    << seconds << " s" << std::endl;
 
             klio::TimeConverter::Ptr tc(new klio::TimeConverter());
             klio::timestamp_t timestamp = tc->get_timestamp() - 1000;
             double reading = 23;
-                
+
             time_before = boost::posix_time::microsec_clock::local_time();
             store->add_reading(sensor1, timestamp, reading);
             time_after = boost::posix_time::microsec_clock::local_time();
-            
+
             elapsed_time = time_after - time_before;
-            std::cout << "Performance Test - Add first reading to a SQLite3Store with prepared statements and automatic commit: " << elapsed_time.total_milliseconds() << " ms" << std::endl;
-            
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - SQLite3Store - " <<
+                    "Add first reading with manual commit:                            "
+                    << seconds << " s" << std::endl;
+
             timestamp -= 1000;
 
             time_before = boost::posix_time::microsec_clock::local_time();
             store->add_reading(sensor1, timestamp, reading);
             time_after = boost::posix_time::microsec_clock::local_time();
-            
+
             elapsed_time = time_after - time_before;
-            std::cout << "Performance Test - Add second reading to a SQLite3Store with prepared statements and automatic commit: " << elapsed_time.total_milliseconds() << " ms" << std::endl;
-            
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - SQLite3Store - " <<
+                    "Add second reading with manual commit:                           "
+                    << seconds << " s" << std::endl;
+
             klio::readings_t readings;
             size_t num_readings = 1000;
             for (size_t i = 0; i < num_readings; i++) {
@@ -667,14 +701,109 @@ BOOST_AUTO_TEST_CASE(check_sqlite3_store_performance) {
             time_after = boost::posix_time::microsec_clock::local_time();
 
             elapsed_time = time_after - time_before;
-            std::cout << "Performance Test - Add " << num_readings << " readings to a sensor in a SQLite3Store with prepared statements and automatic commit: " << elapsed_time.total_milliseconds() << " ms" << std::endl;
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - SQLite3Store - " <<
+                    "Add " << num_readings << " readings with manual commit:                            "
+                    << seconds << " s" << std::endl;
 
+
+            time_before = boost::posix_time::microsec_clock::local_time();
+            store->commit_transaction();
+            time_after = boost::posix_time::microsec_clock::local_time();
+
+            elapsed_time = time_after - time_before;
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - SQLite3Store - " <<
+                    "Committing " << num_readings << " readings manually:                               "
+                    << seconds << " s" << std::endl;
+            
+            store->dispose();
+
+            
+            
+            time_before = boost::posix_time::microsec_clock::local_time();
+            store = store_factory->create_sqlite3_store(db);
+            time_after = boost::posix_time::microsec_clock::local_time();
+
+            elapsed_time = time_after - time_before;
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - SQLite3Store - " <<
+                    "Create store with prepared statements and automatic commit:      "
+                    << seconds << " s" << std::endl;
+
+            time_before = boost::posix_time::microsec_clock::local_time();
+            store->add_sensor(sensor1);
+            time_after = boost::posix_time::microsec_clock::local_time();
+
+            elapsed_time = time_after - time_before;
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - SQLite3Store - " <<
+                    "Add first sensor with automatic commit:                          "
+                    << seconds << " s" << std::endl;
+
+            time_before = boost::posix_time::microsec_clock::local_time();
+            store->add_sensor(sensor2);
+            time_after = boost::posix_time::microsec_clock::local_time();
+
+            elapsed_time = time_after - time_before;
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - SQLite3Store - " <<
+                    "Add second sensor with automatic commit:                         "
+                    << seconds << " s" << std::endl;
+
+            timestamp -= 2000;
+
+            time_before = boost::posix_time::microsec_clock::local_time();
+            store->add_reading(sensor1, timestamp, reading);
+            time_after = boost::posix_time::microsec_clock::local_time();
+
+            elapsed_time = time_after - time_before;
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - SQLite3Store - " <<
+                    "Add first reading with automatic commit:                         "
+                    << seconds << " s" << std::endl;
+
+            timestamp -= 3000;
+
+            time_before = boost::posix_time::microsec_clock::local_time();
+            store->add_reading(sensor1, timestamp, reading);
+            time_after = boost::posix_time::microsec_clock::local_time();
+
+            elapsed_time = time_after - time_before;
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - SQLite3Store - " <<
+                    "Add second reading with automatic commit:                        "
+                    << seconds << " s" << std::endl;
+
+            time_before = boost::posix_time::microsec_clock::local_time();
+            store->add_readings(sensor1, readings);
+            time_after = boost::posix_time::microsec_clock::local_time();
+
+            elapsed_time = time_after - time_before;
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - SQLite3Store - " <<
+                    "Add " << num_readings << " readings with automatic commit:                         "
+                    << seconds << " s" << std::endl;
+
+            time_before = boost::posix_time::microsec_clock::local_time();
+            store->get_sensors_by_external_id(sensor1->external_id());
+            time_after = boost::posix_time::microsec_clock::local_time();
+
+            elapsed_time = time_after - time_before;
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - SQLite3Store - " <<
+                    "Get sensors by external id:                                      "
+                    << seconds << " s" << std::endl;
+            
             time_before = boost::posix_time::microsec_clock::local_time();
             store->get_all_readings(sensor1);
             time_after = boost::posix_time::microsec_clock::local_time();
 
             elapsed_time = time_after - time_before;
-            std::cout << "Performance Test - Get " << num_readings << " readings from a sensor in a SQLite3Store with prepared statements and automatic commit: " << elapsed_time.total_milliseconds() << " ms" << std::endl;
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - SQLite3Store - " <<
+                    "Get " << num_readings << " readings:                                               "
+                    << seconds << " s" << std::endl;
 
             store->dispose();
 

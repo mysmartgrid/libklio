@@ -146,9 +146,6 @@ void SQLite3Store::initialize() {
     sqlite3_stmt* stmt = prepare("CREATE TABLE IF NOT EXISTS sensors(uuid VARCHAR(16) PRIMARY KEY, external_id VARCHAR(32), name VARCHAR(100), description VARCHAR(255), unit VARCHAR(20), timezone INTEGER, device_type_id INTEGER)");
 
     try {
-        Transaction::Ptr transaction = create_transaction();
-        transaction->start();
-
         execute(stmt, SQLITE_DONE);
         finalize(&stmt);
 
@@ -166,8 +163,6 @@ void SQLite3Store::initialize() {
         sqlite3_bind_text(stmt, 1, "version", -1, SQLITE_TRANSIENT);
         sqlite3_bind_text(stmt, 2, info->getVersion().c_str(), -1, SQLITE_TRANSIENT);
         execute(stmt, SQLITE_DONE);
-
-        transaction->commit();
 
     } catch (std::exception const& e) {
         finalize(&stmt);

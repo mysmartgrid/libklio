@@ -600,7 +600,7 @@ BOOST_AUTO_TEST_CASE(check_sqlite3_store_performance) {
     try {
         std::cout.precision(7);
         std::cout << std::fixed;
-        std::cout << std::endl << "Performance Test - SQLite3Store - results in microseconds (s)" << std::endl;
+        std::cout << std::endl << "Performance Test - SQLite3Store - results in seconds (s)" << std::endl;
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
         klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "sensor1", "Watt", "Europe/Berlin"));
         klio::Sensor::Ptr sensor2(sensor_factory->createSensor("sensor2", "sensor2", "Watt", "Europe/Berlin"));
@@ -626,9 +626,9 @@ BOOST_AUTO_TEST_CASE(check_sqlite3_store_performance) {
                     << seconds << " s" << std::endl;
 
             store->dispose();
+            
 
-            
-            
+            //Manual Commit
             time_before = boost::posix_time::microsec_clock::local_time();
             store = store_factory->create_sqlite3_store(db, true, false);
             time_after = boost::posix_time::microsec_clock::local_time();
@@ -720,7 +720,7 @@ BOOST_AUTO_TEST_CASE(check_sqlite3_store_performance) {
             store->dispose();
 
             
-            
+            //Automatic commit
             time_before = boost::posix_time::microsec_clock::local_time();
             store = store_factory->create_sqlite3_store(db);
             time_after = boost::posix_time::microsec_clock::local_time();

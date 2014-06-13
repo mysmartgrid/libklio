@@ -70,37 +70,38 @@ void SQLite3Store::close() {
 
 void SQLite3Store::check_integrity() {
 
+    VersionInfo::Ptr info = VersionInfo::Ptr(new VersionInfo());
+    std::string db_version;
     std::ostringstream oss;
     sqlite3_stmt* stmt = NULL;
+    std::string result;
 
     try {
         if (!bfs::exists(_path)) {
-            oss << _path << " does not exist.";
+            result = "File does not exist.";
 
         } else if (bfs::is_directory(_path)) {
-            oss << _path << " is a directory.";
+            result = "Path is a directory.";
 
         } else if (!bfs::is_regular_file(_path)) {
-            oss << _path << " is not a regular file.";
+            result = "This is not a regular file.";
 
         } else if (bfs::file_size(_path) == 0) {
-            oss << _path << " is an empty file.";
+            result = "File is empty.";
 
         } else {
             stmt = prepare("PRAGMA integrity_check;");
             execute(stmt, SQLITE_ROW);
-            std::string result = std::string((char*) sqlite3_column_text(stmt, 0));
+            result = std::string((char*) sqlite3_column_text(stmt, 0));
             finalize(&stmt);
 
             if (result == "ok") {
-
-                VersionInfo::Ptr info = VersionInfo::Ptr(new VersionInfo());
 
                 if (has_table("sensors") && has_table("properties")) {
 
                     stmt = prepare("SELECT value FROM properties WHERE name = 'version'");
                     execute(stmt, SQLITE_ROW);
-                    std::string db_version = std::string((char*) sqlite3_column_text(stmt, 0));
+                    db_version = std::string((char*) sqlite3_column_text(stmt, 0));
                     finalize(&stmt);
 
                     std::vector<std::string> db_version_digits;
@@ -115,27 +116,45 @@ void SQLite3Store::check_integrity() {
                     const std::string klio_digit1 = klio_version_digits.at(1);
 
                     //Only two first digits must match
-                    if (db_digit0 == klio_digit0 && db_digit1 == klio_digit1) {
-                        return;
+                    if (db_digit0 > klio_digit0 || (db_digit0 == klio_digit0 && db_digit1 > klio_digit1)) {
 
-                    } else if (db_digit0 > klio_digit0 || (db_digit0 == klio_digit0 && db_digit1 > klio_digit1)) {
-                        oss << "The store was created using a more recent version of libKlio. " <<
-                                "Please install the latest version of likKlio.";
+                        result = "oldklio";
+
+                    } else if (db_digit0 < klio_digit0 || (db_digit0 == klio_digit0 && db_digit1 < klio_digit1)) {
+                        result = "olddb";
                     }
                 } else {
-                    oss << "The store was created using an old version of libKlio. " <<
-                            "Please use the command " << std::endl <<
-                            " $ klio-store -a upgrade -s <FILE>" << std::endl
-                            << "to upgrade it to database version " << info->getVersion();
+                    result = "olddb";
                 }
             } else {
-                oss << "The database is corrupt.";
+                result = "corruptdb";
             }
         }
-
     } catch (std::exception const& e) {
         finalize(&stmt);
-        oss << e.what();
+        result == e.what();
+    }
+
+    if (result == "ok") {
+        return;
+
+    } else if (result == "oldklio") {
+        oss << std::endl <<
+                "The store was created using a more recent version of libKlio. " <<
+                "Please install the version " << db_version << " of the library.";
+
+    } else if (result == "olddb") {
+        oss << std::endl <<
+                "The store was created using an old version of libKlio (" << db_version << "). " <<
+                "Please use the command " << std::endl <<
+                " $ klio-store -a upgrade -s <FILE>" << std::endl
+                << "to upgrade it to database version " << info->getVersion();
+
+    } else if (result == "corruptdb") {
+        oss << "The database is corrupt.";
+
+    } else {
+        oss << std::endl << result;
     }
     throw StoreException(oss.str());
 }

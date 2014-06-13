@@ -90,7 +90,7 @@ namespace klio {
         static const TimeConverter::Ptr time_converter;
 
         std::map<Sensor::uuid_t, Sensor::Ptr> _sensors_buffer;
-        std::map<Sensor::uuid_t, readings_t_Ptr> _readings_buffer;
+        boost::unordered_map<Sensor::uuid_t, readings_t_Ptr> _readings_buffer;
         boost::unordered_map<std::string, Sensor::uuid_t> _external_ids_buffer;
 
         Transaction::Ptr get_transaction();

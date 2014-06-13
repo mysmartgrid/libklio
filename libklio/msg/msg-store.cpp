@@ -316,7 +316,7 @@ void MSGStore::flush(const Sensor::Ptr sensor) {
     json_object *jmeasurements = NULL;
 
     try {
-        readings_t_Ptr readings = _readings_buffer[sensor->uuid()];
+        readings_t_Ptr readings = get_buffered_readings(sensor->uuid());
 
         if (!readings->empty()) {
 

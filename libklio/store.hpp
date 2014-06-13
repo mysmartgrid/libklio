@@ -89,10 +89,6 @@ namespace klio {
         static const SensorFactory::Ptr sensor_factory;
         static const TimeConverter::Ptr time_converter;
 
-        std::map<Sensor::uuid_t, Sensor::Ptr> _sensors_buffer;
-        boost::unordered_map<Sensor::uuid_t, readings_t_Ptr> _readings_buffer;
-        boost::unordered_map<std::string, Sensor::uuid_t> _external_ids_buffer;
-
         Transaction::Ptr get_transaction();
         virtual Transaction::Ptr create_transaction();
         virtual void start_inner_transaction(const Transaction::Ptr transaction);
@@ -115,6 +111,7 @@ namespace klio {
 
         virtual void flush(const Sensor::Ptr sensor) = 0;
         virtual void clear_buffers();
+        readings_t_Ptr get_buffered_readings(Sensor::uuid_t uuid);
 
         bool _auto_commit;
         Transaction::Ptr _transaction;
@@ -126,6 +123,10 @@ namespace klio {
         timestamp_t _last_sync;
         timestamp_t _sync_timeout;
         bool _logging;
+
+        boost::unordered_map<Sensor::uuid_t, Sensor::Ptr> _sensors_buffer;
+        boost::unordered_map<Sensor::uuid_t, readings_t_Ptr> _readings_buffer;
+        boost::unordered_map<std::string, Sensor::uuid_t> _external_ids_buffer;
 
         void check_auto_commit_disabled();
 

@@ -163,7 +163,7 @@ std::vector<Sensor::Ptr> Store::get_sensors_by_name(const std::string& name) {
 
     std::vector<Sensor::Ptr> sensors;
 
-    for (std::map<Sensor::uuid_t, Sensor::Ptr>::const_iterator it = _sensors_buffer.begin(); it != _sensors_buffer.end(); ++it) {
+    for (boost::unordered_map<Sensor::uuid_t, Sensor::Ptr>::const_iterator it = _sensors_buffer.begin(); it != _sensors_buffer.end(); ++it) {
 
         Sensor::Ptr sensor = (*it).second;
 
@@ -182,7 +182,7 @@ std::vector<Sensor::uuid_t> Store::get_sensor_uuids() {
 
     std::vector<Sensor::uuid_t> uuids;
 
-    for (std::map<Sensor::uuid_t, Sensor::Ptr>::const_iterator it = _sensors_buffer.begin(); it != _sensors_buffer.end(); ++it) {
+    for (boost::unordered_map<Sensor::uuid_t, Sensor::Ptr>::const_iterator it = _sensors_buffer.begin(); it != _sensors_buffer.end(); ++it) {
         uuids.push_back((*it).first);
     }
     return uuids;
@@ -406,7 +406,7 @@ void Store::flush(bool force) {
 
     if (force || now - _last_sync >= _sync_timeout) {
 
-        for (std::map<Sensor::uuid_t, Sensor::Ptr>::const_iterator it = _sensors_buffer.begin(); it != _sensors_buffer.end(); ++it) {
+        for (boost::unordered_map<Sensor::uuid_t, Sensor::Ptr>::const_iterator it = _sensors_buffer.begin(); it != _sensors_buffer.end(); ++it) {
 
             flush((*it).second);
         }
@@ -447,4 +447,9 @@ void Store::clear_buffers() {
     _sensors_buffer.clear();
     _readings_buffer.clear();
     _external_ids_buffer.clear();
+}
+
+readings_t_Ptr Store::get_buffered_readings(Sensor::uuid_t uuid) {
+
+    return _readings_buffer[uuid];
 }

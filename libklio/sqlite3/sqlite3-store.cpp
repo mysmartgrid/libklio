@@ -57,7 +57,7 @@ void SQLite3Store::close() {
         _select_sensors_stmt = NULL;
         _select_all_sensor_uuids_stmt = NULL;
 
-        for (std::map<const std::string, sqlite3_stmt*>::const_iterator it = _statements.begin(); it != _statements.end(); ++it) {
+        for (boost::unordered_map<const std::string, sqlite3_stmt*>::const_iterator it = _statements.begin(); it != _statements.end(); ++it) {
             sqlite3_stmt* stmt = (*it).second;
             finalize(&stmt);
         }

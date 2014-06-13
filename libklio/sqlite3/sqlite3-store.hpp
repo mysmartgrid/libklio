@@ -23,6 +23,7 @@
 
 #include <vector>
 #include <sqlite3.h>
+#include <boost/unordered_map.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/shared_ptr.hpp>
 #include <libklio/common.hpp>
@@ -112,7 +113,7 @@ namespace klio {
         sqlite3_stmt* _select_sensor_by_name_stmt;
         sqlite3_stmt* _select_sensors_stmt;
         sqlite3_stmt* _select_all_sensor_uuids_stmt;
-        std::map<const std::string, sqlite3_stmt*> _statements;
+        boost::unordered_map<const std::string, sqlite3_stmt*> _statements;
     };
 };
 

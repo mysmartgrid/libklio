@@ -24,6 +24,7 @@
 #include <vector>
 #include <boost/optional/optional.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/unordered_map.hpp>
 #include <libklio/common.hpp>
 #include <libklio/types.hpp>
 #include <libklio/sensor.hpp>
@@ -90,7 +91,7 @@ namespace klio {
 
         std::map<Sensor::uuid_t, Sensor::Ptr> _sensors_buffer;
         std::map<Sensor::uuid_t, readings_t_Ptr> _readings_buffer;
-        std::map<std::string, Sensor::uuid_t> _external_ids_buffer;
+        boost::unordered_map<std::string, Sensor::uuid_t> _external_ids_buffer;
 
         Transaction::Ptr get_transaction();
         virtual Transaction::Ptr create_transaction();

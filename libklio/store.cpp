@@ -52,7 +52,7 @@ Transaction::Ptr Store::create_transaction() {
 }
 
 void Store::start_inner_transaction(const Transaction::Ptr transaction) {
-        
+
     if (_auto_commit) {
         transaction->start();
 
@@ -72,11 +72,13 @@ void Store::commit_inner_transaction(const Transaction::Ptr transaction) {
 
 void Store::add_sensor(const Sensor::Ptr sensor) {
 
-    LOG("Adding sensor: " << sensor->str());
-    
+    if (_logging) {
+        LOG("Adding sensor: " << sensor->str());
+    }
+
     Transaction::Ptr transaction = get_transaction();
     start_inner_transaction(transaction);
-        
+
     add_sensor_record(sensor);
 
     commit_inner_transaction(transaction);
@@ -85,7 +87,9 @@ void Store::add_sensor(const Sensor::Ptr sensor) {
 
 void Store::remove_sensor(const Sensor::Ptr sensor) {
 
-    LOG("Removing sensor: " << sensor->str());
+    if (_logging) {
+        LOG("Removing sensor: " << sensor->str());
+    }
 
     Transaction::Ptr transaction = get_transaction();
     start_inner_transaction(transaction);
@@ -98,7 +102,9 @@ void Store::remove_sensor(const Sensor::Ptr sensor) {
 
 void Store::update_sensor(const Sensor::Ptr sensor) {
 
-    LOG("Updating sensor: " << sensor->str());
+    if (_logging) {
+        LOG("Updating sensor: " << sensor->str());
+    }
 
     Transaction::Ptr transaction = get_transaction();
     start_inner_transaction(transaction);
@@ -111,7 +117,9 @@ void Store::update_sensor(const Sensor::Ptr sensor) {
 
 Sensor::Ptr Store::get_sensor(const Sensor::uuid_t& uuid) {
 
-     LOG("Getting sensor by UUID: " << uuid);
+    if (_logging) {
+        LOG("Getting sensor by UUID: " << uuid);
+    }
 
     if (_sensors_buffer.count(uuid) > 0) {
         return _sensors_buffer[uuid];
@@ -125,15 +133,19 @@ Sensor::Ptr Store::get_sensor(const Sensor::uuid_t& uuid) {
 
 std::vector<Sensor::Ptr> Store::get_sensors() {
 
-    LOG("Getting all sensors");
+    if (_logging) {
+        LOG("Getting all sensors");
+    }
 
     return get_sensors_records();
 }
 
 std::vector<Sensor::Ptr> Store::get_sensors_by_external_id(const std::string& external_id) {
 
-    LOG("Getting sensors by external id");
-    
+    if (_logging) {
+        LOG("Getting sensors by external id");
+    }
+
     std::vector<Sensor::Ptr> sensors;
 
     if (_external_ids_buffer.count(external_id) > 0) {
@@ -145,8 +157,10 @@ std::vector<Sensor::Ptr> Store::get_sensors_by_external_id(const std::string& ex
 
 std::vector<Sensor::Ptr> Store::get_sensors_by_name(const std::string& name) {
 
-    LOG("Getting sensors by name");
-    
+    if (_logging) {
+        LOG("Getting sensors by name");
+    }
+
     std::vector<Sensor::Ptr> sensors;
 
     for (std::map<Sensor::uuid_t, Sensor::Ptr>::const_iterator it = _sensors_buffer.begin(); it != _sensors_buffer.end(); ++it) {
@@ -162,8 +176,10 @@ std::vector<Sensor::Ptr> Store::get_sensors_by_name(const std::string& name) {
 
 std::vector<Sensor::uuid_t> Store::get_sensor_uuids() {
 
-    LOG("Getting sensor UUIDs");
-    
+    if (_logging) {
+        LOG("Getting sensor UUIDs");
+    }
+
     std::vector<Sensor::uuid_t> uuids;
 
     for (std::map<Sensor::uuid_t, Sensor::Ptr>::const_iterator it = _sensors_buffer.begin(); it != _sensors_buffer.end(); ++it) {
@@ -174,32 +190,36 @@ std::vector<Sensor::uuid_t> Store::get_sensor_uuids() {
 
 void Store::add_reading(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value) {
 
-    LOG("Adding to sensor: " << sensor->str() << " time=" << timestamp << " value=" << value);
+    if (_logging) {
+        LOG("Adding to sensor: " << sensor->str() << " time=" << timestamp << " value=" << value);
+    }
 
     //Check if sensor exists
     get_sensor(sensor->uuid());
     set_buffers(sensor);
-    
+
     Transaction::Ptr transaction = get_transaction();
     start_inner_transaction(transaction);
-    
+
     add_reading_record(sensor, timestamp, value);
-    
+
     commit_inner_transaction(transaction);
     Store::flush(false);
 }
 
 void Store::add_readings(const Sensor::Ptr sensor, const readings_t& readings) {
 
-    LOG("Adding " << readings->size() << " readings to sensor: " << sensor->str());
+    if (_logging) {
+        LOG("Adding " << readings->size() << " readings to sensor: " << sensor->str());
+    }
 
     //Check if sensor exists
     get_sensor(sensor->uuid());
     set_buffers(sensor);
-    
+
     Transaction::Ptr transaction = get_transaction();
     start_inner_transaction(transaction);
-    
+
     for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
         add_reading_record(sensor, (*it).first, (*it).second);
     }
@@ -210,7 +230,9 @@ void Store::add_readings(const Sensor::Ptr sensor, const readings_t& readings) {
 
 void Store::update_readings(const Sensor::Ptr sensor, const readings_t& readings) {
 
-    LOG("Updating " << readings->size() << " readings of sensor: " << sensor->str());
+    if (_logging) {
+        LOG("Updating " << readings->size() << " readings of sensor: " << sensor->str());
+    }
 
     //Check if sensor exists
     get_sensor(sensor->uuid());
@@ -218,7 +240,7 @@ void Store::update_readings(const Sensor::Ptr sensor, const readings_t& readings
 
     Transaction::Ptr transaction = get_transaction();
     start_inner_transaction(transaction);
-    
+
     for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
         update_reading_record(sensor, (*it).first, (*it).second);
     }
@@ -239,7 +261,9 @@ void Store::update_reading_record(const Sensor::Ptr sensor, const timestamp_t ti
 
 readings_t_Ptr Store::get_all_readings(const Sensor::Ptr sensor) {
 
-    LOG("Retrieving all readings of sensor " << sensor->str());
+    if (_logging) {
+        LOG("Retrieving all readings of sensor " << sensor->str());
+    }
 
     //Check if sensor exists
     get_sensor(sensor->uuid());
@@ -251,7 +275,9 @@ readings_t_Ptr Store::get_all_readings(const Sensor::Ptr sensor) {
 
 readings_t_Ptr Store::get_timeframe_readings(const Sensor::Ptr sensor, const timestamp_t begin, const timestamp_t end) {
 
-    LOG("Retrieving readings of sensor " << sensor->str() << " between " << begin << " and " << end);
+    if (_logging) {
+        LOG("Retrieving readings of sensor " << sensor->str() << " between " << begin << " and " << end);
+    }
 
     //Check if sensor exists
     get_sensor(sensor->uuid());
@@ -263,7 +289,9 @@ readings_t_Ptr Store::get_timeframe_readings(const Sensor::Ptr sensor, const tim
 
 unsigned long int Store::get_num_readings(const Sensor::Ptr sensor) {
 
-    LOG("Retrieving number of readings for sensor " << sensor->str());
+    if (_logging) {
+        LOG("Retrieving number of readings for sensor " << sensor->str());
+    }
 
     //Check if sensor exists
     get_sensor(sensor->uuid());
@@ -275,7 +303,9 @@ unsigned long int Store::get_num_readings(const Sensor::Ptr sensor) {
 
 reading_t Store::get_last_reading(const Sensor::Ptr sensor) {
 
-    LOG("Retrieving last reading of sensor " << sensor->str());
+    if (_logging) {
+        LOG("Retrieving last reading of sensor " << sensor->str());
+    }
 
     //Check if sensor exists
     get_sensor(sensor->uuid());
@@ -287,7 +317,9 @@ reading_t Store::get_last_reading(const Sensor::Ptr sensor) {
 
 reading_t Store::get_reading(const Sensor::Ptr sensor, const timestamp_t timestamp) {
 
-    LOG("Retrieving reading of sensor " << sensor->str());
+    if (_logging) {
+        LOG("Retrieving reading of sensor " << sensor->str());
+    }
 
     //Check if sensor exists
     get_sensor(sensor->uuid());
@@ -299,8 +331,10 @@ reading_t Store::get_reading(const Sensor::Ptr sensor, const timestamp_t timesta
 
 void Store::sync(const Store::Ptr store) {
 
-    LOG("Synchronizing this store with store " << store->str());
-    
+    if (_logging) {
+        LOG("Synchronizing this store with store " << store->str());
+    }
+
     const std::vector<Sensor::Ptr> sensors = store->get_sensors();
 
     for (std::vector<Sensor::Ptr>::const_iterator sensor = sensors.begin(); sensor != sensors.end(); ++sensor) {
@@ -311,7 +345,9 @@ void Store::sync(const Store::Ptr store) {
 
 void Store::sync_readings(const Sensor::Ptr sensor, const Store::Ptr store) {
 
-    LOG("Synchronizing this store readings with the readings of sensor " << sensor->str() << " from store " << store->str());
+    if (_logging) {
+        LOG("Synchronizing this store readings with the readings of sensor " << sensor->str() << " from store " << store->str());
+    }
 
     klio::readings_t_Ptr readings = store->get_all_readings(sensor);
     std::vector<Sensor::Ptr> sensors = get_sensors_by_external_id(sensor->external_id());

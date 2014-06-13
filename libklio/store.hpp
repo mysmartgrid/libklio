@@ -38,10 +38,11 @@ namespace klio {
     public:
         typedef boost::shared_ptr<Store> Ptr;
 
-        Store(bool auto_commit, const timestamp_t sync_timeout) :
+        Store(bool auto_commit, const timestamp_t sync_timeout, bool logging) :
         _auto_commit(auto_commit),
         _last_sync(0),
-        _sync_timeout(sync_timeout) {
+        _sync_timeout(sync_timeout),
+        _logging(logging) {
         };
 
         virtual ~Store() {
@@ -123,6 +124,7 @@ namespace klio {
 
         timestamp_t _last_sync;
         timestamp_t _sync_timeout;
+        bool _logging;
 
         void check_auto_commit_disabled();
 

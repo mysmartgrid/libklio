@@ -43,7 +43,7 @@ namespace klio {
                 const std::map<const std::string, const std::string>& db_options,
                 const std::map<const std::string, const std::string>& read_options,
                 const std::map<const std::string, const std::string>& write_options) :
-        Store(true, 0),
+        Store(true, 0, true),
         _path(path),
         _db_options(db_options),
         _read_options(read_options),

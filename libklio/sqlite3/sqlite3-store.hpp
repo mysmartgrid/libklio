@@ -39,8 +39,8 @@ namespace klio {
     public:
         typedef boost::shared_ptr<SQLite3Store> Ptr;
 
-        SQLite3Store(const bfs::path& path, bool auto_commit) :
-        Store(auto_commit, 0),
+        SQLite3Store(const bfs::path& path, bool auto_commit, bool logging) :
+        Store(auto_commit, 0, logging),
         _path(path),
         _db(NULL),
         _insert_sensor_stmt(NULL),

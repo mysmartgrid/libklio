@@ -51,11 +51,11 @@ namespace klio {
 
         SQLite3Store::Ptr create_sqlite3_store(const bfs::path& path, bool prepare);
 
-        SQLite3Store::Ptr create_sqlite3_store(const bfs::path& path, bool prepare, bool auto_commit);
+        SQLite3Store::Ptr create_sqlite3_store(const bfs::path& path, bool prepare, bool auto_commit, bool logging);
 
         SQLite3Store::Ptr open_sqlite3_store(const bfs::path& path);
 
-        SQLite3Store::Ptr open_sqlite3_store(const bfs::path& path, bool auto_commit);
+        SQLite3Store::Ptr open_sqlite3_store(const bfs::path& path, bool auto_commit, bool logging);
 
 #ifdef ENABLE_MSG        
 

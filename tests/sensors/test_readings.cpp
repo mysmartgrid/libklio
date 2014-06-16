@@ -149,9 +149,6 @@ BOOST_AUTO_TEST_CASE(check_retrieve_reading_timeframe) {
             // Now check if we can retrieve the 42s.
             klio::readings_t_Ptr readings = store->get_timeframe_readings(sensor, marker_begin, marker_end);
 
-            // cleanup
-            store->remove_sensor(sensor);
-
             uint32_t result_counter = 0;
             std::map<klio::timestamp_t, double>::iterator it;
             for (it = readings->begin(); it != readings->end(); it++) {
@@ -163,8 +160,10 @@ BOOST_AUTO_TEST_CASE(check_retrieve_reading_timeframe) {
             }
             BOOST_CHECK_EQUAL(7, result_counter);
 
+            store->dispose();
+
         } catch (klio::StoreException const& ex) {
-            //store->remove_sensor(sensor);
+            store->dispose();
             std::cout << "Caught invalid exception: " << ex.what() << std::endl;
             BOOST_FAIL("Unexpected store exception occurred during sensor test");
         }
@@ -216,17 +215,16 @@ BOOST_AUTO_TEST_CASE(check_retrieve_last_reading) {
             double val1 = last_reading.second;
             std::cout << "Got timestamp " << ts1 << " -> value " << val1 << std::endl;
 
-            // cleanup
-            store->remove_sensor(sensor);
-
             BOOST_CHECK_EQUAL(timestamp, ts1);
             BOOST_REQUIRE(timestamp2 != ts1);
             BOOST_CHECK_EQUAL(reading, val1);
 
+            store->dispose();
+
         } catch (klio::StoreException const& ex) {
             std::cout << "Caught invalid exception: " << ex.what() << std::endl;
             BOOST_FAIL("Unexpected store exception occurred during sensor test");
-            //store->remove_sensor(sensor1);
+            store->dispose();
         }
     } catch (std::exception const& ex) {
         BOOST_FAIL("Unexpected exception occurred during sensor test");
@@ -289,9 +287,6 @@ BOOST_AUTO_TEST_CASE(check_sqlite3_bulk_insert) {
             std::cout << "Bulk load duration for SQLite: " << diff.total_milliseconds() << " ms" << std::endl;
             std::cout << "Loaded " << loaded_readings->size() << " readings." << std::endl;
 
-            // cleanup
-            store->remove_sensor(sensor);
-
             klio::readings_cit_t it;
             size_t ret_size = 0;
             for (it = loaded_readings->begin(); it != loaded_readings->end(); ++it) {
@@ -302,10 +297,12 @@ BOOST_AUTO_TEST_CASE(check_sqlite3_bulk_insert) {
             }
             BOOST_CHECK_EQUAL(num_readings, ret_size);
 
+            store->dispose();
+
         } catch (klio::StoreException const& ex) {
+            store->dispose();
             std::cout << "Caught invalid exception: " << ex.what() << std::endl;
             BOOST_FAIL("Unexpected store exception occurred during sensor test");
-            //store->remove_sensor(sensor);
         }
     } catch (std::exception const& ex) {
         BOOST_FAIL("Unexpected exception occurred during sensor test");
@@ -328,7 +325,6 @@ BOOST_AUTO_TEST_CASE(check_roksdb_bulk_insert) {
         std::cout << "Created: " << store->str() << std::endl;
 
         try {
-            store->initialize();
             store->add_sensor(sensor);
             std::cout << "added to store: " << sensor->str() << std::endl;
 
@@ -374,7 +370,10 @@ BOOST_AUTO_TEST_CASE(check_roksdb_bulk_insert) {
             }
             BOOST_CHECK_EQUAL(num_readings, ret_size);
 
+            store->dispose();
+
         } catch (klio::StoreException const& ex) {
+            store->dispose();
             std::cout << "Caught invalid exception: " << ex.what() << std::endl;
             BOOST_FAIL("Unexpected store exception occurred during sensor test");
             //store->remove_sensor(sensor);
@@ -452,8 +451,10 @@ BOOST_AUTO_TEST_CASE(check_bulk_insert_duplicates) {
             }
             BOOST_CHECK_EQUAL(num_readings + num_overlapping, ret_size);
 
+            store->dispose();
+
         } catch (klio::StoreException const& ex) {
-            //store->remove_sensor(sensor);
+            store->dispose();
             std::cout << "Caught invalid exception: " << ex.what() << std::endl;
             BOOST_FAIL("Unexpected store exception occurred during sensor test");
         }
@@ -497,12 +498,12 @@ BOOST_AUTO_TEST_CASE(check_num_readings) {
             size_t saved_readings = store->get_num_readings(sensor);
             std::cout << "Store contains " << saved_readings << " readings." << std::endl;
 
-            // cleanup
-            store->remove_sensor(sensor);
-
             BOOST_CHECK_EQUAL(num_readings, saved_readings);
 
+            store->dispose();
+
         } catch (klio::StoreException const& ex) {
+            store->dispose();
             std::cout << "Caught invalid exception: " << ex.what() << std::endl;
             BOOST_FAIL("Unexpected store exception occurred during sensor test");
         }
@@ -652,6 +653,9 @@ BOOST_AUTO_TEST_CASE(check_sync_readings) {
             storeB->dispose();
 
         } catch (klio::StoreException const& ex) {
+            // cleanup
+            storeA->dispose();
+            storeB->dispose();
             std::cout << "Caught invalid exception: " << ex.what() << std::endl;
             BOOST_FAIL("Unexpected store exception occurred during sensor test");
         }
@@ -727,6 +731,9 @@ BOOST_AUTO_TEST_CASE(check_sync_store) {
             target->dispose();
 
         } catch (klio::StoreException const& ex) {
+            // cleanup
+            source1->dispose();
+            source2->dispose();
             std::cout << "Caught invalid exception: " << ex.what() << std::endl;
             BOOST_FAIL("Unexpected store exception occurred during sensor test");
         }

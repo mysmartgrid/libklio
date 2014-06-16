@@ -9,45 +9,39 @@
 #include <libklio/sqlite3/sqlite3-transaction.hpp>
 #include <libklio/common.hpp>
 #include "sqlite3-store.hpp"
+#include "sqlite3-transaction.hpp"
 
 
 using namespace klio;
 
 void SQLite3Store::open() {
 
-    if (_db) {
-        return;
-    }
+    if (_db == NULL) {
 
-    int rc = sqlite3_open(_path.c_str(), &_db);
-    if (rc) {
-        std::ostringstream oss;
-        oss << "Can't open database: ";
+        int rc = sqlite3_open(_path.c_str(), &_db);
+        if (rc) {
+            std::ostringstream oss;
+            oss << "Can't open database: ";
 
-        if (_db) {
-            oss << sqlite3_errmsg(_db);
-            sqlite3_close(_db);
-            _db = NULL;
+            if (_db) {
+                oss << sqlite3_errmsg(_db);
+                sqlite3_close(_db);
+                _db = NULL;
 
-        } else {
-            oss << "Not enough memory.";
+            } else {
+                oss << "Not enough memory.";
+            }
+            throw StoreException(oss.str());
         }
-        throw StoreException(oss.str());
+        Store::open();
     }
-    //FIXME: move this line to Store
-    _transaction = create_transaction();
 }
 
 void SQLite3Store::close() {
 
-    Store::flush();
-    Store::clear_buffers();
+    if (_db != NULL) {
 
-    if (_db) {
-
-        if (!_auto_commit) {
-            _transaction->rollback();
-        }
+        Store::close();
         _insert_sensor_stmt = NULL;
         _remove_sensor_stmt = NULL;
         _update_sensor_stmt = NULL;
@@ -243,8 +237,8 @@ void SQLite3Store::prepare() {
 
 void SQLite3Store::dispose() {
 
-    Store::clear_buffers();
     bfs::remove(_path);
+    Store::dispose();
 }
 
 Transaction::Ptr SQLite3Store::create_transaction() {
@@ -538,10 +532,6 @@ void SQLite3Store::add_reading_record(klio::Sensor::Ptr sensor, const timestamp_
         reset(stmt);
         throw;
     }
-}
-
-void SQLite3Store::flush(const Sensor::Ptr sensor) {
-    //This store does not use the readings buffer
 }
 
 sqlite3_stmt *SQLite3Store::prepare(const std::string& stmt_str) {

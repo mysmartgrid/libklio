@@ -39,21 +39,22 @@ namespace klio {
     public:
         typedef boost::shared_ptr<Store> Ptr;
 
-        Store(bool auto_commit, const timestamp_t sync_timeout, bool logging) :
+        Store(bool auto_commit, const timestamp_t sync_timeout, bool logging, bool auto_flush) :
         _auto_commit(auto_commit),
         _last_sync(0),
         _sync_timeout(sync_timeout),
-        _logging(logging) {
+        _logging(logging),
+        _auto_flush(auto_flush) {
         };
 
         virtual ~Store() {
         };
 
-        virtual void open() = 0;
-        virtual void close() = 0;
+        virtual void open();
+        virtual void close();
         virtual void check_integrity() = 0;
         virtual void initialize() = 0;
-        virtual void dispose() = 0;
+        virtual void dispose();
         virtual void prepare();
         virtual void flush();
         virtual const std::string str() = 0;
@@ -63,8 +64,8 @@ namespace klio {
         void rollback_transaction();
 
         void add_sensor(const Sensor::Ptr sensor);
-        void remove_sensor(const klio::Sensor::Ptr sensor);
-        void update_sensor(const klio::Sensor::Ptr sensor);
+        void remove_sensor(const Sensor::Ptr sensor);
+        void update_sensor(const Sensor::Ptr sensor);
 
         Sensor::Ptr get_sensor(const klio::Sensor::uuid_t& uuid);
         std::vector<klio::Sensor::Ptr> get_sensors_by_external_id(const std::string& external_id);
@@ -89,14 +90,15 @@ namespace klio {
         static const SensorFactory::Ptr sensor_factory;
         static const TimeConverter::Ptr time_converter;
 
-        Transaction::Ptr get_transaction();
         virtual Transaction::Ptr create_transaction();
+        Transaction::Ptr get_transaction();
         virtual void start_inner_transaction(const Transaction::Ptr transaction);
         virtual void commit_inner_transaction(const Transaction::Ptr transaction);
 
         virtual void add_sensor_record(const Sensor::Ptr sensor) = 0;
-        virtual void remove_sensor_record(const klio::Sensor::Ptr sensor) = 0;
-        virtual void update_sensor_record(const klio::Sensor::Ptr sensor) = 0;
+        virtual void remove_sensor_record(const Sensor::Ptr sensor) = 0;
+        virtual void update_sensor_record(const Sensor::Ptr sensor) = 0;
+        virtual void update_readings_records(const Sensor::Ptr sensor, const readings_t& readings);
 
         virtual std::vector<klio::Sensor::Ptr> get_sensors_records() = 0;
 
@@ -109,28 +111,25 @@ namespace klio {
         virtual reading_t get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp) = 0;
         virtual unsigned long int get_num_readings_value(const Sensor::Ptr sensor) = 0;
 
-        virtual void flush(const Sensor::Ptr sensor) = 0;
         virtual void clear_buffers();
-        readings_t_Ptr get_buffered_readings(Sensor::uuid_t uuid);
-
-        bool _auto_commit;
-        Transaction::Ptr _transaction;
 
     private:
         Store(const Store& original);
         Store& operator=(const Store& rhs);
 
+        bool _auto_commit;
         timestamp_t _last_sync;
         timestamp_t _sync_timeout;
         bool _logging;
+        bool _auto_flush;
+        Transaction::Ptr _transaction;
 
         boost::unordered_map<Sensor::uuid_t, Sensor::Ptr> _sensors_buffer;
         boost::unordered_map<Sensor::uuid_t, readings_t_Ptr> _readings_buffer;
         boost::unordered_map<std::string, Sensor::uuid_t> _external_ids_buffer;
 
-        void check_auto_commit_disabled();
-
         void flush(bool force);
+        virtual void flush(const Sensor::Ptr sensor);
         void set_buffers(const Sensor::Ptr sensor);
         void clear_buffers(const Sensor::Ptr sensor);
     };

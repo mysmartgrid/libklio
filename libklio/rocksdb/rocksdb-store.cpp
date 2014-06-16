@@ -26,14 +26,12 @@ void RocksDBStore::open() {
             open_db(true, false, compose_sensor_readings_path(uuid_str));
         }
     }
-    //FIXME: move this line to Store
-    _transaction = create_transaction();
+    Store::open();
 }
 
 void RocksDBStore::close() {
 
-    Store::flush();
-    clear_buffers();
+    Store::close();
 
     for (std::map<std::string, rocksdb::DB*>::const_iterator it = _db_buffer.begin(); it != _db_buffer.end(); ++it) {
         delete (*it).second;
@@ -77,8 +75,8 @@ void RocksDBStore::initialize() {
 
 void RocksDBStore::dispose() {
 
-    clear_buffers();
     bfs::remove_all(_path);
+    Store::dispose();
 }
 
 const std::string RocksDBStore::str() {
@@ -242,10 +240,6 @@ void RocksDBStore::add_reading_record(const Sensor::Ptr sensor, const timestamp_
 void RocksDBStore::update_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value) {
 
     add_reading_record(sensor, timestamp, value);
-}
-
-void RocksDBStore::flush(const Sensor::Ptr sensor) {
-    //This store does not use the readings buffer
 }
 
 void RocksDBStore::clear_buffers() {

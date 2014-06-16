@@ -24,9 +24,7 @@
 
 #ifdef ENABLE_ROCKSDB
 
-#include <vector>
 #include <boost/filesystem.hpp>
-#include <boost/shared_ptr.hpp>
 #include <rocksdb/db.h>
 #include <libklio/store.hpp>
 
@@ -43,7 +41,7 @@ namespace klio {
                 const std::map<const std::string, const std::string>& db_options,
                 const std::map<const std::string, const std::string>& read_options,
                 const std::map<const std::string, const std::string>& write_options) :
-        Store(true, 0, true),
+        Store(true, 600, true, true),
         _path(path),
         _db_options(db_options),
         _read_options(read_options),
@@ -77,7 +75,6 @@ namespace klio {
         reading_t get_last_reading_record(const Sensor::Ptr sensor);
         reading_t get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp);
 
-        void flush(const Sensor::Ptr sensor);
         void clear_buffers();
 
     private:

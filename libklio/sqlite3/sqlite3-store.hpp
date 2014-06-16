@@ -21,15 +21,10 @@
 #ifndef LIBKLIO_SQLITE3_SQLITE3STORE_HPP
 #define LIBKLIO_SQLITE3_SQLITE3STORE_HPP 1
 
-#include <vector>
 #include <sqlite3.h>
-#include <boost/unordered_map.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/shared_ptr.hpp>
-#include <libklio/common.hpp>
 #include <libklio/store.hpp>
 #include <libklio/sensor-factory.hpp>
-#include "sqlite3-transaction.hpp"
 
 
 namespace bfs = boost::filesystem;
@@ -40,8 +35,8 @@ namespace klio {
     public:
         typedef boost::shared_ptr<SQLite3Store> Ptr;
 
-        SQLite3Store(const bfs::path& path, bool auto_commit, bool logging) :
-        Store(auto_commit, 0, logging),
+        SQLite3Store(const bfs::path& path, bool auto_commit, bool logging, bool auto_flush) :
+        Store(auto_commit, 600, logging, auto_flush),
         _path(path),
         _db(NULL),
         _insert_sensor_stmt(NULL),
@@ -68,6 +63,8 @@ namespace klio {
         const std::string str();
 
     protected:
+        Transaction::Ptr create_transaction();
+
         void add_sensor_record(const Sensor::Ptr sensor);
         void remove_sensor_record(const klio::Sensor::Ptr sensor);
         void update_sensor_record(const klio::Sensor::Ptr sensor);
@@ -87,14 +84,11 @@ namespace klio {
         SQLite3Store(const SQLite3Store& original);
         SQLite3Store& operator =(const SQLite3Store& rhs);
 
-        Transaction::Ptr create_transaction();
         bool has_table(const std::string& name);
         bool has_column(const std::string& table, const std::string& column);
 
         void add_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp, const double value, const bool update);
         readings_t_Ptr get_readings_records(sqlite3_stmt* stmt);
-
-        void flush(const Sensor::Ptr sensor);
 
         sqlite3_stmt *prepare(const std::string& stmt_str);
         sqlite3_stmt *get_statement(const std::string& sql);

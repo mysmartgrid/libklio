@@ -25,12 +25,8 @@
 
 #ifdef ENABLE_MSG
 
-#include <vector>
-#include <boost/shared_ptr.hpp>
 #include <curl/curl.h>
 #include <json/json.h>
-#include <libklio/common.hpp>
-#include <libklio/types.hpp>
 #include <libklio/store.hpp>
 
 
@@ -50,7 +46,7 @@ namespace klio {
                 const std::string& key,
                 const std::string& description,
                 const std::string& type) :
-        Store(true, 600, true),
+        Store(true, 600, true, true),
         _url(url),
         _id(id),
         _key(key),
@@ -87,8 +83,6 @@ namespace klio {
             return _id.substr(0, 10);
         };
 
-        void open();
-        void close();
         void check_integrity();
         void initialize();
         void dispose();
@@ -99,6 +93,7 @@ namespace klio {
         void add_sensor_record(const Sensor::Ptr sensor);
         void remove_sensor_record(const klio::Sensor::Ptr sensor);
         void update_sensor_record(const klio::Sensor::Ptr sensor);
+        void update_readings_records(const Sensor::Ptr sensor, const readings_t& readings);
 
         std::vector<Sensor::Ptr> get_sensors_records();
 
@@ -107,8 +102,6 @@ namespace klio {
         unsigned long int get_num_readings_value(const Sensor::Ptr sensor);
         reading_t get_last_reading_record(const Sensor::Ptr sensor);
         reading_t get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp);
-
-        void flush(const Sensor::Ptr sensor);
 
     private:
         MSGStore(const MSGStore& original);

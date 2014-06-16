@@ -128,7 +128,7 @@ BOOST_AUTO_TEST_CASE(check_open_corrupt_sqlite3_file) {
 
     } catch (klio::StoreException const& ex) {
         //This exception is expected
-        bfs::remove(db); //TODO: use dispose() here
+        bfs::remove(db);
     }
 }
 
@@ -183,7 +183,7 @@ BOOST_AUTO_TEST_CASE(check_sqlite3_no_auto_commit) {
 
     try {
         std::cout << "Attempting to create " << db << std::endl;
-        store = store_factory->create_sqlite3_store(db, true, false, true);
+        store = store_factory->create_sqlite3_store(db, true, false, true, true);
         std::cout << "Created database: " << store->str() << std::endl;
 
         store->start_transaction();
@@ -622,7 +622,7 @@ BOOST_AUTO_TEST_CASE(check_sqlite3_store_performance) {
                 (logging? "on" : "off") << std::endl;
 
         time_before = boost::posix_time::microsec_clock::local_time();
-        store = store_factory->create_sqlite3_store(db, false, false, logging);
+        store = store_factory->create_sqlite3_store(db, false, false, logging, true);
         time_after = boost::posix_time::microsec_clock::local_time();
 
         try {
@@ -641,7 +641,7 @@ BOOST_AUTO_TEST_CASE(check_sqlite3_store_performance) {
 
             //Manual Commit
             time_before = boost::posix_time::microsec_clock::local_time();
-            store = store_factory->create_sqlite3_store(db, true, false, logging);
+            store = store_factory->create_sqlite3_store(db, true, false, logging, true);
             time_after = boost::posix_time::microsec_clock::local_time();
 
             elapsed_time = time_after - time_before;
@@ -738,7 +738,7 @@ BOOST_AUTO_TEST_CASE(check_sqlite3_store_performance) {
                 (logging? "on" : "off") << std::endl;
 
             time_before = boost::posix_time::microsec_clock::local_time();
-            store = store_factory->create_sqlite3_store(db, true, true, logging);
+            store = store_factory->create_sqlite3_store(db, true, true, logging, true);
             time_after = boost::posix_time::microsec_clock::local_time();
 
             elapsed_time = time_after - time_before;

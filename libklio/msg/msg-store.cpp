@@ -12,8 +12,6 @@
 #include <openssl/hmac.h>
 #include <openssl/sha.h>
 #include <openssl/evp.h>
-#include <curl/curl.h>
-#include <json/json.h>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/algorithm/string/erase.hpp>
@@ -23,15 +21,8 @@
 
 using namespace klio;
 
-void MSGStore::open() {
-    //FIXME: move this line to Store
-    _transaction = create_transaction();
-}
-
-void MSGStore::close() {
-
-    Store::flush();
-    clear_buffers();
+void MSGStore::check_integrity() {
+    //TODO: implement this method
 }
 
 void MSGStore::initialize() {
@@ -66,10 +57,6 @@ void MSGStore::initialize() {
     }
 }
 
-void MSGStore::check_integrity() {
-    //TODO: implement this method
-}
-
 void MSGStore::dispose() {
 
     //Tries to delete the remote store
@@ -83,6 +70,7 @@ void MSGStore::dispose() {
     } catch (std::exception const& e) {
         throw EnvironmentException(e.what());
     }
+    Store::dispose();
 }
 
 void MSGStore::flush() {
@@ -155,6 +143,46 @@ void MSGStore::update_sensor_record(const Sensor::Ptr sensor) {
 
     } catch (std::exception const& e) {
         destroy_object(jconfig);
+        throw EnvironmentException(e.what());
+    }
+}
+
+void MSGStore::update_readings_records(const Sensor::Ptr sensor, const readings_t& readings) {
+
+    json_object *jmeasurements = NULL;
+
+    try {
+        jmeasurements = create_json_array();
+
+        for (readings_cit_t rit = readings.begin(); rit != readings.end(); ++rit) {
+
+            timestamp_t timestamp = (*rit).first;
+            double value = (*rit).second;
+
+            struct json_object *jtuple = create_json_array();
+            json_object_array_add(jmeasurements, jtuple);
+
+            json_object_array_add(jtuple, create_json_int(timestamp));
+            json_object_array_add(jtuple, create_json_double(value));
+        }
+
+        json_object *jobject = create_json_object();
+        json_object_object_add(jobject, "measurements", jmeasurements);
+        jmeasurements = jobject;
+
+        std::string url = compose_sensor_url(sensor);
+
+        json_object *jresponse = perform_http_post(url, _key, jmeasurements);
+
+        destroy_object(jresponse);
+        destroy_object(jmeasurements);
+
+    } catch (GenericException const& e) {
+        destroy_object(jmeasurements);
+        throw;
+
+    } catch (std::exception const& e) {
+        destroy_object(jmeasurements);
         throw EnvironmentException(e.what());
     }
 }
@@ -309,52 +337,6 @@ reading_t MSGStore::get_reading_record(const Sensor::Ptr sensor, const timestamp
         reading.second = readings->at(timestamp);
     }
     return reading;
-}
-
-void MSGStore::flush(const Sensor::Ptr sensor) {
-
-    json_object *jmeasurements = NULL;
-
-    try {
-        readings_t_Ptr readings = get_buffered_readings(sensor->uuid());
-
-        if (!readings->empty()) {
-
-            jmeasurements = create_json_array();
-
-            for (readings_cit_t rit = readings->begin(); rit != readings->end(); ++rit) {
-
-                timestamp_t timestamp = (*rit).first;
-                double value = (*rit).second;
-
-                struct json_object *jtuple = create_json_array();
-                json_object_array_add(jmeasurements, jtuple);
-
-                json_object_array_add(jtuple, create_json_int(timestamp));
-                json_object_array_add(jtuple, create_json_double(value));
-            }
-
-            json_object *jobject = create_json_object();
-            json_object_object_add(jobject, "measurements", jmeasurements);
-            jmeasurements = jobject;
-
-            std::string url = compose_sensor_url(sensor);
-
-            json_object *jresponse = perform_http_post(url, _key, jmeasurements);
-            readings->clear();
-
-            destroy_object(jresponse);
-            destroy_object(jmeasurements);
-        }
-
-    } catch (GenericException const& e) {
-        destroy_object(jmeasurements);
-        throw;
-
-    } catch (std::exception const& e) {
-        destroy_object(jmeasurements);
-        throw EnvironmentException(e.what());
-    }
 }
 
 void MSGStore::heartbeat() {

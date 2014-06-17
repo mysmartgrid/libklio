@@ -502,23 +502,18 @@ reading_t SQLite3Store::get_reading_record(const Sensor::Ptr sensor, const times
 
 void SQLite3Store::add_reading_record(klio::Sensor::Ptr sensor, const timestamp_t timestamp, const double value) {
 
-    add_reading_record(sensor, timestamp, value, false);
+    add_reading_record(sensor, timestamp, value, "INSERT");
 }
 
 void SQLite3Store::update_reading_record(klio::Sensor::Ptr sensor, const timestamp_t timestamp, const double value) {
 
-    add_reading_record(sensor, timestamp, value, true);
+    add_reading_record(sensor, timestamp, value, "INSERT OR REPLACE");
 }
 
-void SQLite3Store::add_reading_record(klio::Sensor::Ptr sensor, const timestamp_t timestamp, const double value, const bool update) {
+void SQLite3Store::add_reading_record(klio::Sensor::Ptr sensor, const timestamp_t timestamp, const double value, const std::string& operation) {
 
     std::ostringstream oss;
-    oss << "INSERT ";
-    if (update) {
-        oss << "OR REPLACE ";
-    }
-    oss << "INTO '" << sensor->uuid_string() << "' (timestamp, value) VALUES (?, ?)";
-
+    oss << operation << " INTO '" << sensor->uuid_string() << "' (timestamp, value) VALUES (?, ?)";
     sqlite3_stmt* stmt = get_statement(oss.str());
 
     try {

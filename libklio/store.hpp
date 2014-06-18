@@ -41,11 +41,11 @@ namespace klio {
     public:
         typedef boost::shared_ptr<Store> Ptr;
 
-        Store(bool auto_commit, const timestamp_t sync_timeout, bool auto_flush) :
+        Store(bool auto_commit, bool auto_flush, const timestamp_t flush_timeout) :
         _auto_commit(auto_commit),
-        _last_sync(0),
-        _sync_timeout(sync_timeout),
-        _auto_flush(auto_flush) {
+        _auto_flush(auto_flush),
+        _flush_timeout(flush_timeout),
+        _last_flush(0) {
         };
 
         virtual ~Store() {
@@ -127,9 +127,9 @@ namespace klio {
         static const cached_operation_type_t DELETE_OPERATION;
 
         bool _auto_commit;
-        timestamp_t _last_sync;
-        timestamp_t _sync_timeout;
         bool _auto_flush;
+        timestamp_t _flush_timeout;
+        timestamp_t _last_flush;
         Transaction::Ptr _transaction;
 
         boost::unordered_map<Sensor::uuid_t, cached_operations_type_t_Ptr> _readings_operations_buffer;

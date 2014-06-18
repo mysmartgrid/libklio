@@ -392,13 +392,13 @@ void Store::flush(bool force) {
 
     timestamp_t now = time_converter->get_timestamp();
 
-    if (force || (_auto_flush && now - _last_sync >= _sync_timeout)) {
+    if (force || (_auto_flush && now - _last_flush >= _flush_timeout)) {
 
         for (boost::unordered_map<Sensor::uuid_t, Sensor::Ptr>::const_iterator it = _sensors_buffer.begin(); it != _sensors_buffer.end(); ++it) {
 
             flush((*it).second);
         }
-        _last_sync = now;
+        _last_flush = now;
     }
 }
 

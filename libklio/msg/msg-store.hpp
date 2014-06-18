@@ -25,12 +25,8 @@
 
 #ifdef ENABLE_MSG
 
-#include <vector>
-#include <boost/shared_ptr.hpp>
 #include <curl/curl.h>
 #include <json/json.h>
-#include <libklio/common.hpp>
-#include <libklio/types.hpp>
 #include <libklio/store.hpp>
 
 
@@ -50,7 +46,7 @@ namespace klio {
                 const std::string& key,
                 const std::string& description,
                 const std::string& type) :
-        Store(600),
+        Store(true, 600, true),
         _url(url),
         _id(id),
         _key(key),
@@ -87,31 +83,25 @@ namespace klio {
             return _id.substr(0, 10);
         };
 
-        void open();
-        void close();
         void check_integrity();
         void initialize();
         void dispose();
         void flush();
         const std::string str();
 
-        std::vector<Sensor::Ptr> get_sensors();
-        
-        void add_reading(const Sensor::Ptr sensor, timestamp_t timestamp, double value);
-        void add_readings(const Sensor::Ptr sensor, const readings_t& readings);
-        void update_readings(const Sensor::Ptr sensor, const readings_t& readings);
-
-        readings_t_Ptr get_all_readings(const Sensor::Ptr sensor);
-        readings_t_Ptr get_timeframe_readings(klio::Sensor::Ptr sensor, timestamp_t begin, timestamp_t end);
-        unsigned long int get_num_readings(const Sensor::Ptr sensor);
-        reading_t get_last_reading(const Sensor::Ptr sensor);
-        reading_t get_reading(const Sensor::Ptr sensor, timestamp_t timestamp);
-
     protected:
         void add_sensor_record(const Sensor::Ptr sensor);
-        void remove_sensor_record(const klio::Sensor::Ptr sensor);
-        void update_sensor_record(const klio::Sensor::Ptr sensor);
-        void flush(const Sensor::Ptr sensor);
+        void remove_sensor_record(const Sensor::Ptr sensor);
+        void update_sensor_record(const Sensor::Ptr sensor);
+        void add_reading_records(const Sensor::Ptr sensor, const readings_t& readings);
+        void update_reading_records(const Sensor::Ptr sensor, const readings_t& readings);
+
+        std::vector<Sensor::Ptr> get_sensor_records();
+        readings_t_Ptr get_all_reading_records(const Sensor::Ptr sensor);
+        readings_t_Ptr get_timeframe_reading_records(const Sensor::Ptr sensor, const timestamp_t begin, const timestamp_t end);
+        unsigned long int get_num_readings_value(const Sensor::Ptr sensor);
+        reading_t get_last_reading_record(const Sensor::Ptr sensor);
+        reading_t get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp);
 
     private:
         MSGStore(const MSGStore& original);
@@ -135,7 +125,7 @@ namespace klio {
         struct json_object *perform_http_get(const std::string& url, const std::string& key);
         struct json_object *perform_http_post(const std::string& url, const std::string& key, json_object *jobject);
         void perform_http_delete(const std::string& url, const std::string& key);
-        CURL *create_curl_handler(const std::string& url, curl_slist *headers);
+        CURL *create_curl_handler(const std::string& url, const curl_slist *headers);
         std::string digest_message(const std::string& data, const std::string& key);
         struct json_object *perform_http_request(const std::string& method, const std::string& url, const std::string& key, json_object *jbody);
 

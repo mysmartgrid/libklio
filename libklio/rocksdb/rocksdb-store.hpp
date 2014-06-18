@@ -24,9 +24,7 @@
 
 #ifdef ENABLE_ROCKSDB
 
-#include <vector>
 #include <boost/filesystem.hpp>
-#include <boost/shared_ptr.hpp>
 #include <rocksdb/db.h>
 #include <libklio/store.hpp>
 
@@ -43,7 +41,7 @@ namespace klio {
                 const std::map<const std::string, const std::string>& db_options,
                 const std::map<const std::string, const std::string>& read_options,
                 const std::map<const std::string, const std::string>& write_options) :
-        Store(0),
+        Store(true, 600, true),
         _path(path),
         _db_options(db_options),
         _read_options(read_options),
@@ -61,22 +59,20 @@ namespace klio {
         void dispose();
         const std::string str();
 
-        std::vector<Sensor::Ptr> get_sensors();
-
-        void add_reading(const Sensor::Ptr sensor, timestamp_t timestamp, double value);
-        void add_readings(const Sensor::Ptr sensor, const readings_t& readings);
-        void update_readings(const Sensor::Ptr sensor, const readings_t& readings);
-
-        readings_t_Ptr get_all_readings(const Sensor::Ptr sensor);
-        readings_t_Ptr get_timeframe_readings(const Sensor::Ptr sensor, timestamp_t begin, timestamp_t end);
-        unsigned long int get_num_readings(const Sensor::Ptr sensor);
-        reading_t get_last_reading(const Sensor::Ptr sensor);
-        reading_t get_reading(const Sensor::Ptr sensor, timestamp_t timestamp);
-
     protected:
         void add_sensor_record(const Sensor::Ptr sensor);
-        void remove_sensor_record(const klio::Sensor::Ptr sensor);
-        void update_sensor_record(const klio::Sensor::Ptr sensor);
+        void remove_sensor_record(const Sensor::Ptr sensor);
+        void update_sensor_record(const Sensor::Ptr sensor);
+        void add_reading_records(const Sensor::Ptr sensor, const readings_t& readings);
+        void update_reading_records(const Sensor::Ptr sensor, const readings_t& readings);
+
+        std::vector<Sensor::Ptr> get_sensor_records();
+        readings_t_Ptr get_all_reading_records(const Sensor::Ptr sensor);
+        readings_t_Ptr get_timeframe_reading_records(const Sensor::Ptr sensor, const timestamp_t begin, const timestamp_t end);
+        unsigned long int get_num_readings_value(const Sensor::Ptr sensor);
+        reading_t get_last_reading_record(const Sensor::Ptr sensor);
+        reading_t get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp);
+
         void clear_buffers();
 
     private:
@@ -88,7 +84,7 @@ namespace klio {
         std::map<const std::string, const std::string> _read_options;
         std::map<const std::string, const std::string> _write_options;
         std::map<const std::string, rocksdb::DB*> _db_buffer;
-        
+
         rocksdb::DB* open_db(const bool create_if_missing, const bool error_if_exists, const std::string& db_path);
         void close_db(const std::string& db_path);
         void remove_db(const std::string& db_path);

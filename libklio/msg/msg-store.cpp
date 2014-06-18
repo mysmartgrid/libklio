@@ -12,8 +12,6 @@
 #include <openssl/hmac.h>
 #include <openssl/sha.h>
 #include <openssl/evp.h>
-#include <curl/curl.h>
-#include <json/json.h>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/algorithm/string/erase.hpp>
@@ -23,13 +21,8 @@
 
 using namespace klio;
 
-void MSGStore::open() {
-}
-
-void MSGStore::close() {
-
-    Store::flush();
-    clear_buffers();
+void MSGStore::check_integrity() {
+    //TODO: implement this method
 }
 
 void MSGStore::initialize() {
@@ -64,10 +57,6 @@ void MSGStore::initialize() {
     }
 }
 
-void MSGStore::check_integrity() {
-   //TODO: implement this method
-}
-
 void MSGStore::dispose() {
 
     //Tries to delete the remote store
@@ -81,6 +70,7 @@ void MSGStore::dispose() {
     } catch (std::exception const& e) {
         throw EnvironmentException(e.what());
     }
+    Store::dispose();
 }
 
 void MSGStore::flush() {
@@ -157,7 +147,52 @@ void MSGStore::update_sensor_record(const Sensor::Ptr sensor) {
     }
 }
 
-std::vector<Sensor::Ptr> MSGStore::get_sensors() {
+void MSGStore::add_reading_records(const Sensor::Ptr sensor, const readings_t& readings) {
+
+    update_reading_records(sensor, readings);
+}
+
+void MSGStore::update_reading_records(const Sensor::Ptr sensor, const readings_t& readings) {
+
+    json_object *jmeasurements = NULL;
+
+    try {
+        jmeasurements = create_json_array();
+
+        for (readings_cit_t rit = readings.begin(); rit != readings.end(); ++rit) {
+
+            timestamp_t timestamp = (*rit).first;
+            double value = (*rit).second;
+            
+            struct json_object *jtuple = create_json_array();
+            json_object_array_add(jmeasurements, jtuple);
+
+            json_object_array_add(jtuple, create_json_int(timestamp));
+            json_object_array_add(jtuple, create_json_double(value));
+        }
+
+        json_object *jobject = create_json_object();
+        json_object_object_add(jobject, "measurements", jmeasurements);
+        jmeasurements = jobject;
+
+        std::string url = compose_sensor_url(sensor);
+
+        json_object *jresponse = perform_http_post(url, _key, jmeasurements);
+
+        destroy_object(jresponse);
+        destroy_object(jmeasurements);
+
+    } catch (GenericException const& e) {
+        destroy_object(jmeasurements);
+        throw;
+
+    } catch (std::exception const& e) {
+        destroy_object(jmeasurements);
+        throw EnvironmentException(e.what());
+    }
+}
+
+std::vector<Sensor::Ptr> MSGStore::get_sensor_records() {
 
     struct json_object *jobject = NULL;
 
@@ -192,34 +227,11 @@ std::vector<Sensor::Ptr> MSGStore::get_sensors() {
     }
 }
 
-void MSGStore::add_reading(const Sensor::Ptr sensor, timestamp_t timestamp, double value) {
-
-    set_buffers(sensor);
-    _readings_buffer[sensor->uuid()]->insert(reading_t(timestamp, value));
-    Store::flush(false);
-}
-
-void MSGStore::add_readings(const Sensor::Ptr sensor, const readings_t& readings) {
-
-    set_buffers(sensor);
-
-    for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
-        _readings_buffer[sensor->uuid()]->insert(reading_t((*it).first, (*it).second));
-    }
-    Store::flush(false);
-}
-
-void MSGStore::update_readings(const Sensor::Ptr sensor, const readings_t& readings) {
-
-    add_readings(sensor, readings);
-}
-
-readings_t_Ptr MSGStore::get_all_readings(const Sensor::Ptr sensor) {
+readings_t_Ptr MSGStore::get_all_reading_records(const Sensor::Ptr sensor) {
 
     struct json_object *jreadings = NULL;
 
     try {
-        flush(sensor);
         jreadings = get_json_readings(sensor);
 
         int length = json_object_array_length(jreadings);
@@ -248,7 +260,7 @@ readings_t_Ptr MSGStore::get_all_readings(const Sensor::Ptr sensor) {
     }
 }
 
-readings_t_Ptr MSGStore::get_timeframe_readings(const Sensor::Ptr sensor,
+readings_t_Ptr MSGStore::get_timeframe_reading_records(const Sensor::Ptr sensor,
         timestamp_t begin, timestamp_t end) {
 
     //TODO: improve this method
@@ -265,12 +277,11 @@ readings_t_Ptr MSGStore::get_timeframe_readings(const Sensor::Ptr sensor,
     return selected;
 }
 
-unsigned long int MSGStore::get_num_readings(const Sensor::Ptr sensor) {
+unsigned long int MSGStore::get_num_readings_value(const Sensor::Ptr sensor) {
 
     struct json_object *jreadings = NULL;
 
     try {
-        flush(sensor);
         jreadings = get_json_readings(sensor);
         long int num = json_object_array_length(jreadings);
 
@@ -287,12 +298,11 @@ unsigned long int MSGStore::get_num_readings(const Sensor::Ptr sensor) {
     }
 }
 
-reading_t MSGStore::get_last_reading(const Sensor::Ptr sensor) {
+reading_t MSGStore::get_last_reading_record(const Sensor::Ptr sensor) {
 
     json_object *jreadings = NULL;
 
     try {
-        flush(sensor);
         jreadings = get_json_readings(sensor);
 
         int i = json_object_array_length(jreadings) - 1;
@@ -320,64 +330,18 @@ reading_t MSGStore::get_last_reading(const Sensor::Ptr sensor) {
     }
 }
 
-reading_t MSGStore::get_reading(const Sensor::Ptr sensor, timestamp_t timestamp) {
+reading_t MSGStore::get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp) {
 
     //FIXME: make this method more efficient
     klio::readings_t_Ptr readings = get_all_readings(sensor);
 
     std::pair<timestamp_t, double> reading = std::pair<timestamp_t, double>(0, 0);
-    
+
     if (readings->count(timestamp)) {
         reading.first = timestamp;
         reading.second = readings->at(timestamp);
     }
     return reading;
-}
-
-void MSGStore::flush(const Sensor::Ptr sensor) {
-
-    json_object *jmeasurements = NULL;
-
-    try {
-        readings_t_Ptr readings = _readings_buffer[sensor->uuid()];
-
-        if (!readings->empty()) {
-
-            jmeasurements = create_json_array();
-
-            for (readings_cit_t rit = readings->begin(); rit != readings->end(); ++rit) {
-
-                timestamp_t timestamp = (*rit).first;
-                double value = (*rit).second;
-
-                struct json_object *jtuple = create_json_array();
-                json_object_array_add(jmeasurements, jtuple);
-
-                json_object_array_add(jtuple, create_json_int(timestamp));
-                json_object_array_add(jtuple, create_json_double(value));
-            }
-
-            json_object *jobject = create_json_object();
-            json_object_object_add(jobject, "measurements", jmeasurements);
-            jmeasurements = jobject;
-
-            std::string url = compose_sensor_url(sensor);
-
-            json_object *jresponse = perform_http_post(url, _key, jmeasurements);
-            readings->clear();
-
-            destroy_object(jresponse);
-            destroy_object(jmeasurements);
-        }
-
-    } catch (GenericException const& e) {
-        destroy_object(jmeasurements);
-        throw;
-
-    } catch (std::exception const& e) {
-        destroy_object(jmeasurements);
-        throw EnvironmentException(e.what());
-    }
 }
 
 void MSGStore::heartbeat() {
@@ -628,7 +592,7 @@ struct json_object * MSGStore::create_json_object() {
     return jobject;
 }
 
-struct json_object * MSGStore::create_json_string(const std::string & string) {
+struct json_object * MSGStore::create_json_string(const std::string& string) {
 
     json_object *jstring = json_object_new_string(string.c_str());
 

@@ -18,10 +18,9 @@
  * along with libklio. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LIBKLIO_SQLITE3_TRANSACTION_HPP
-#define LIBKLIO_SQLITE3_TRANSACTION_HPP 1
+#ifndef LIBKLIO_TRANSACTION_HPP
+#define LIBKLIO_TRANSACTION_HPP 1
 
-#include <sqlite3.h>
 #include <boost/shared_ptr.hpp>
 #include <libklio/common.hpp>
 
@@ -32,29 +31,31 @@ namespace klio {
     public:
         typedef boost::shared_ptr<Transaction> Ptr;
 
-        Transaction(sqlite3* _db) :
-        _db(_db),
+        Transaction() :
         _pending(false) {
-            start();
         }
 
         virtual ~Transaction() {
-            rollback();
         }
 
-        void commit();
+        const bool pending() const {
+            return _pending;
+        };
+
+        void pending(const bool pending) {
+            _pending = pending;
+        }
+
+        virtual void start();
+        virtual void commit();
+        virtual void rollback();
 
     private:
         Transaction(const Transaction& original);
         Transaction& operator=(const Transaction& rhs);
 
-        void start();
-        void rollback();
-        void log_error(const std::string& operation);
-
-        sqlite3* _db;
         bool _pending;
     };
 };
 
-#endif /* LIBKLIO_SQLITE3_TRANSACTION_HPP */
+#endif /* LIBKLIO_TRANSACTION_HPP */

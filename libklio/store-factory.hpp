@@ -49,9 +49,13 @@ namespace klio {
 
         SQLite3Store::Ptr create_sqlite3_store(const bfs::path& path);
 
-        SQLite3Store::Ptr create_sqlite3_store(const bfs::path& path, bool prepare);
+        SQLite3Store::Ptr create_sqlite3_store(const bfs::path& path, const bool prepare);
+
+        SQLite3Store::Ptr create_sqlite3_store(const bfs::path& path, const bool prepare, const bool auto_commit, const bool auto_flush, const timestamp_t flush_timeout);
 
         SQLite3Store::Ptr open_sqlite3_store(const bfs::path& path);
+
+        SQLite3Store::Ptr open_sqlite3_store(const bfs::path& path, const bool auto_commit, const bool auto_flush, const timestamp_t flush_timeout);
 
 #ifdef ENABLE_MSG        
 
@@ -73,7 +77,7 @@ namespace klio {
                 const std::map<const std::string, const std::string>& write_options);
 
         RocksDBStore::Ptr open_rocksdb_store(const bfs::path& path);
-        
+
         RocksDBStore::Ptr open_rocksdb_store(const bfs::path& path,
                 const std::map<const std::string, const std::string>& db_options,
                 const std::map<const std::string, const std::string>& read_options,

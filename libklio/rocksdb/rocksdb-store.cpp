@@ -26,12 +26,12 @@ void RocksDBStore::open() {
             open_db(true, false, compose_sensor_readings_path(uuid_str));
         }
     }
+    Store::open();
 }
 
 void RocksDBStore::close() {
 
-    Store::flush();
-    clear_buffers();
+    Store::close();
 
     for (std::map<std::string, rocksdb::DB*>::const_iterator it = _db_buffer.begin(); it != _db_buffer.end(); ++it) {
         delete (*it).second;
@@ -75,8 +75,8 @@ void RocksDBStore::initialize() {
 
 void RocksDBStore::dispose() {
 
-    clear_buffers();
     bfs::remove_all(_path);
+    Store::dispose();
 }
 
 const std::string RocksDBStore::str() {
@@ -107,19 +107,7 @@ void RocksDBStore::update_sensor_record(const Sensor::Ptr sensor) {
     put_sensor(false, sensor);
 }
 
-void RocksDBStore::put_sensor(const bool create, const Sensor::Ptr sensor) {
-
-    rocksdb::DB* db = open_db(create, create,
-            compose_sensor_properties_path(sensor->uuid_string()));
-
-    put_value(db, "external_id", sensor->external_id());
-    put_value(db, "name", sensor->name());
-    put_value(db, "description", sensor->description());
-    put_value(db, "unit", sensor->unit());
-    put_value(db, "timezone", sensor->timezone());
-}
-
-std::vector<Sensor::Ptr> RocksDBStore::get_sensors() {
+std::vector<Sensor::Ptr> RocksDBStore::get_sensor_records() {
 
     std::vector<Sensor::Ptr> sensors;
     bfs::directory_iterator end;
@@ -131,54 +119,31 @@ std::vector<Sensor::Ptr> RocksDBStore::get_sensors() {
         ss << it->path().filename().string();
         ss >> uuid;
 
-        sensors.push_back(load_sensor(uuid));
+        const std::string uuid_str = boost::uuids::to_string(uuid);
+        const std::string db_path = compose_sensor_properties_path(uuid_str);
+        rocksdb::DB* db = _db_buffer[db_path];
+
+        if (db) {
+            SensorFactory::Ptr factory(new SensorFactory());
+            Sensor::Ptr sensor = factory->createSensor(uuid,
+                    get_value(db, "external_id"),
+                    get_value(db, "name"),
+                    get_value(db, "description"),
+                    get_value(db, "unit"),
+                    get_value(db, "timezone"));
+            
+            sensors.push_back(sensor);
+
+        } else {
+            std::ostringstream err;
+            err << "Sensor " << uuid_str << " could not be found.";
+            throw StoreException(err.str());
+        }
     }
     return sensors;
 }
 
-Sensor::Ptr RocksDBStore::load_sensor(const Sensor::uuid_t& uuid) {
-
-    const std::string uuid_str = boost::uuids::to_string(uuid);
-    const std::string db_path = compose_sensor_properties_path(uuid_str);
-    rocksdb::DB* db = _db_buffer[db_path];
-
-    if (db) {
-        SensorFactory::Ptr factory(new SensorFactory());
-        return factory->createSensor(uuid,
-                get_value(db, "external_id"),
-                get_value(db, "name"),
-                get_value(db, "description"),
-                get_value(db, "unit"),
-                get_value(db, "timezone"));
-
-    } else {
-        std::ostringstream err;
-        err << "Sensor " << uuid_str << " could not be found.";
-        throw StoreException(err.str());
-    }
-}
-
-void RocksDBStore::add_reading(const Sensor::Ptr sensor, timestamp_t timestamp, double value) {
-
-    rocksdb::DB* db = open_db(true, false,
-            compose_sensor_readings_path(sensor->uuid_string()));
-
-    put_value(db, std::to_string(timestamp), std::to_string(value));
-}
-
-void RocksDBStore::add_readings(const Sensor::Ptr sensor, const readings_t& readings) {
-
-    for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
-        add_reading(sensor, (*it).first, (*it).second);
-    }
-}
-
-void RocksDBStore::update_readings(const Sensor::Ptr sensor, const readings_t& readings) {
-
-    add_readings(sensor, readings);
-}
-
-readings_t_Ptr RocksDBStore::get_all_readings(const Sensor::Ptr sensor) {
+readings_t_Ptr RocksDBStore::get_all_reading_records(const Sensor::Ptr sensor) {
 
     readings_t_Ptr readings(new readings_t());
 
@@ -202,7 +167,7 @@ readings_t_Ptr RocksDBStore::get_all_readings(const Sensor::Ptr sensor) {
     return readings;
 }
 
-readings_t_Ptr RocksDBStore::get_timeframe_readings(const Sensor::Ptr sensor, timestamp_t begin, timestamp_t end) {
+readings_t_Ptr RocksDBStore::get_timeframe_reading_records(const Sensor::Ptr sensor, const timestamp_t begin, const timestamp_t end) {
 
     readings_t_Ptr readings(new readings_t());
 
@@ -230,13 +195,13 @@ readings_t_Ptr RocksDBStore::get_timeframe_readings(const Sensor::Ptr sensor, ti
     return readings;
 }
 
-unsigned long int RocksDBStore::get_num_readings(const Sensor::Ptr sensor) {
+unsigned long int RocksDBStore::get_num_readings_value(const Sensor::Ptr sensor) {
 
     //TODO: make this method more efficient
     return get_all_readings(sensor)->size();
 }
 
-reading_t RocksDBStore::get_last_reading(const Sensor::Ptr sensor) {
+reading_t RocksDBStore::get_last_reading_record(const Sensor::Ptr sensor) {
 
     rocksdb::DB* db = open_db(true, false,
             compose_sensor_readings_path(sensor->uuid_string()));
@@ -250,7 +215,7 @@ reading_t RocksDBStore::get_last_reading(const Sensor::Ptr sensor) {
     return std::pair<timestamp_t, double>(time_converter->convert_from_epoch(atol(epoch)), atof(value));
 }
 
-reading_t RocksDBStore::get_reading(const Sensor::Ptr sensor, timestamp_t timestamp) {
+reading_t RocksDBStore::get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp) {
 
     //FIXME: make this method more efficient
     klio::readings_t_Ptr readings = get_all_readings(sensor);
@@ -262,6 +227,22 @@ reading_t RocksDBStore::get_reading(const Sensor::Ptr sensor, timestamp_t timest
         reading.second = readings->at(timestamp);
     }
     return reading;
+}
+
+void RocksDBStore::add_reading_records(const Sensor::Ptr sensor, const readings_t& readings) {
+
+    for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
+
+        rocksdb::DB* db = open_db(true, false,
+                compose_sensor_readings_path(sensor->uuid_string()));
+
+        put_value(db, std::to_string((*it).first), std::to_string((*it).second));
+    }
+}
+
+void RocksDBStore::update_reading_records(const Sensor::Ptr sensor, const readings_t& readings) {
+
+    add_reading_records(sensor, readings);
 }
 
 void RocksDBStore::clear_buffers() {
@@ -305,6 +286,18 @@ void RocksDBStore::remove_db(const std::string& db_path) {
 
     close_db(db_path);
     bfs::remove_all(db_path);
+}
+
+void RocksDBStore::put_sensor(const bool create, const Sensor::Ptr sensor) {
+
+    rocksdb::DB* db = open_db(create, create,
+            compose_sensor_properties_path(sensor->uuid_string()));
+
+    put_value(db, "external_id", sensor->external_id());
+    put_value(db, "name", sensor->name());
+    put_value(db, "description", sensor->description());
+    put_value(db, "unit", sensor->unit());
+    put_value(db, "timezone", sensor->timezone());
 }
 
 void RocksDBStore::put_value(rocksdb::DB* db, const std::string& key, const std::string& value) {

@@ -17,8 +17,9 @@
  * along with libklio. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#include "time.hpp"
+
 #include <sstream>
+#include "time.hpp"
 
 
 using namespace klio;
@@ -36,14 +37,13 @@ timestamp_t TimeConverter::get_timestamp() {
 }
 
 long TimeConverter::convert_to_epoch(timestamp_t time) {
+    //TODO
     return time;
 }
 
 timestamp_t TimeConverter::convert_from_epoch(long epoch) {
-
+    //TODO
     return epoch;
-    //return reinterpret_cast<timestamp_t> (epoch);
-    //return std::time(&epoch); 
 }
 
 std::string TimeConverter::str_local(timestamp_t time) {

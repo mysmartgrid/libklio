@@ -420,12 +420,10 @@ readings_t_Ptr SQLite3Store::get_readings_records(sqlite3_stmt* stmt) {
 
     while (SQLITE_ROW == sqlite3_step(stmt)) {
 
-        int epoch = sqlite3_column_int(stmt, 0);
-        double value = sqlite3_column_double(stmt, 1);
         readings->insert(
                 std::pair<timestamp_t, double>(
-                time_converter->convert_from_epoch(epoch),
-                value
+                time_converter->convert_from_epoch(sqlite3_column_int(stmt, 0)),
+                sqlite3_column_double(stmt, 1)
                 ));
     }
     return readings;

@@ -898,6 +898,7 @@ BOOST_AUTO_TEST_CASE(check_sqlite3_store_performance) {
 
             elapsed_time = time_after - time_before;
             seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << std::endl << "Performance Test" << std::endl;
             std::cout << "Performance Test - SQLite3Store - " <<
                     "Get " << num_readings << " readings:                          "
                     << seconds << " s" << std::endl;

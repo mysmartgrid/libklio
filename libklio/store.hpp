@@ -93,19 +93,18 @@ namespace klio {
         static const TimeConverter::Ptr time_converter;
 
         virtual Transaction::Ptr create_transaction();
-        Transaction::Ptr get_transaction();
-        virtual void start_inner_transaction(const Transaction::Ptr transaction);
-        virtual void commit_inner_transaction(const Transaction::Ptr transaction);
+        Transaction::Ptr auto_start_transaction();
+        virtual void auto_commit_transaction(const Transaction::Ptr transaction);
 
         virtual void add_sensor_record(const Sensor::Ptr sensor) = 0;
         virtual void remove_sensor_record(const Sensor::Ptr sensor) = 0;
         virtual void update_sensor_record(const Sensor::Ptr sensor) = 0;
-        virtual void add_readings_records(const Sensor::Ptr sensor, const readings_t& readings) = 0;
-        virtual void update_readings_records(const Sensor::Ptr sensor, const readings_t& readings) = 0;
+        virtual void add_reading_records(const Sensor::Ptr sensor, const readings_t& readings) = 0;
+        virtual void update_reading_records(const Sensor::Ptr sensor, const readings_t& readings) = 0;
 
-        virtual std::vector<Sensor::Ptr> get_sensors_records() = 0;
-        virtual readings_t_Ptr get_all_readings_records(const Sensor::Ptr sensor) = 0;
-        virtual readings_t_Ptr get_timeframe_readings_records(const Sensor::Ptr sensor, const timestamp_t begin, const timestamp_t end) = 0;
+        virtual std::vector<Sensor::Ptr> get_sensor_records() = 0;
+        virtual readings_t_Ptr get_all_reading_records(const Sensor::Ptr sensor) = 0;
+        virtual readings_t_Ptr get_timeframe_reading_records(const Sensor::Ptr sensor, const timestamp_t begin, const timestamp_t end) = 0;
         virtual reading_t get_last_reading_record(const Sensor::Ptr sensor) = 0;
         virtual reading_t get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp) = 0;
         virtual unsigned long int get_num_readings_value(const Sensor::Ptr sensor) = 0;
@@ -132,17 +131,18 @@ namespace klio {
         timestamp_t _last_flush;
         Transaction::Ptr _transaction;
 
-        boost::unordered_map<const Sensor::uuid_t, cached_operations_type_t_Ptr> _readings_operations_buffer;
+        boost::unordered_map<const Sensor::uuid_t, cached_operations_type_t_Ptr> _reading_operations_buffer;
         boost::unordered_map<const Sensor::uuid_t, Sensor::Ptr> _sensors_buffer;
         boost::unordered_map<std::string, Sensor::uuid_t> _external_ids_buffer;
+        
+        Transaction::Ptr get_transaction();
 
         void add_readings(const Sensor::Ptr sensor, const readings_t& readings, const cached_operation_type_t operation_type);
-        void flush_readings(const Sensor::Ptr sensor);
         readings_t_Ptr get_buffered_readings(const Sensor::Ptr sensor, const cached_operation_type_t operation_type);
 
+        void auto_flush();
         void flush(const bool force);
         virtual void flush(const Sensor::Ptr sensor);
-        void flush(const Sensor::Ptr sensor, const bool force);
         void set_buffers(const Sensor::Ptr sensor);
         void clear_buffers(const Sensor::Ptr sensor);
     };

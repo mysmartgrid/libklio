@@ -193,8 +193,7 @@ void SQLite3Store::upgrade() {
         sqlite3_bind_text(stmt, 1, "version", -1, SQLITE_TRANSIENT);
         sqlite3_bind_text(stmt, 2, info->getVersion().c_str(), -1, SQLITE_TRANSIENT);
 
-        Transaction::Ptr transaction = get_transaction();
-        start_inner_transaction(transaction);
+        const Transaction::Ptr transaction = auto_start_transaction();
 
         execute(stmt, SQLITE_DONE);
         finalize(&stmt);
@@ -213,7 +212,7 @@ void SQLite3Store::upgrade() {
         execute(stmt, SQLITE_DONE);
         finalize(&stmt);
 
-        commit_inner_transaction(transaction);
+        auto_commit_transaction(transaction);
 
     } catch (std::exception const& e) {
         finalize(&stmt);
@@ -359,7 +358,7 @@ void SQLite3Store::update_sensor_record(const Sensor::Ptr sensor) {
     reset(_update_sensor_stmt);
 }
 
-std::vector<Sensor::Ptr> SQLite3Store::get_sensors_records() {
+std::vector<Sensor::Ptr> SQLite3Store::get_sensor_records() {
 
     std::vector<Sensor::Ptr> sensors;
 
@@ -376,7 +375,7 @@ std::vector<Sensor::Ptr> SQLite3Store::get_sensors_records() {
     return sensors;
 }
 
-readings_t_Ptr SQLite3Store::get_all_readings_records(const Sensor::Ptr sensor) {
+readings_t_Ptr SQLite3Store::get_all_reading_records(const Sensor::Ptr sensor) {
 
     std::ostringstream oss;
     oss << "SELECT timestamp, value FROM '" << sensor->uuid_string() << "'";
@@ -394,7 +393,7 @@ readings_t_Ptr SQLite3Store::get_all_readings_records(const Sensor::Ptr sensor) 
     return readings;
 }
 
-readings_t_Ptr SQLite3Store::get_timeframe_readings_records(const Sensor::Ptr sensor, const timestamp_t begin, const timestamp_t end) {
+readings_t_Ptr SQLite3Store::get_timeframe_reading_records(const Sensor::Ptr sensor, const timestamp_t begin, const timestamp_t end) {
 
     std::ostringstream oss;
     oss << "SELECT timestamp, value FROM '" << sensor->uuid_string() << "' WHERE timestamp BETWEEN ? AND ?";
@@ -500,14 +499,14 @@ reading_t SQLite3Store::get_reading_record(const Sensor::Ptr sensor, const times
     return reading;
 }
 
-void SQLite3Store::add_readings_records(const Sensor::Ptr sensor, const readings_t& readings) {
+void SQLite3Store::add_reading_records(const Sensor::Ptr sensor, const readings_t& readings) {
 
     for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
         add_reading_record(sensor, (*it).first, (*it).second, "INSERT");
     }
 }
 
-void SQLite3Store::update_readings_records(const Sensor::Ptr sensor, const readings_t& readings) {
+void SQLite3Store::update_reading_records(const Sensor::Ptr sensor, const readings_t& readings) {
 
     for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
         add_reading_record(sensor, (*it).first, (*it).second, "INSERT OR REPLACE");

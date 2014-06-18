@@ -107,7 +107,7 @@ void RocksDBStore::update_sensor_record(const Sensor::Ptr sensor) {
     put_sensor(false, sensor);
 }
 
-std::vector<Sensor::Ptr> RocksDBStore::get_sensors_records() {
+std::vector<Sensor::Ptr> RocksDBStore::get_sensor_records() {
 
     std::vector<Sensor::Ptr> sensors;
     bfs::directory_iterator end;
@@ -143,7 +143,7 @@ std::vector<Sensor::Ptr> RocksDBStore::get_sensors_records() {
     return sensors;
 }
 
-readings_t_Ptr RocksDBStore::get_all_readings_records(const Sensor::Ptr sensor) {
+readings_t_Ptr RocksDBStore::get_all_reading_records(const Sensor::Ptr sensor) {
 
     readings_t_Ptr readings(new readings_t());
 
@@ -167,7 +167,7 @@ readings_t_Ptr RocksDBStore::get_all_readings_records(const Sensor::Ptr sensor) 
     return readings;
 }
 
-readings_t_Ptr RocksDBStore::get_timeframe_readings_records(const Sensor::Ptr sensor, const timestamp_t begin, const timestamp_t end) {
+readings_t_Ptr RocksDBStore::get_timeframe_reading_records(const Sensor::Ptr sensor, const timestamp_t begin, const timestamp_t end) {
 
     readings_t_Ptr readings(new readings_t());
 
@@ -229,7 +229,7 @@ reading_t RocksDBStore::get_reading_record(const Sensor::Ptr sensor, const times
     return reading;
 }
 
-void RocksDBStore::add_readings_records(const Sensor::Ptr sensor, const readings_t& readings) {
+void RocksDBStore::add_reading_records(const Sensor::Ptr sensor, const readings_t& readings) {
 
     for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
 
@@ -240,9 +240,9 @@ void RocksDBStore::add_readings_records(const Sensor::Ptr sensor, const readings
     }
 }
 
-void RocksDBStore::update_readings_records(const Sensor::Ptr sensor, const readings_t& readings) {
+void RocksDBStore::update_reading_records(const Sensor::Ptr sensor, const readings_t& readings) {
 
-    add_readings_records(sensor, readings);
+    add_reading_records(sensor, readings);
 }
 
 void RocksDBStore::clear_buffers() {

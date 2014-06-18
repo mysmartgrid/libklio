@@ -147,12 +147,12 @@ void MSGStore::update_sensor_record(const Sensor::Ptr sensor) {
     }
 }
 
-void MSGStore::add_readings_records(const Sensor::Ptr sensor, const readings_t& readings) {
+void MSGStore::add_reading_records(const Sensor::Ptr sensor, const readings_t& readings) {
 
-    update_readings_records(sensor, readings);
+    update_reading_records(sensor, readings);
 }
 
-void MSGStore::update_readings_records(const Sensor::Ptr sensor, const readings_t& readings) {
+void MSGStore::update_reading_records(const Sensor::Ptr sensor, const readings_t& readings) {
 
     json_object *jmeasurements = NULL;
 
@@ -192,7 +192,7 @@ void MSGStore::update_readings_records(const Sensor::Ptr sensor, const readings_
     }
 }
 
-std::vector<Sensor::Ptr> MSGStore::get_sensors_records() {
+std::vector<Sensor::Ptr> MSGStore::get_sensor_records() {
 
     struct json_object *jobject = NULL;
 
@@ -227,7 +227,7 @@ std::vector<Sensor::Ptr> MSGStore::get_sensors_records() {
     }
 }
 
-readings_t_Ptr MSGStore::get_all_readings_records(const Sensor::Ptr sensor) {
+readings_t_Ptr MSGStore::get_all_reading_records(const Sensor::Ptr sensor) {
 
     struct json_object *jreadings = NULL;
 
@@ -260,7 +260,7 @@ readings_t_Ptr MSGStore::get_all_readings_records(const Sensor::Ptr sensor) {
     }
 }
 
-readings_t_Ptr MSGStore::get_timeframe_readings_records(const Sensor::Ptr sensor,
+readings_t_Ptr MSGStore::get_timeframe_reading_records(const Sensor::Ptr sensor,
         timestamp_t begin, timestamp_t end) {
 
     //TODO: improve this method

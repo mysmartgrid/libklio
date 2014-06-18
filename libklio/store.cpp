@@ -51,15 +51,6 @@ void Store::rollback_transaction() {
     prepare();
 }
 
-Transaction::Ptr Store::get_transaction() {
-
-    if (_auto_commit) {
-        return create_transaction();
-    } else {
-        return _transaction;
-    }
-}
-
 Transaction::Ptr Store::create_transaction() {
 
     //Default
@@ -68,7 +59,7 @@ Transaction::Ptr Store::create_transaction() {
 
 Transaction::Ptr Store::auto_start_transaction() {
 
-    const Transaction::Ptr transaction = get_transaction();
+    const Transaction::Ptr transaction = _auto_commit ? create_transaction() : _transaction;
 
     if (_auto_commit) {
         transaction->start();

@@ -705,7 +705,7 @@ BOOST_AUTO_TEST_CASE(check_sqlite3_store_performance) {
                 "no prepared statements, manual commit" << std::endl;
 
         time_before = boost::posix_time::microsec_clock::local_time();
-        store = store_factory->create_sqlite3_store(db, false, false, true, 600);
+        store = store_factory->create_sqlite3_store(db, false, false, false, 0);
         time_after = boost::posix_time::microsec_clock::local_time();
 
         try {
@@ -719,11 +719,12 @@ BOOST_AUTO_TEST_CASE(check_sqlite3_store_performance) {
             
             std::cout << std::endl << "Performance Test" << std::endl;
             std::cout << std::endl << "Performance Test - SQLite3Store - " <<
-                "prepared statements, manual commit" << std::endl;
+                "prepared statements, manual commit, manual flushing" << std::endl;
 
-            //Manual Commit
+
+            //Manual Commit, Manual flushing
             time_before = boost::posix_time::microsec_clock::local_time();
-            store = store_factory->create_sqlite3_store(db, true, false, true, 600);
+            store = store_factory->create_sqlite3_store(db, true, false, false, 0);
             time_after = boost::posix_time::microsec_clock::local_time();
 
             elapsed_time = time_after - time_before;
@@ -799,6 +800,16 @@ BOOST_AUTO_TEST_CASE(check_sqlite3_store_performance) {
                     "Add " << num_readings << " readings:                          "
                     << seconds << " s" << std::endl;
 
+            time_before = boost::posix_time::microsec_clock::local_time();
+            store->flush();
+            time_after = boost::posix_time::microsec_clock::local_time();
+
+            elapsed_time = time_after - time_before;
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << std::endl << "Performance Test" << std::endl;
+            std::cout << "Performance Test - SQLite3Store - " <<
+                    "Flushing " << num_readings << " readings:                     "
+                    << seconds << " s" << std::endl;
 
             time_before = boost::posix_time::microsec_clock::local_time();
             store->commit_transaction();
@@ -813,13 +824,13 @@ BOOST_AUTO_TEST_CASE(check_sqlite3_store_performance) {
             store->dispose();
 
 
-            //Automatic commit
+            //Automatic commit, Auto flushing
             std::cout << std::endl << "Performance Test" << std::endl;
             std::cout << std::endl << "Performance Test - SQLite3Store - " <<
-                "prepared statements, auto commit" << std::endl;
+                "prepared statements, auto commit, auto flushing" << std::endl;
 
             time_before = boost::posix_time::microsec_clock::local_time();
-            store = store_factory->create_sqlite3_store(db, true, true, true, 600);
+            store = store_factory->create_sqlite3_store(db, true, true, true, 0);
             time_after = boost::posix_time::microsec_clock::local_time();
 
             elapsed_time = time_after - time_before;
@@ -888,6 +899,7 @@ BOOST_AUTO_TEST_CASE(check_sqlite3_store_performance) {
             
             elapsed_time = time_after - time_before;
             seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << std::endl << "Performance Test" << std::endl;
             std::cout << "Performance Test - SQLite3Store - " <<
                     "Get sensors by external id:                 "
                     << seconds << " s" << std::endl;
@@ -898,7 +910,6 @@ BOOST_AUTO_TEST_CASE(check_sqlite3_store_performance) {
 
             elapsed_time = time_after - time_before;
             seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
-            std::cout << std::endl << "Performance Test" << std::endl;
             std::cout << "Performance Test - SQLite3Store - " <<
                     "Get " << num_readings << " readings:                          "
                     << seconds << " s" << std::endl;

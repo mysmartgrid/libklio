@@ -37,7 +37,7 @@ BOOST_AUTO_TEST_CASE(check_add_retrieve_reading) {
 
         klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
         bfs::path db(TEST_DB1_FILE);
-        klio::Store::Ptr store(store_factory->create_sqlite3_store(db));
+        klio::Store::Ptr store(store_factory->create_sqlite3_store(db, true, true, true, 0));
         std::cout << "Created: " << store->str() << std::endl;
 
         try {
@@ -84,7 +84,6 @@ BOOST_AUTO_TEST_CASE(check_add_retrieve_reading) {
             try {
                 reading = 23;
                 store->add_reading(sensor, timestamp, reading);
-                store->flush();//FIXME: get rid of this flushing
 
                 BOOST_FAIL("A DataFormatException must be thrown when a duplicated reading is added.");
 

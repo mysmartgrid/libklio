@@ -35,7 +35,7 @@ namespace klio {
     public:
         typedef boost::shared_ptr<SQLite3Store> Ptr;
 
-        SQLite3Store(const bfs::path& path, bool auto_commit, bool auto_flush, const timestamp_t flush_timeout) :
+        SQLite3Store(const bfs::path& path, const bool auto_commit, const bool auto_flush, const timestamp_t flush_timeout) :
         Store(auto_commit, auto_flush, flush_timeout),
         _path(path),
         _db(NULL),
@@ -85,7 +85,7 @@ namespace klio {
         bool has_table(const std::string& name);
         bool has_column(const std::string& table, const std::string& column);
 
-        void add_reading_record(const Sensor::Ptr sensor, timestamp_t timestamp, const double value, const std::string& operation);
+        void add_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value, const std::string& operation);
         readings_t_Ptr get_readings_records(sqlite3_stmt* stmt);
 
         sqlite3_stmt *prepare(const std::string& stmt_str);

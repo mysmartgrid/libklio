@@ -127,63 +127,53 @@ void Store::update_sensor(const Sensor::Ptr sensor) {
 void Store::add_reading(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value) {
 
     LOG("Adding to sensor: " << sensor->str() << " time=" << timestamp << " value=" << value);
-    
-    //Check if sensor exists
-    get_sensor(sensor->uuid());
 
-    cached_operations_type_t_Ptr cached_operations = _readings_operations_buffer[sensor->uuid()];
-    klio::readings_t_Ptr cached_readings = cached_operations->at(INSERT_OPERATION);
+    klio::readings_t_Ptr cached_readings = get_buffered_readings(sensor, INSERT_OPERATION);
     cached_readings->insert(reading_t(timestamp, value));
-    
-    Transaction::Ptr transaction = get_transaction();
-    start_inner_transaction(transaction);
-    flush(false);
-    commit_inner_transaction(transaction);
+    flush_readings(sensor);
 }
 
 void Store::add_readings(const Sensor::Ptr sensor, const readings_t& readings) {
 
     LOG("Adding " << readings->size() << " readings to sensor: " << sensor->str());
 
-    //Check if sensor exists
-    get_sensor(sensor->uuid());
-
-    cached_operations_type_t_Ptr cached_operations = _readings_operations_buffer[sensor->uuid()];
-    klio::readings_t_Ptr cached_readings = cached_operations->at(INSERT_OPERATION);
-
-    for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
-
-        cached_readings->insert(reading_t((*it).first, (*it).second));
-    }
-    
-    Transaction::Ptr transaction = get_transaction();
-    start_inner_transaction(transaction);
-    flush(false);
-    commit_inner_transaction(transaction);
+    add_readings(sensor, readings, INSERT_OPERATION);
 }
 
 void Store::update_readings(const Sensor::Ptr sensor, const readings_t& readings) {
 
     LOG("Updating " << readings->size() << " readings of sensor: " << sensor->str());
 
+    add_readings(sensor, readings, UPDATE_OPERATION);
+}
+
+void Store::add_readings(const Sensor::Ptr sensor, const readings_t& readings, const cached_operation_type_t operation_type) {
+
     if (!readings.empty()) {
 
-        //Check if sensor exists
-        get_sensor(sensor->uuid());
-
-        cached_operations_type_t_Ptr cached_operations = _readings_operations_buffer[sensor->uuid()];
-        klio::readings_t_Ptr cached_readings = cached_operations->at(UPDATE_OPERATION);
-
+        klio::readings_t_Ptr cached_readings = get_buffered_readings(sensor, operation_type);
         for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
-
             cached_readings->insert(reading_t((*it).first, (*it).second));
         }
-
-        Transaction::Ptr transaction = get_transaction();
-        start_inner_transaction(transaction);
-        flush(false);
-        commit_inner_transaction(transaction);
+        flush_readings(sensor);
     }
+}
+
+void Store::flush_readings(const Sensor::Ptr sensor) {
+
+    Transaction::Ptr transaction = get_transaction();
+    start_inner_transaction(transaction);
+    flush(sensor, false);
+    commit_inner_transaction(transaction);
+}
+
+readings_t_Ptr Store::get_buffered_readings(const Sensor::Ptr sensor, const cached_operation_type_t operation_type) {
+
+    //Check if sensor exists
+    get_sensor(sensor->uuid());
+
+    cached_operations_type_t_Ptr cached_operations = _readings_operations_buffer[sensor->uuid()];
+    return cached_operations->at(operation_type);
 }
 
 Sensor::Ptr Store::get_sensor(const Sensor::uuid_t& uuid) {
@@ -368,10 +358,14 @@ void Store::sync_sensors(const Store::Ptr store) {
 
     const std::vector<Sensor::Ptr> sensors = store->get_sensors();
 
-    for (std::vector<Sensor::Ptr>::const_iterator sensor = sensors.begin(); sensor != sensors.end(); ++sensor) {
+    Transaction::Ptr transaction = get_transaction();
+    start_inner_transaction(transaction);
 
-        add_sensor(*sensor);
+    for (std::vector<Sensor::Ptr>::const_iterator sensor = sensors.begin(); sensor != sensors.end(); ++sensor) {
+        add_sensor_record(*sensor);
+        set_buffers(*sensor);
     }
+    commit_inner_transaction(transaction);
 }
 
 void Store::prepare() {
@@ -388,10 +382,11 @@ void Store::flush() {
     flush(true);
 }
 
-void Store::flush(bool force) {
+void Store::flush(const bool force) {
 
-    timestamp_t now = time_converter->get_timestamp();
+    const timestamp_t now = time_converter->get_timestamp();
 
+    //FIXME: merge this function with flush(sensor, force)
     if (force || (_auto_flush && now - _last_flush >= _flush_timeout)) {
 
         for (boost::unordered_map<Sensor::uuid_t, Sensor::Ptr>::const_iterator it = _sensors_buffer.begin(); it != _sensors_buffer.end(); ++it) {
@@ -418,6 +413,15 @@ void Store::flush(const Sensor::Ptr sensor) {
     }
 }
 
+void Store::flush(const Sensor::Ptr sensor, const bool force) {
+
+    const timestamp_t now = time_converter->get_timestamp();
+
+    if (force || (_auto_flush && now - _last_flush >= _flush_timeout)) {
+        flush(sensor);
+    }
+}
+
 void Store::set_buffers(const Sensor::Ptr sensor) {
 
     if (_external_ids_buffer.count(sensor->external_id()) > 0) {
@@ -430,15 +434,15 @@ void Store::set_buffers(const Sensor::Ptr sensor) {
             _readings_operations_buffer.erase(other_uuid);
         }
     }
-    
+
     if (_readings_operations_buffer.count(sensor->uuid()) == 0) {
-        
+
         cached_operations_type_t_Ptr cached_operations = cached_operations_type_t_Ptr(new cached_operations_type_t());
         cached_operations->insert(cached_readings_type_t(INSERT_OPERATION, readings_t_Ptr(new readings_t())));
         cached_operations->insert(cached_readings_type_t(UPDATE_OPERATION, readings_t_Ptr(new readings_t())));
         _readings_operations_buffer[sensor->uuid()] = cached_operations;
     }
-    
+
     _sensors_buffer[sensor->uuid()] = sensor;
     _external_ids_buffer[sensor->external_id()] = sensor->uuid();
 }
@@ -451,7 +455,7 @@ void Store::clear_buffers(const Sensor::Ptr sensor) {
 }
 
 void Store::clear_buffers() {
-    
+
     _sensors_buffer.clear();
     _external_ids_buffer.clear();
     _readings_operations_buffer.clear();

@@ -514,7 +514,7 @@ void SQLite3Store::update_readings_records(const Sensor::Ptr sensor, const readi
     }
 }
 
-void SQLite3Store::add_reading_record(klio::Sensor::Ptr sensor, const timestamp_t timestamp, const double value, const std::string& operation) {
+void SQLite3Store::add_reading_record(const klio::Sensor::Ptr sensor, const timestamp_t timestamp, const double value, const std::string& operation) {
 
     std::ostringstream oss;
     oss << operation << " INTO '" << sensor->uuid_string() << "' (timestamp, value) VALUES (?, ?)";

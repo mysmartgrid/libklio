@@ -132,12 +132,17 @@ namespace klio {
         timestamp_t _last_flush;
         Transaction::Ptr _transaction;
 
-        boost::unordered_map<Sensor::uuid_t, cached_operations_type_t_Ptr> _readings_operations_buffer;
-        boost::unordered_map<Sensor::uuid_t, Sensor::Ptr> _sensors_buffer;
+        boost::unordered_map<const Sensor::uuid_t, cached_operations_type_t_Ptr> _readings_operations_buffer;
+        boost::unordered_map<const Sensor::uuid_t, Sensor::Ptr> _sensors_buffer;
         boost::unordered_map<std::string, Sensor::uuid_t> _external_ids_buffer;
 
-        void flush(bool force);
+        void add_readings(const Sensor::Ptr sensor, const readings_t& readings, const cached_operation_type_t operation_type);
+        void flush_readings(const Sensor::Ptr sensor);
+        readings_t_Ptr get_buffered_readings(const Sensor::Ptr sensor, const cached_operation_type_t operation_type);
+
+        void flush(const bool force);
         virtual void flush(const Sensor::Ptr sensor);
+        void flush(const Sensor::Ptr sensor, const bool force);
         void set_buffers(const Sensor::Ptr sensor);
         void clear_buffers(const Sensor::Ptr sensor);
     };

@@ -41,7 +41,6 @@ void SQLite3Store::close() {
 
     if (_db != NULL) {
 
-        Store::close();
         _insert_sensor_stmt = NULL;
         _remove_sensor_stmt = NULL;
         _update_sensor_stmt = NULL;
@@ -55,7 +54,7 @@ void SQLite3Store::close() {
             sqlite3_stmt* stmt = (*it).second;
             finalize(&stmt);
         }
-        _statements.clear();
+        Store::close();
 
         sqlite3_close(_db);
         _db = NULL;
@@ -530,9 +529,15 @@ void SQLite3Store::add_reading_record(const Sensor::Ptr sensor, const timestamp_
     }
 }
 
+void SQLite3Store::clear_buffers() {
+
+    Store::clear_buffers();
+    _statements.clear();
+}
+
 sqlite3_stmt *SQLite3Store::prepare(const std::string& stmt_str) {
 
-    sqlite3_stmt* stmt;
+    sqlite3_stmt* stmt = NULL;
 
     int rc = sqlite3_prepare_v2(
             _db, //Database handle
@@ -554,10 +559,15 @@ sqlite3_stmt *SQLite3Store::prepare(const std::string& stmt_str) {
 
 sqlite3_stmt *SQLite3Store::get_statement(const std::string& sql) {
 
-    if (_statements.count(sql) == 0) {
-        _statements[sql] = prepare(sql);
+    const boost::unordered_map<const std::string, sqlite3_stmt*>::const_iterator found = _statements.find(sql);
+
+    if (found == _statements.end()) {
+        sqlite3_stmt* stmt = prepare(sql);
+        _statements[sql] = stmt;
+        return stmt;
+    } else {
+        return found->second;
     }
-    return _statements[sql];
 }
 
 int SQLite3Store::execute(sqlite3_stmt *stmt, const int expected_code) {

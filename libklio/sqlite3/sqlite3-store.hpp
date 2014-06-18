@@ -77,6 +77,8 @@ namespace klio {
         unsigned long int get_num_readings_value(const Sensor::Ptr sensor);
         reading_t get_last_reading_record(const Sensor::Ptr sensor);
         reading_t get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp);
+        
+        void clear_buffers();
 
     private:
         SQLite3Store(const SQLite3Store& original);

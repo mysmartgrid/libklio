@@ -6,38 +6,39 @@ using namespace klio;
 
 void SQLite3Transaction::start() {
 
-    if (!pending() && sqlite3_exec(_db, "BEGIN", 0, 0, 0) == SQLITE_OK) {
+    if (pending()) {
+        LOG("Transaction is already started.");
+
+    } else if (sqlite3_exec(_db, "BEGIN", 0, 0, 0) == SQLITE_OK) {
         pending(true);
 
     } else {
-        log_error("begin");
+        LOG("Can't start transaction: " << sqlite3_errmsg(_db));
     }
 }
 
 void SQLite3Transaction::commit() {
 
-    if (pending() && sqlite3_exec(_db, "COMMIT", 0, 0, 0) == SQLITE_OK) {
+    if (!pending()) {
+        LOG("Transaction is not started.");
+
+    } else if (sqlite3_exec(_db, "COMMIT", 0, 0, 0) == SQLITE_OK) {
         pending(false);
-        
+
     } else {
-        log_error("commit");
-        rollback();
+        LOG("Can't commit transaction: " << sqlite3_errmsg(_db));
     }
 }
 
 void SQLite3Transaction::rollback() {
 
-    if (pending() && sqlite3_exec(_db, "ROLLBACK", 0, 0, 0) == SQLITE_OK) {
+    if (!pending()) {
+        LOG("Transaction is not started.");
+
+    } else if (sqlite3_exec(_db, "ROLLBACK", 0, 0, 0) == SQLITE_OK) {
         pending(false);
-        
+
     } else {
-        log_error("rollback");
+        LOG("Can't rollback transaction: " << sqlite3_errmsg(_db));
     }
-}
-
-void SQLite3Transaction::log_error(const std::string& operation) {
-
-    std::ostringstream oss;
-    oss << "Can't " << operation << " transaction: " << sqlite3_errmsg(_db);
-    LOG(oss.str());
 }

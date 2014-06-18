@@ -48,8 +48,6 @@ namespace klio {
         SQLite3Transaction(const SQLite3Transaction& original);
         SQLite3Transaction& operator=(const SQLite3Transaction& rhs);
 
-        void log_error(const std::string& operation);
-
         sqlite3* _db;
     };
 };

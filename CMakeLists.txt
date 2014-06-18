@@ -15,7 +15,7 @@ set(CMAKE_VERBOSE_MAKEFILE true)
 
 set(V_MAJOR 0)
 set(V_MINOR 5)
-set(V_PATCH 1)
+set(V_PATCH 2)
 
 # use ctest
 include(CTest)

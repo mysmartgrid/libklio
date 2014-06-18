@@ -155,7 +155,7 @@ readings_t_Ptr Store::get_buffered_readings(const Sensor::Ptr sensor, const cach
     //Check if sensor exists
     get_sensor(sensor->uuid());
 
-    cached_operations_type_t_Ptr cached_operations = _reading_operations_buffer[sensor->uuid()];
+    cached_reading_operations_type_t_Ptr cached_operations = _reading_operations_buffer[sensor->uuid()];
     return cached_operations->at(operation_type);
 }
 
@@ -381,7 +381,7 @@ void Store::flush_all() {
 
 void Store::flush(const Sensor::Ptr sensor) {
 
-    boost::unordered_map<const Sensor::uuid_t, cached_operations_type_t_Ptr>::const_iterator found = 
+    boost::unordered_map<const Sensor::uuid_t, cached_reading_operations_type_t_Ptr>::const_iterator found = 
     _reading_operations_buffer.find(sensor->uuid());
     
     if (found == _reading_operations_buffer.end()) {
@@ -418,7 +418,7 @@ void Store::set_buffers(const Sensor::Ptr sensor) {
 
     if (_reading_operations_buffer.count(sensor->uuid()) == 0) {
 
-        cached_operations_type_t_Ptr cached_operations = cached_operations_type_t_Ptr(new cached_operations_type_t());
+        cached_reading_operations_type_t_Ptr cached_operations = cached_reading_operations_type_t_Ptr(new cached_reading_operations_type_t());
         cached_operations->insert(cached_readings_type_t(INSERT_OPERATION, readings_t_Ptr(new readings_t())));
         cached_operations->insert(cached_readings_type_t(UPDATE_OPERATION, readings_t_Ptr(new readings_t())));
         _reading_operations_buffer[sensor->uuid()] = cached_operations;

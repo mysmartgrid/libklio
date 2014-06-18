@@ -114,9 +114,9 @@ namespace klio {
     private:
         typedef unsigned int cached_operation_type_t;
         typedef std::pair<const cached_operation_type_t, const readings_t_Ptr> cached_readings_type_t;
-        typedef boost::unordered_map<const cached_operation_type_t, const readings_t_Ptr> cached_operations_type_t;
-        typedef boost::unordered_map<const cached_operation_type_t, const readings_t_Ptr>::const_iterator cached_operations_type_it_t;
-        typedef boost::shared_ptr<cached_operations_type_t> cached_operations_type_t_Ptr;
+        typedef boost::unordered_map<const cached_operation_type_t, const readings_t_Ptr> cached_reading_operations_type_t;
+        typedef boost::unordered_map<const cached_operation_type_t, const readings_t_Ptr>::const_iterator cached_reading_operations_type_it_t;
+        typedef boost::shared_ptr<cached_reading_operations_type_t> cached_reading_operations_type_t_Ptr;
 
         Store(const Store& original);
         Store& operator=(const Store& rhs);
@@ -131,7 +131,7 @@ namespace klio {
         timestamp_t _last_flush;
         Transaction::Ptr _transaction;
 
-        boost::unordered_map<const Sensor::uuid_t, cached_operations_type_t_Ptr> _reading_operations_buffer;
+        boost::unordered_map<const Sensor::uuid_t, cached_reading_operations_type_t_Ptr> _reading_operations_buffer;
         boost::unordered_map<const Sensor::uuid_t, Sensor::Ptr> _sensors_buffer;
         boost::unordered_map<const std::string, Sensor::uuid_t> _external_ids_buffer;
         

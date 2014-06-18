@@ -8,6 +8,10 @@ using namespace klio;
 const SensorFactory::Ptr Store::sensor_factory(new SensorFactory());
 const TimeConverter::Ptr Store::time_converter(new TimeConverter());
 
+const Store::cached_operation_type_t Store::INSERT_OPERATION = 1;
+const Store::cached_operation_type_t Store::UPDATE_OPERATION = 2;
+const Store::cached_operation_type_t Store::DELETE_OPERATION = 3;
+
 void Store::open() {
     _transaction = create_transaction();
 }
@@ -37,6 +41,7 @@ void Store::start_transaction() {
 
 void Store::commit_transaction() {
 
+    flush(true);
     _transaction->commit();
 }
 
@@ -82,7 +87,7 @@ void Store::commit_inner_transaction(const Transaction::Ptr transaction) {
 
 void Store::add_sensor(const Sensor::Ptr sensor) {
 
-    LOG_IF("Adding sensor: " << sensor->str(), _logging);
+    LOG("Adding sensor: " << sensor->str());
 
     Transaction::Ptr transaction = get_transaction();
     start_inner_transaction(transaction);
@@ -95,7 +100,7 @@ void Store::add_sensor(const Sensor::Ptr sensor) {
 
 void Store::remove_sensor(const Sensor::Ptr sensor) {
 
-    LOG_IF("Removing sensor: " << sensor->str(), _logging);
+    LOG("Removing sensor: " << sensor->str());
 
     Transaction::Ptr transaction = get_transaction();
     start_inner_transaction(transaction);
@@ -108,7 +113,7 @@ void Store::remove_sensor(const Sensor::Ptr sensor) {
 
 void Store::update_sensor(const Sensor::Ptr sensor) {
 
-    LOG_IF("Updating sensor: " << sensor->str(), _logging);
+    LOG("Updating sensor: " << sensor->str());
 
     Transaction::Ptr transaction = get_transaction();
     start_inner_transaction(transaction);
@@ -119,9 +124,71 @@ void Store::update_sensor(const Sensor::Ptr sensor) {
     set_buffers(sensor);
 }
 
+void Store::add_reading(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value) {
+
+    LOG("Adding to sensor: " << sensor->str() << " time=" << timestamp << " value=" << value);
+    
+    //Check if sensor exists
+    get_sensor(sensor->uuid());
+
+    cached_operations_type_t_Ptr cached_operations = _readings_operations_buffer[sensor->uuid()];
+    klio::readings_t_Ptr cached_readings = cached_operations->at(INSERT_OPERATION);
+    cached_readings->insert(reading_t(timestamp, value));
+    
+    Transaction::Ptr transaction = get_transaction();
+    start_inner_transaction(transaction);
+    flush(false);
+    commit_inner_transaction(transaction);
+}
+
+void Store::add_readings(const Sensor::Ptr sensor, const readings_t& readings) {
+
+    LOG("Adding " << readings->size() << " readings to sensor: " << sensor->str());
+
+    //Check if sensor exists
+    get_sensor(sensor->uuid());
+
+    cached_operations_type_t_Ptr cached_operations = _readings_operations_buffer[sensor->uuid()];
+    klio::readings_t_Ptr cached_readings = cached_operations->at(INSERT_OPERATION);
+
+    for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
+
+        cached_readings->insert(reading_t((*it).first, (*it).second));
+    }
+    
+    Transaction::Ptr transaction = get_transaction();
+    start_inner_transaction(transaction);
+    flush(false);
+    commit_inner_transaction(transaction);
+}
+
+void Store::update_readings(const Sensor::Ptr sensor, const readings_t& readings) {
+
+    LOG("Updating " << readings->size() << " readings of sensor: " << sensor->str());
+
+    if (!readings.empty()) {
+
+        //Check if sensor exists
+        get_sensor(sensor->uuid());
+
+        cached_operations_type_t_Ptr cached_operations = _readings_operations_buffer[sensor->uuid()];
+        klio::readings_t_Ptr cached_readings = cached_operations->at(UPDATE_OPERATION);
+
+        for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
+
+            cached_readings->insert(reading_t((*it).first, (*it).second));
+        }
+
+        Transaction::Ptr transaction = get_transaction();
+        start_inner_transaction(transaction);
+        flush(false);
+        commit_inner_transaction(transaction);
+    }
+}
+
 Sensor::Ptr Store::get_sensor(const Sensor::uuid_t& uuid) {
 
-    LOG_IF("Getting sensor by UUID: " << uuid, _logging);
+    LOG("Getting sensor by UUID: " << uuid);
 
     if (_sensors_buffer.count(uuid) > 0) {
         return _sensors_buffer[uuid];
@@ -135,14 +202,14 @@ Sensor::Ptr Store::get_sensor(const Sensor::uuid_t& uuid) {
 
 std::vector<Sensor::Ptr> Store::get_sensors() {
 
-    LOG_IF("Getting all sensors", _logging);
+    LOG("Getting all sensors");
 
     return get_sensors_records();
 }
 
 std::vector<Sensor::Ptr> Store::get_sensors_by_external_id(const std::string& external_id) {
 
-    LOG_IF("Getting sensors by external id", _logging);
+    LOG("Getting sensors by external id");
 
     std::vector<Sensor::Ptr> sensors;
 
@@ -155,7 +222,7 @@ std::vector<Sensor::Ptr> Store::get_sensors_by_external_id(const std::string& ex
 
 std::vector<Sensor::Ptr> Store::get_sensors_by_name(const std::string& name) {
 
-    LOG_IF("Getting sensors by name", _logging);
+    LOG("Getting sensors by name");
 
     std::vector<Sensor::Ptr> sensors;
 
@@ -172,7 +239,7 @@ std::vector<Sensor::Ptr> Store::get_sensors_by_name(const std::string& name) {
 
 std::vector<Sensor::uuid_t> Store::get_sensor_uuids() {
 
-    LOG_IF("Getting sensor UUIDs", _logging);
+    LOG("Getting sensor UUIDs");
 
     std::vector<Sensor::uuid_t> uuids;
 
@@ -182,82 +249,9 @@ std::vector<Sensor::uuid_t> Store::get_sensor_uuids() {
     return uuids;
 }
 
-void Store::add_reading(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value) {
-
-    LOG_IF("Adding to sensor: " << sensor->str() << " time=" << timestamp << " value=" << value, _logging);
-
-    //Check if sensor exists
-    get_sensor(sensor->uuid());
-    set_buffers(sensor);
-
-    Transaction::Ptr transaction = get_transaction();
-    start_inner_transaction(transaction);
-
-    add_reading_record(sensor, timestamp, value);
-
-    commit_inner_transaction(transaction);
-    flush(false);
-}
-
-void Store::add_readings(const Sensor::Ptr sensor, const readings_t& readings) {
-
-    LOG_IF("Adding " << readings->size() << " readings to sensor: " << sensor->str(), _logging);
-
-    //Check if sensor exists
-    get_sensor(sensor->uuid());
-    set_buffers(sensor);
-
-    Transaction::Ptr transaction = get_transaction();
-    start_inner_transaction(transaction);
-
-    for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
-        add_reading_record(sensor, (*it).first, (*it).second);
-    }
-
-    commit_inner_transaction(transaction);
-    flush(false);
-}
-
-void Store::update_readings(const Sensor::Ptr sensor, const readings_t& readings) {
-
-    LOG_IF("Updating " << readings->size() << " readings of sensor: " << sensor->str(), _logging);
-
-    if (!readings.empty()) {
-
-        //Check if sensor exists
-        get_sensor(sensor->uuid());
-        set_buffers(sensor);
-
-        Transaction::Ptr transaction = get_transaction();
-        start_inner_transaction(transaction);
-
-        update_readings_records(sensor, readings);
-
-        commit_inner_transaction(transaction);
-        flush(false);
-    }
-}
-
-void Store::add_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value) {
-
-    _readings_buffer[sensor->uuid()]->insert(reading_t(timestamp, value));
-}
-
-void Store::update_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value) {
-
-    _readings_buffer[sensor->uuid()]->insert(reading_t(timestamp, value));
-}
-
-void Store::update_readings_records(const Sensor::Ptr sensor, const readings_t& readings) {
-
-    for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
-        update_reading_record(sensor, (*it).first, (*it).second);
-    }
-}
-
 readings_t_Ptr Store::get_all_readings(const Sensor::Ptr sensor) {
 
-    LOG_IF("Retrieving all readings of sensor " << sensor->str(), _logging);
+    LOG("Retrieving all readings of sensor " << sensor->str());
 
     //Check if sensor exists
     get_sensor(sensor->uuid());
@@ -269,7 +263,7 @@ readings_t_Ptr Store::get_all_readings(const Sensor::Ptr sensor) {
 
 readings_t_Ptr Store::get_timeframe_readings(const Sensor::Ptr sensor, const timestamp_t begin, const timestamp_t end) {
 
-    LOG_IF("Retrieving readings of sensor " << sensor->str() << " between " << begin << " and " << end, _logging);
+    LOG("Retrieving readings of sensor " << sensor->str() << " between " << begin << " and " << end);
 
     //Check if sensor exists
     get_sensor(sensor->uuid());
@@ -281,7 +275,7 @@ readings_t_Ptr Store::get_timeframe_readings(const Sensor::Ptr sensor, const tim
 
 unsigned long int Store::get_num_readings(const Sensor::Ptr sensor) {
 
-    LOG_IF("Retrieving number of readings for sensor " << sensor->str(), _logging);
+    LOG("Retrieving number of readings for sensor " << sensor->str());
 
     //Check if sensor exists
     get_sensor(sensor->uuid());
@@ -293,7 +287,7 @@ unsigned long int Store::get_num_readings(const Sensor::Ptr sensor) {
 
 reading_t Store::get_last_reading(const Sensor::Ptr sensor) {
 
-    LOG_IF("Retrieving last reading of sensor " << sensor->str(), _logging);
+    LOG("Retrieving last reading of sensor " << sensor->str());
 
     //Check if sensor exists
     get_sensor(sensor->uuid());
@@ -305,7 +299,7 @@ reading_t Store::get_last_reading(const Sensor::Ptr sensor) {
 
 reading_t Store::get_reading(const Sensor::Ptr sensor, const timestamp_t timestamp) {
 
-    LOG_IF("Retrieving reading of sensor " << sensor->str(), _logging);
+    LOG("Retrieving reading of sensor " << sensor->str());
 
     //Check if sensor exists
     get_sensor(sensor->uuid());
@@ -317,7 +311,7 @@ reading_t Store::get_reading(const Sensor::Ptr sensor, const timestamp_t timesta
 
 void Store::sync(const Store::Ptr store) {
 
-    LOG_IF("Synchronizing this store with store " << store->str(), _logging);
+    LOG("Synchronizing this store with store " << store->str());
 
     const std::vector<Sensor::Ptr> sensors = store->get_sensors();
 
@@ -329,7 +323,7 @@ void Store::sync(const Store::Ptr store) {
 
 void Store::sync_readings(const Sensor::Ptr sensor, const Store::Ptr store) {
 
-    LOG_IF("Synchronizing this store readings with the readings of sensor " << sensor->str() << " from store " << store->str(), _logging);
+    LOG("Synchronizing this store readings with the readings of sensor " << sensor->str() << " from store " << store->str());
 
     klio::readings_t_Ptr readings = store->get_all_readings(sensor);
     std::vector<Sensor::Ptr> sensors = get_sensors_by_external_id(sensor->external_id());
@@ -368,6 +362,18 @@ void Store::sync_readings(const Sensor::Ptr sensor, const Store::Ptr store) {
     update_readings(local_sensor, *readings);
 }
 
+void Store::sync_sensors(const Store::Ptr store) {
+
+    LOG("Synchronizing this store sensors with the sensors of store " << store->str());
+
+    const std::vector<Sensor::Ptr> sensors = store->get_sensors();
+
+    for (std::vector<Sensor::Ptr>::const_iterator sensor = sensors.begin(); sensor != sensors.end(); ++sensor) {
+
+        add_sensor(*sensor);
+    }
+}
+
 void Store::prepare() {
 
     clear_buffers();
@@ -398,9 +404,15 @@ void Store::flush(bool force) {
 
 void Store::flush(const Sensor::Ptr sensor) {
 
-    const readings_t_Ptr readings = _readings_buffer[sensor->uuid()];
+    cached_operations_type_t_Ptr operations = _readings_operations_buffer[sensor->uuid()];
+    readings_t_Ptr readings = operations->at(INSERT_OPERATION);
+    if (readings->size() > 0) {
+        add_readings_records(sensor, *readings);
+        readings->clear();
+    }
 
-    if (!readings->empty()) {
+    readings = operations->at(UPDATE_OPERATION);
+    if (readings->size() > 0) {
         update_readings_records(sensor, *readings);
         readings->clear();
     }
@@ -413,16 +425,20 @@ void Store::set_buffers(const Sensor::Ptr sensor) {
         Sensor::uuid_t other_uuid = _external_ids_buffer[sensor->external_id()];
         _sensors_buffer.erase(other_uuid);
 
-        if (_readings_buffer.count(other_uuid) > 0) {
-            _readings_buffer[sensor->uuid()] = _readings_buffer[other_uuid];
-            _readings_buffer.erase(other_uuid);
+        if (_readings_operations_buffer.count(other_uuid) > 0) {
+            _readings_operations_buffer[sensor->uuid()] = _readings_operations_buffer[other_uuid];
+            _readings_operations_buffer.erase(other_uuid);
         }
     }
-
-    if (_readings_buffer.count(sensor->uuid()) == 0) {
-        _readings_buffer[sensor->uuid()] = readings_t_Ptr(new readings_t());
+    
+    if (_readings_operations_buffer.count(sensor->uuid()) == 0) {
+        
+        cached_operations_type_t_Ptr cached_operations = cached_operations_type_t_Ptr(new cached_operations_type_t());
+        cached_operations->insert(cached_readings_type_t(INSERT_OPERATION, readings_t_Ptr(new readings_t())));
+        cached_operations->insert(cached_readings_type_t(UPDATE_OPERATION, readings_t_Ptr(new readings_t())));
+        _readings_operations_buffer[sensor->uuid()] = cached_operations;
     }
-
+    
     _sensors_buffer[sensor->uuid()] = sensor;
     _external_ids_buffer[sensor->external_id()] = sensor->uuid();
 }
@@ -430,13 +446,13 @@ void Store::set_buffers(const Sensor::Ptr sensor) {
 void Store::clear_buffers(const Sensor::Ptr sensor) {
 
     _sensors_buffer.erase(sensor->uuid());
-    _readings_buffer.erase(sensor->uuid());
     _external_ids_buffer.erase(sensor->external_id());
+    _readings_operations_buffer.erase(sensor->uuid());
 }
 
 void Store::clear_buffers() {
-
+    
     _sensors_buffer.clear();
-    _readings_buffer.clear();
     _external_ids_buffer.clear();
+    _readings_operations_buffer.clear();
 }

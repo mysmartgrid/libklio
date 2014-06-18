@@ -500,14 +500,18 @@ reading_t SQLite3Store::get_reading_record(const Sensor::Ptr sensor, const times
     return reading;
 }
 
-void SQLite3Store::add_reading_record(klio::Sensor::Ptr sensor, const timestamp_t timestamp, const double value) {
+void SQLite3Store::add_readings_records(const Sensor::Ptr sensor, const readings_t& readings) {
 
-    add_reading_record(sensor, timestamp, value, "INSERT");
+    for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
+        add_reading_record(sensor, (*it).first, (*it).second, "INSERT");
+    }
 }
 
-void SQLite3Store::update_reading_record(klio::Sensor::Ptr sensor, const timestamp_t timestamp, const double value) {
+void SQLite3Store::update_readings_records(const Sensor::Ptr sensor, const readings_t& readings) {
 
-    add_reading_record(sensor, timestamp, value, "INSERT OR REPLACE");
+    for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
+        add_reading_record(sensor, (*it).first, (*it).second, "INSERT OR REPLACE");
+    }
 }
 
 void SQLite3Store::add_reading_record(klio::Sensor::Ptr sensor, const timestamp_t timestamp, const double value, const std::string& operation) {

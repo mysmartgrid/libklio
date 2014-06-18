@@ -229,17 +229,20 @@ reading_t RocksDBStore::get_reading_record(const Sensor::Ptr sensor, const times
     return reading;
 }
 
-void RocksDBStore::add_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value) {
+void RocksDBStore::add_readings_records(const Sensor::Ptr sensor, const readings_t& readings) {
 
-    rocksdb::DB* db = open_db(true, false,
-            compose_sensor_readings_path(sensor->uuid_string()));
+    for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
 
-    put_value(db, std::to_string(timestamp), std::to_string(value));
+        rocksdb::DB* db = open_db(true, false,
+                compose_sensor_readings_path(sensor->uuid_string()));
+
+        put_value(db, std::to_string((*it).first), std::to_string((*it).second));
+    }
 }
 
-void RocksDBStore::update_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value) {
+void RocksDBStore::update_readings_records(const Sensor::Ptr sensor, const readings_t& readings) {
 
-    add_reading_record(sensor, timestamp, value);
+    add_readings_records(sensor, readings);
 }
 
 void RocksDBStore::clear_buffers() {

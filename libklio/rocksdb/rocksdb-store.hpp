@@ -41,7 +41,7 @@ namespace klio {
                 const std::map<const std::string, const std::string>& db_options,
                 const std::map<const std::string, const std::string>& read_options,
                 const std::map<const std::string, const std::string>& write_options) :
-        Store(true, 600, true, true),
+        Store(true, 600, true),
         _path(path),
         _db_options(db_options),
         _read_options(read_options),
@@ -63,12 +63,10 @@ namespace klio {
         void add_sensor_record(const Sensor::Ptr sensor);
         void remove_sensor_record(const klio::Sensor::Ptr sensor);
         void update_sensor_record(const klio::Sensor::Ptr sensor);
+        void add_readings_records(const Sensor::Ptr sensor, const readings_t& readings);
+        void update_readings_records(const Sensor::Ptr sensor, const readings_t& readings);
 
         std::vector<Sensor::Ptr> get_sensors_records();
-
-        void add_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, double value);
-        void update_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, double value);
-
         readings_t_Ptr get_all_readings_records(const Sensor::Ptr sensor);
         readings_t_Ptr get_timeframe_readings_records(const Sensor::Ptr sensor, const timestamp_t begin, const timestamp_t end);
         unsigned long int get_num_readings_value(const Sensor::Ptr sensor);

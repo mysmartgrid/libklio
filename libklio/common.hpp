@@ -40,10 +40,8 @@
 #ifdef ENABLE_LOGGING
 #include <iostream>
 #define LOG(msg) std::cout << msg << std::endl;
-#define LOG_IF(msg, enabled) if (enabled) {std::cout << msg << std::endl;}
 #else
 #define LOG(msg) 
-#define LOG_IF(msg, enabled) 
 #endif
 
 // Use new boost filesystem implementation. See 

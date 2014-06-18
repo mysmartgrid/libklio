@@ -147,6 +147,11 @@ void MSGStore::update_sensor_record(const Sensor::Ptr sensor) {
     }
 }
 
+void MSGStore::add_readings_records(const Sensor::Ptr sensor, const readings_t& readings) {
+
+    update_readings_records(sensor, readings);
+}
+
 void MSGStore::update_readings_records(const Sensor::Ptr sensor, const readings_t& readings) {
 
     json_object *jmeasurements = NULL;
@@ -158,7 +163,7 @@ void MSGStore::update_readings_records(const Sensor::Ptr sensor, const readings_
 
             timestamp_t timestamp = (*rit).first;
             double value = (*rit).second;
-
+            
             struct json_object *jtuple = create_json_array();
             json_object_array_add(jmeasurements, jtuple);
 

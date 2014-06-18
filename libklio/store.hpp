@@ -22,8 +22,10 @@
 #define LIBKLIO_STORE_HPP 1
 
 #include <vector>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/optional/optional.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/any.hpp>
 #include <boost/unordered_map.hpp>
 #include <libklio/common.hpp>
 #include <libklio/types.hpp>
@@ -39,11 +41,10 @@ namespace klio {
     public:
         typedef boost::shared_ptr<Store> Ptr;
 
-        Store(bool auto_commit, const timestamp_t sync_timeout, bool logging, bool auto_flush) :
+        Store(bool auto_commit, const timestamp_t sync_timeout, bool auto_flush) :
         _auto_commit(auto_commit),
         _last_sync(0),
         _sync_timeout(sync_timeout),
-        _logging(logging),
         _auto_flush(auto_flush) {
         };
 
@@ -85,6 +86,7 @@ namespace klio {
 
         void sync(const Store::Ptr store);
         void sync_readings(const Sensor::Ptr sensor, const Store::Ptr store);
+        void sync_sensors(const Store::Ptr store);
 
     protected:
         static const SensorFactory::Ptr sensor_factory;
@@ -98,13 +100,10 @@ namespace klio {
         virtual void add_sensor_record(const Sensor::Ptr sensor) = 0;
         virtual void remove_sensor_record(const Sensor::Ptr sensor) = 0;
         virtual void update_sensor_record(const Sensor::Ptr sensor) = 0;
-        virtual void update_readings_records(const Sensor::Ptr sensor, const readings_t& readings);
+        virtual void add_readings_records(const Sensor::Ptr sensor, const readings_t& readings) = 0;
+        virtual void update_readings_records(const Sensor::Ptr sensor, const readings_t& readings) = 0;
 
         virtual std::vector<klio::Sensor::Ptr> get_sensors_records() = 0;
-
-        virtual void add_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value);
-        virtual void update_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value);
-
         virtual readings_t_Ptr get_all_readings_records(const Sensor::Ptr sensor) = 0;
         virtual readings_t_Ptr get_timeframe_readings_records(const Sensor::Ptr sensor, const timestamp_t begin, const timestamp_t end) = 0;
         virtual reading_t get_last_reading_record(const Sensor::Ptr sensor) = 0;
@@ -114,18 +113,27 @@ namespace klio {
         virtual void clear_buffers();
 
     private:
+        typedef unsigned int cached_operation_type_t;
+        typedef std::pair<const cached_operation_type_t, const klio::readings_t_Ptr> cached_readings_type_t;
+        typedef std::map<const cached_operation_type_t, const klio::readings_t_Ptr> cached_operations_type_t;
+        typedef std::map<const cached_operation_type_t, const klio::readings_t_Ptr>::const_iterator cached_operations_type_it_t;
+        typedef boost::shared_ptr<cached_operations_type_t> cached_operations_type_t_Ptr;
+
         Store(const Store& original);
         Store& operator=(const Store& rhs);
+
+        static const cached_operation_type_t INSERT_OPERATION;
+        static const cached_operation_type_t UPDATE_OPERATION;
+        static const cached_operation_type_t DELETE_OPERATION;
 
         bool _auto_commit;
         timestamp_t _last_sync;
         timestamp_t _sync_timeout;
-        bool _logging;
         bool _auto_flush;
         Transaction::Ptr _transaction;
 
+        boost::unordered_map<Sensor::uuid_t, cached_operations_type_t_Ptr> _readings_operations_buffer;
         boost::unordered_map<Sensor::uuid_t, Sensor::Ptr> _sensors_buffer;
-        boost::unordered_map<Sensor::uuid_t, readings_t_Ptr> _readings_buffer;
         boost::unordered_map<std::string, Sensor::uuid_t> _external_ids_buffer;
 
         void flush(bool force);

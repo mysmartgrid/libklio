@@ -41,7 +41,7 @@ namespace klio {
     public:
         typedef boost::shared_ptr<Store> Ptr;
 
-        Store(bool auto_commit, bool auto_flush, const timestamp_t flush_timeout) :
+        Store(const bool auto_commit, const bool auto_flush, const timestamp_t flush_timeout) :
         _auto_commit(auto_commit),
         _auto_flush(auto_flush),
         _flush_timeout(flush_timeout),
@@ -68,11 +68,11 @@ namespace klio {
         void remove_sensor(const Sensor::Ptr sensor);
         void update_sensor(const Sensor::Ptr sensor);
 
-        Sensor::Ptr get_sensor(const klio::Sensor::uuid_t& uuid);
-        std::vector<klio::Sensor::Ptr> get_sensors_by_external_id(const std::string& external_id);
-        std::vector<klio::Sensor::Ptr> get_sensors_by_name(const std::string& name);
-        std::vector<klio::Sensor::uuid_t> get_sensor_uuids();
-        std::vector<klio::Sensor::Ptr> get_sensors();
+        Sensor::Ptr get_sensor(const Sensor::uuid_t& uuid);
+        std::vector<Sensor::Ptr> get_sensors_by_external_id(const std::string& external_id);
+        std::vector<Sensor::Ptr> get_sensors_by_name(const std::string& name);
+        std::vector<Sensor::uuid_t> get_sensor_uuids();
+        std::vector<Sensor::Ptr> get_sensors();
 
         void add_reading(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value);
         void add_readings(const Sensor::Ptr sensor, const readings_t& readings);
@@ -103,7 +103,7 @@ namespace klio {
         virtual void add_readings_records(const Sensor::Ptr sensor, const readings_t& readings) = 0;
         virtual void update_readings_records(const Sensor::Ptr sensor, const readings_t& readings) = 0;
 
-        virtual std::vector<klio::Sensor::Ptr> get_sensors_records() = 0;
+        virtual std::vector<Sensor::Ptr> get_sensors_records() = 0;
         virtual readings_t_Ptr get_all_readings_records(const Sensor::Ptr sensor) = 0;
         virtual readings_t_Ptr get_timeframe_readings_records(const Sensor::Ptr sensor, const timestamp_t begin, const timestamp_t end) = 0;
         virtual reading_t get_last_reading_record(const Sensor::Ptr sensor) = 0;
@@ -114,9 +114,9 @@ namespace klio {
 
     private:
         typedef unsigned int cached_operation_type_t;
-        typedef std::pair<const cached_operation_type_t, const klio::readings_t_Ptr> cached_readings_type_t;
-        typedef std::map<const cached_operation_type_t, const klio::readings_t_Ptr> cached_operations_type_t;
-        typedef std::map<const cached_operation_type_t, const klio::readings_t_Ptr>::const_iterator cached_operations_type_it_t;
+        typedef std::pair<const cached_operation_type_t, const readings_t_Ptr> cached_readings_type_t;
+        typedef boost::unordered_map<const cached_operation_type_t, const readings_t_Ptr> cached_operations_type_t;
+        typedef boost::unordered_map<const cached_operation_type_t, const readings_t_Ptr>::const_iterator cached_operations_type_it_t;
         typedef boost::shared_ptr<cached_operations_type_t> cached_operations_type_t_Ptr;
 
         Store(const Store& original);

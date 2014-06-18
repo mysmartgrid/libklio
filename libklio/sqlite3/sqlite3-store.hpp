@@ -66,12 +66,12 @@ namespace klio {
         Transaction::Ptr create_transaction();
 
         void add_sensor_record(const Sensor::Ptr sensor);
-        void remove_sensor_record(const klio::Sensor::Ptr sensor);
-        void update_sensor_record(const klio::Sensor::Ptr sensor);
+        void remove_sensor_record(const Sensor::Ptr sensor);
+        void update_sensor_record(const Sensor::Ptr sensor);
         void add_readings_records(const Sensor::Ptr sensor, const readings_t& readings);
         void update_readings_records(const Sensor::Ptr sensor, const readings_t& readings);
 
-        std::vector<klio::Sensor::Ptr> get_sensors_records();
+        std::vector<Sensor::Ptr> get_sensors_records();
         readings_t_Ptr get_all_readings_records(const Sensor::Ptr sensor);
         readings_t_Ptr get_timeframe_readings_records(const Sensor::Ptr sensor, const timestamp_t begin, const timestamp_t end);
         unsigned long int get_num_readings_value(const Sensor::Ptr sensor);

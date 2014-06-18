@@ -61,8 +61,8 @@ namespace klio {
 
     protected:
         void add_sensor_record(const Sensor::Ptr sensor);
-        void remove_sensor_record(const klio::Sensor::Ptr sensor);
-        void update_sensor_record(const klio::Sensor::Ptr sensor);
+        void remove_sensor_record(const Sensor::Ptr sensor);
+        void update_sensor_record(const Sensor::Ptr sensor);
         void add_readings_records(const Sensor::Ptr sensor, const readings_t& readings);
         void update_readings_records(const Sensor::Ptr sensor, const readings_t& readings);
 

@@ -882,6 +882,10 @@ BOOST_AUTO_TEST_CASE(check_sqlite3_store_performance) {
                     "Add " << num_readings << " readings:                          "
                     << seconds << " s" << std::endl;
             
+            time_before = boost::posix_time::microsec_clock::local_time();
+            store->get_sensors_by_external_id(sensor1->external_id());
+            time_after = boost::posix_time::microsec_clock::local_time();
+            
             elapsed_time = time_after - time_before;
             seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
             std::cout << "Performance Test - SQLite3Store - " <<

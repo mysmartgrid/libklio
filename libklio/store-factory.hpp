@@ -57,6 +57,7 @@ namespace klio {
                 const bool auto_commit,
                 const bool auto_flush,
                 const timestamp_t flush_timeout,
+                //Visit: http://www.sqlite.org/pragma.html#pragma_synchronous
                 const std::string& synchronous
                 );
 
@@ -67,6 +68,7 @@ namespace klio {
                 const bool auto_commit,
                 const bool auto_flush,
                 const timestamp_t flush_timeout,
+                //Visit: http://www.sqlite.org/pragma.html#pragma_synchronous
                 const std::string& synchronous
                 );
 

@@ -904,6 +904,9 @@ BOOST_AUTO_TEST_CASE(check_sqlite3_store_performance) {
     run_sqlite3_store_performance_tests(true, true, 0, "OFF");
     run_sqlite3_store_performance_tests(true, true, 0, "NORMAL");
     run_sqlite3_store_performance_tests(true, true, 0, "FULL");
+    run_sqlite3_store_performance_tests(false, true, 0, "OFF");
+    run_sqlite3_store_performance_tests(false, true, 0, "NORMAL");
+    run_sqlite3_store_performance_tests(false, true, 0, "FULL");
     run_sqlite3_store_performance_tests(false, false, 0, "OFF");
     run_sqlite3_store_performance_tests(false, false, 0, "NORMAL");
     run_sqlite3_store_performance_tests(false, false, 0, "FULL");

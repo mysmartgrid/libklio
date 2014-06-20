@@ -35,10 +35,17 @@ namespace klio {
     public:
         typedef boost::shared_ptr<SQLite3Store> Ptr;
 
-        SQLite3Store(const bfs::path& path, const bool auto_commit, const bool auto_flush, const timestamp_t flush_timeout) :
+        SQLite3Store(
+                const bfs::path& path,
+                const bool auto_commit,
+                const bool auto_flush,
+                const timestamp_t flush_timeout,
+                const std::string& synchronous
+                ) :
         Store(auto_commit, auto_flush, flush_timeout),
         _path(path),
         _db(NULL),
+        _synchronous(synchronous),
         _insert_sensor_stmt(NULL),
         _remove_sensor_stmt(NULL),
         _update_sensor_stmt(NULL),
@@ -77,15 +84,15 @@ namespace klio {
         unsigned long int get_num_readings_value(const Sensor::Ptr sensor);
         reading_t get_last_reading_record(const Sensor::Ptr sensor);
         reading_t get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp);
-        
+
         void clear_buffers();
         
     private:
         SQLite3Store(const SQLite3Store& original);
         SQLite3Store& operator =(const SQLite3Store& rhs);
 
-        bool has_table(const std::string& name);
-        bool has_column(const std::string& table, const std::string& column);
+        const bool has_table(const std::string& name);
+        const bool has_column(const std::string& table, const std::string& column);
 
         void add_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value, const std::string& operation);
         readings_t_Ptr get_readings_records(sqlite3_stmt* stmt);
@@ -99,6 +106,7 @@ namespace klio {
 
         bfs::path _path;
         sqlite3 *_db;
+        std::string _synchronous;
         sqlite3_stmt* _insert_sensor_stmt;
         sqlite3_stmt* _remove_sensor_stmt;
         sqlite3_stmt* _update_sensor_stmt;

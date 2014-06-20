@@ -63,11 +63,17 @@ void SQLite3Store::close() {
 
 void SQLite3Store::check_integrity() {
 
-    VersionInfo::Ptr info = VersionInfo::Ptr(new VersionInfo());
+    const VersionInfo::Ptr info = VersionInfo::Ptr(new VersionInfo());
     std::string db_version;
     std::ostringstream oss;
     sqlite3_stmt* stmt = NULL;
     std::string result;
+
+    //Checkup results
+    const std::string OK = "ok";
+    const std::string OLD_DB = "old db";
+    const std::string OLD_KLIO = "old klio";
+    const std::string CORRUPT_DB = "corrupt db";
 
     try {
         if (!bfs::exists(_path)) {
@@ -88,7 +94,7 @@ void SQLite3Store::check_integrity() {
             result = std::string((char*) sqlite3_column_text(stmt, 0));
             finalize(&stmt);
 
-            if (result == "ok") {
+            if (result == OK) {
 
                 if (has_table("sensors") && has_table("properties")) {
 
@@ -110,17 +116,16 @@ void SQLite3Store::check_integrity() {
 
                     //Only two first digits must match
                     if (db_digit0 > klio_digit0 || (db_digit0 == klio_digit0 && db_digit1 > klio_digit1)) {
-
-                        result = "oldklio";
+                        result = OLD_KLIO;
 
                     } else if (db_digit0 < klio_digit0 || (db_digit0 == klio_digit0 && db_digit1 < klio_digit1)) {
-                        result = "olddb";
+                        result = OLD_DB;
                     }
                 } else {
-                    result = "olddb";
+                    result = OLD_DB;
                 }
             } else {
-                result = "corruptdb";
+                result = CORRUPT_DB;
             }
         }
     } catch (std::exception const& e) {
@@ -128,22 +133,22 @@ void SQLite3Store::check_integrity() {
         result == e.what();
     }
 
-    if (result == "ok") {
+    if (result == OK) {
         return;
 
-    } else if (result == "oldklio") {
+    } else if (result == OLD_KLIO) {
         oss << std::endl <<
                 "The store was created using a more recent version of libKlio. " <<
                 "Please install the version " << db_version << " of the library.";
 
-    } else if (result == "olddb") {
+    } else if (result == OLD_DB) {
         oss << std::endl <<
                 "The store was created using an old version of libKlio (" << db_version << "). " <<
                 "Please use the command " << std::endl <<
                 " $ klio-store -a upgrade -s <FILE>" << std::endl
                 << "to upgrade it to database version " << info->getVersion();
 
-    } else if (result == "corruptdb") {
+    } else if (result == CORRUPT_DB) {
         oss << "The database is corrupt.";
 
     } else {
@@ -170,10 +175,16 @@ void SQLite3Store::initialize() {
         execute(stmt, SQLITE_DONE);
         finalize(&stmt);
 
-        VersionInfo::Ptr info = VersionInfo::Ptr(new VersionInfo());
+        const VersionInfo::Ptr info = VersionInfo::Ptr(new VersionInfo());
         stmt = prepare("INSERT OR IGNORE INTO properties (name, value) VALUES(?1, ?2)");
         sqlite3_bind_text(stmt, 1, "version", -1, SQLITE_TRANSIENT);
         sqlite3_bind_text(stmt, 2, info->getVersion().c_str(), -1, SQLITE_TRANSIENT);
+        execute(stmt, SQLITE_DONE);
+        finalize(&stmt);
+        
+        std::ostringstream oss;
+        oss << "PRAGMA synchronous = " << _synchronous;
+        sqlite3_stmt* stmt = prepare(oss.str());
         execute(stmt, SQLITE_DONE);
 
     } catch (std::exception const& e) {
@@ -185,7 +196,7 @@ void SQLite3Store::initialize() {
 
 void SQLite3Store::upgrade() {
 
-    VersionInfo::Ptr info = VersionInfo::Ptr(new VersionInfo());
+    const VersionInfo::Ptr info = VersionInfo::Ptr(new VersionInfo());
     sqlite3_stmt* stmt = prepare("INSERT OR REPLACE INTO properties (name, value) VALUES(?1, ?2)");
 
     try {
@@ -244,7 +255,7 @@ Transaction::Ptr SQLite3Store::create_transaction() {
     return SQLite3Transaction::Ptr(new SQLite3Transaction(_db));
 }
 
-bool SQLite3Store::has_table(const std::string& name) {
+const bool SQLite3Store::has_table(const std::string& name) {
 
     bool found = false;
     sqlite3_stmt* stmt = get_statement("SELECT name FROM sqlite_master WHERE type='table' AND name=?");
@@ -261,7 +272,7 @@ bool SQLite3Store::has_table(const std::string& name) {
     return found;
 }
 
-bool SQLite3Store::has_column(const std::string& table, const std::string& column) {
+const bool SQLite3Store::has_column(const std::string& table, const std::string& column) {
 
     bool found = false;
     sqlite3_stmt* stmt = get_statement("PRAGMA table_info(sensors)");

@@ -84,8 +84,8 @@ namespace klio {
         SQLite3Store(const SQLite3Store& original);
         SQLite3Store& operator =(const SQLite3Store& rhs);
 
-        bool has_table(const std::string& name);
-        bool has_column(const std::string& table, const std::string& column);
+        const bool has_table(const std::string& name);
+        const bool has_column(const std::string& table, const std::string& column);
 
         void add_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value, const std::string& operation);
         readings_t_Ptr get_readings_records(sqlite3_stmt* stmt);

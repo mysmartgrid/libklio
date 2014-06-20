@@ -48,8 +48,8 @@ SQLite3Store::Ptr StoreFactory::open_sqlite3_store(const bfs::path& path, const 
 MSGStore::Ptr StoreFactory::create_msg_store() {
 
     return create_msg_store(
-            boost::uuids::to_string(_gen()),
-            boost::uuids::to_string(_gen()));
+            boost::uuids::to_string(_gen_uuid()),
+            boost::uuids::to_string(_gen_uuid()));
 }
 
 MSGStore::Ptr StoreFactory::create_msg_store(const std::string& id, const std::string& key) {

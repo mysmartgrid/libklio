@@ -41,7 +41,7 @@ namespace klio {
         typedef boost::shared_ptr<StoreFactory> Ptr;
         typedef boost::uuids::uuid uuid_t;
 
-        StoreFactory() : _gen() {
+        StoreFactory() {
         };
 
         virtual ~StoreFactory() {
@@ -88,7 +88,8 @@ namespace klio {
     private:
         StoreFactory(const StoreFactory& original);
         StoreFactory& operator =(const StoreFactory& rhs);
-        boost::uuids::random_generator _gen;
+
+        boost::uuids::random_generator _gen_uuid;
     };
 };
 

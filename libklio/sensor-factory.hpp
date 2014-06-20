@@ -112,6 +112,8 @@ namespace klio {
     private:
         SensorFactory(const SensorFactory& original);
         SensorFactory& operator=(const SensorFactory& rhs);
+        
+        boost::uuids::random_generator _gen_uuid;
     };
 };
 

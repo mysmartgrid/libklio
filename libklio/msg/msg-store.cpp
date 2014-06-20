@@ -333,7 +333,7 @@ reading_t MSGStore::get_last_reading_record(const Sensor::Ptr sensor) {
 reading_t MSGStore::get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp) {
 
     //FIXME: make this method more efficient
-    klio::readings_t_Ptr readings = get_all_readings(sensor);
+    readings_t_Ptr readings = get_all_readings(sensor);
 
     std::pair<timestamp_t, double> reading = std::pair<timestamp_t, double>(0, 0);
 
@@ -426,7 +426,7 @@ void MSGStore::perform_http_delete(const std::string& url, const std::string & k
     destroy_object(jobject);
 }
 
-std::string MSGStore::digest_message(const std::string& data, const std::string& key) {
+const std::string MSGStore::digest_message(const std::string& data, const std::string& key) {
 
     HMAC_CTX context;
     HMAC_CTX_init(&context);
@@ -645,7 +645,7 @@ struct json_object * MSGStore::get_json_readings(const Sensor::Ptr sensor) {
     std::ostringstream query;
     query << "interval=hour&unit=" << sensor->unit();
 
-    std::string url = compose_sensor_url(sensor, query.str());
+    const std::string url = compose_sensor_url(sensor, query.str());
     return perform_http_get(url, _key);
 }
 
@@ -675,10 +675,10 @@ Sensor::Ptr MSGStore::parse_sensor(const std::string& uuid_str, json_object * js
             std::string(timezone));
 }
 
-std::pair<timestamp_t, double > MSGStore::create_reading_pair(json_object * jpair) {
+std::pair<timestamp_t, double> MSGStore::create_reading_pair(json_object * jpair) {
 
     json_object *jvalue = json_object_array_get_idx(jpair, 1);
-    double value = json_object_get_double(jvalue);
+    const double value = json_object_get_double(jvalue);
 
     if (isnan(value)) {
         return std::pair<timestamp_t, double>(0, 0);

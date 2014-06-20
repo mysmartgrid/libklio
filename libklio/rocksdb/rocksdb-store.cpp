@@ -17,9 +17,9 @@ void RocksDBStore::open() {
 
     if (bfs::exists(_path) && bfs::is_directory(_path) && _db_buffer.empty()) {
 
-        std::vector<Sensor::uuid_t> uuids = get_sensor_uuids();
+        const std::vector<Sensor::uuid_t> uuids = get_sensor_uuids();
 
-        for (std::vector<Sensor::uuid_t>::iterator uuid = uuids.begin(); uuid != uuids.end(); uuid++) {
+        for (std::vector<Sensor::uuid_t>::const_iterator uuid = uuids.begin(); uuid != uuids.end(); uuid++) {
 
             const std::string uuid_str = boost::uuids::to_string(*uuid);
             open_db(false, false, compose_sensor_properties_path(uuid_str));
@@ -40,7 +40,7 @@ void RocksDBStore::close() {
 
 void RocksDBStore::check_integrity() {
 
-    std::string path = compose_sensors_path();
+    const std::string path = compose_sensors_path();
 
     if (!bfs::exists(path)) {
         std::ostringstream oss;
@@ -48,7 +48,7 @@ void RocksDBStore::check_integrity() {
         throw StoreException(oss.str());
     }
 
-    bfs::directory_iterator end;
+    const bfs::directory_iterator end;
 
     for (bfs::directory_iterator it(path); it != end; it++) {
 
@@ -110,7 +110,7 @@ void RocksDBStore::update_sensor_record(const Sensor::Ptr sensor) {
 std::vector<Sensor::Ptr> RocksDBStore::get_sensor_records() {
 
     std::vector<Sensor::Ptr> sensors;
-    bfs::directory_iterator end;
+    const bfs::directory_iterator end;
 
     for (bfs::directory_iterator it(compose_sensors_path()); it != end; it++) {
 
@@ -124,14 +124,14 @@ std::vector<Sensor::Ptr> RocksDBStore::get_sensor_records() {
         rocksdb::DB* db = _db_buffer[db_path];
 
         if (db) {
-            SensorFactory::Ptr factory(new SensorFactory());
+            const SensorFactory::Ptr factory(new SensorFactory());
             Sensor::Ptr sensor = factory->createSensor(uuid,
                     get_value(db, "external_id"),
                     get_value(db, "name"),
                     get_value(db, "description"),
                     get_value(db, "unit"),
                     get_value(db, "timezone"));
-            
+
             sensors.push_back(sensor);
 
         } else {
@@ -178,16 +178,16 @@ readings_t_Ptr RocksDBStore::get_timeframe_reading_records(const Sensor::Ptr sen
 
     for (it->SeekToFirst(); it->Valid(); it->Next()) {
 
-        std::string epoch = it->key().ToString();
-        std::string value = it->value().ToString();
-        long timestamp = time_converter->convert_from_epoch(atol(epoch.c_str()));
+        const char* epoch = it->key().ToString().c_str();
+        const char* value = it->value().ToString().c_str();
+        const long timestamp = time_converter->convert_from_epoch(atol(epoch));
 
         if (timestamp >= begin && timestamp <= end) {
 
             readings->insert(
                     std::pair<timestamp_t, double>(
                     timestamp,
-                    atof(value.c_str())
+                    atof(value)
                     ));
         }
     }
@@ -212,7 +212,10 @@ reading_t RocksDBStore::get_last_reading_record(const Sensor::Ptr sensor) {
     const char* epoch = it->key().ToString().c_str();
     const char* value = it->value().ToString().c_str();
 
-    return std::pair<timestamp_t, double>(time_converter->convert_from_epoch(atol(epoch)), atof(value));
+    return std::pair<timestamp_t, double>(
+            time_converter->convert_from_epoch(atol(epoch)),
+            atof(value)
+            );
 }
 
 reading_t RocksDBStore::get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp) {
@@ -231,10 +234,10 @@ reading_t RocksDBStore::get_reading_record(const Sensor::Ptr sensor, const times
 
 void RocksDBStore::add_reading_records(const Sensor::Ptr sensor, const readings_t& readings) {
 
-    for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
+    rocksdb::DB* db = open_db(true, false,
+            compose_sensor_readings_path(sensor->uuid_string()));
 
-        rocksdb::DB* db = open_db(true, false,
-                compose_sensor_readings_path(sensor->uuid_string()));
+    for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
 
         put_value(db, std::to_string((*it).first), std::to_string((*it).second));
     }
@@ -253,23 +256,24 @@ void RocksDBStore::clear_buffers() {
 
 rocksdb::DB* RocksDBStore::open_db(const bool create_if_missing, const bool error_if_exists, const std::string& db_path) {
 
-    if (!_db_buffer[db_path]) {
+    rocksdb::DB* db = _db_buffer[db_path];
 
-        rocksdb::DB* db;
+    if (!db) {
+
         rocksdb::Options options;
         options.create_if_missing = create_if_missing;
         options.error_if_exists = error_if_exists;
         options.paranoid_checks = _db_options["paranoid_checks"] == "true";
         options.disableDataSync = _db_options["disableDataSync"] == "true";
 
-        rocksdb::Status status = rocksdb::DB::Open(options, db_path, &db);
+        const rocksdb::Status status = rocksdb::DB::Open(options, db_path, &db);
 
         if (!status.ok()) {
             throw StoreException(status.ToString());
         }
         _db_buffer[db_path] = db;
     }
-    return _db_buffer[db_path];
+    return db;
 }
 
 void RocksDBStore::close_db(const std::string& db_path) {
@@ -306,7 +310,7 @@ void RocksDBStore::put_value(rocksdb::DB* db, const std::string& key, const std:
     options.sync = _write_options["sync"] == "true";
     options.disableWAL = _write_options["disableWAL"] == "true";
 
-    rocksdb::Status status = db->Put(options, key, value);
+    const rocksdb::Status status = db->Put(options, key, value);
 
     if (!status.ok()) {
         throw StoreException(status.ToString());
@@ -318,7 +322,7 @@ std::string RocksDBStore::get_value(rocksdb::DB* db, const std::string& key) {
     rocksdb::ReadOptions options;
 
     std::string value;
-    rocksdb::Status status = db->Get(options, key, &value);
+    const rocksdb::Status status = db->Get(options, key, &value);
 
     if (status.ok()) {
         return value;
@@ -330,7 +334,7 @@ std::string RocksDBStore::get_value(rocksdb::DB* db, const std::string& key) {
 
 void RocksDBStore::delete_value(rocksdb::DB* db, const std::string& key) {
 
-    rocksdb::Status status = db->Delete(rocksdb::WriteOptions(), key);
+    const rocksdb::Status status = db->Delete(rocksdb::WriteOptions(), key);
 
     if (!status.ok()) {
         throw StoreException(status.ToString());

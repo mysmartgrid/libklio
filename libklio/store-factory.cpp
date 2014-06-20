@@ -10,7 +10,6 @@ using namespace klio;
 
 boost::uuids::random_generator StoreFactory::_gen_uuid;
 
-
 SQLite3Store::Ptr StoreFactory::create_sqlite3_store(const bfs::path& path) {
 
     return create_sqlite3_store(path, true);
@@ -18,12 +17,18 @@ SQLite3Store::Ptr StoreFactory::create_sqlite3_store(const bfs::path& path) {
 
 SQLite3Store::Ptr StoreFactory::create_sqlite3_store(const bfs::path& path, const bool prepare) {
 
-    return create_sqlite3_store(path, prepare, true, true, 600);
+    return create_sqlite3_store(path, prepare, true, true, 600, "NORMAL");
 }
 
-SQLite3Store::Ptr StoreFactory::create_sqlite3_store(const bfs::path& path, const bool prepare, const bool auto_commit, const bool auto_flush, const timestamp_t flush_timeout) {
+SQLite3Store::Ptr StoreFactory::create_sqlite3_store(
+        const bfs::path& path,
+        const bool prepare,
+        const bool auto_commit,
+        const bool auto_flush,
+        const timestamp_t flush_timeout,
+        const std::string& synchronous) {
 
-    SQLite3Store::Ptr store = SQLite3Store::Ptr(new SQLite3Store(path, auto_commit, auto_flush, flush_timeout));
+    SQLite3Store::Ptr store = SQLite3Store::Ptr(new SQLite3Store(path, auto_commit, auto_flush, flush_timeout, synchronous));
     store->open();
     store->initialize();
     if (prepare) {
@@ -34,12 +39,17 @@ SQLite3Store::Ptr StoreFactory::create_sqlite3_store(const bfs::path& path, cons
 
 SQLite3Store::Ptr StoreFactory::open_sqlite3_store(const bfs::path& path) {
 
-    return open_sqlite3_store(path, true, true, 600);
+    return open_sqlite3_store(path, true, true, 600, "NORMAL");
 }
 
-SQLite3Store::Ptr StoreFactory::open_sqlite3_store(const bfs::path& path, const bool auto_commit, const bool auto_flush, const timestamp_t flush_timeout) {
+SQLite3Store::Ptr StoreFactory::open_sqlite3_store(
+const bfs::path& path,
+        const bool auto_commit,
+        const bool auto_flush,
+        const timestamp_t flush_timeout,
+        const std::string& synchronous) {
 
-    SQLite3Store::Ptr store = SQLite3Store::Ptr(new SQLite3Store(path, auto_commit, auto_flush, flush_timeout));
+    SQLite3Store::Ptr store = SQLite3Store::Ptr(new SQLite3Store(path, auto_commit, auto_flush, flush_timeout, synchronous));
     store->open();
     store->check_integrity();
     store->prepare();

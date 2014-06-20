@@ -180,6 +180,12 @@ void SQLite3Store::initialize() {
         sqlite3_bind_text(stmt, 1, "version", -1, SQLITE_TRANSIENT);
         sqlite3_bind_text(stmt, 2, info->getVersion().c_str(), -1, SQLITE_TRANSIENT);
         execute(stmt, SQLITE_DONE);
+        finalize(&stmt);
+        
+        std::ostringstream oss;
+        oss << "PRAGMA synchronous = " << _synchronous;
+        sqlite3_stmt* stmt = prepare(oss.str());
+        execute(stmt, SQLITE_DONE);
 
     } catch (std::exception const& e) {
         finalize(&stmt);

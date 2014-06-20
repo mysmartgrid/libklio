@@ -37,7 +37,7 @@ BOOST_AUTO_TEST_CASE(check_add_retrieve_reading) {
 
         klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
         bfs::path db(TEST_DB1_FILE);
-        klio::Store::Ptr store(store_factory->create_sqlite3_store(db, true, true, true, 0));
+        klio::Store::Ptr store(store_factory->create_sqlite3_store(db, true, true, true, 0, "OFF"));
         std::cout << "Created: " << store->str() << std::endl;
 
         try {

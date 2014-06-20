@@ -766,8 +766,8 @@ void run_sqlite3_store_performance_tests(const bool auto_commit, const bool auto
             std::cout << std::endl << "Performance Test" << std::endl;
             std::cout << std::endl << "Performance Test - SQLite3Store - " <<
                     "prepared statements" <<
-                    ", auto commit: " << auto_commit <<
-                    ", auto flushing: " << auto_flush <<
+                    ", auto commit: " << (auto_commit ? "true" : "false") <<
+                    ", auto flushing: " << (auto_flush ? "true" : "false") <<
                     ", synchronous: " << synchronous << std::endl;
 
             store = store_factory->create_sqlite3_store(db, true, auto_commit, auto_flush, flush_timeout, synchronous);
@@ -842,7 +842,7 @@ void run_sqlite3_store_performance_tests(const bool auto_commit, const bool auto
                     << seconds << " s" << std::endl;
 
 
-            if (auto_flush) {
+            if (!auto_flush) {
                 time_before = boost::posix_time::microsec_clock::local_time();
                 store->flush();
                 time_after = boost::posix_time::microsec_clock::local_time();

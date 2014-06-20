@@ -88,6 +88,10 @@ namespace klio {
         void dispose();
         void flush();
         const std::string str();
+        
+        static const std::string DEFAULT_MSG_URL;
+        static const std::string DEFAULT_MSG_DESCRIPTION;
+        static const std::string DEFAULT_MSG_YTPE;
 
     protected:
         void add_sensor_record(const Sensor::Ptr sensor);

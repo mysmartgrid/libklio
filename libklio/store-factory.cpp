@@ -8,6 +8,9 @@
 using namespace boost::algorithm;
 using namespace klio;
 
+boost::uuids::random_generator StoreFactory::_gen_uuid;
+
+
 SQLite3Store::Ptr StoreFactory::create_sqlite3_store(const bfs::path& path) {
 
     return create_sqlite3_store(path, true);
@@ -55,11 +58,11 @@ MSGStore::Ptr StoreFactory::create_msg_store() {
 MSGStore::Ptr StoreFactory::create_msg_store(const std::string& id, const std::string& key) {
 
     return create_msg_store(
-            "https://api.mysmartgrid.de:8443",
+            MSGStore::DEFAULT_MSG_URL,
             id,
             key,
-            "libklio mSG Store",
-            "libklio");
+            MSGStore::DEFAULT_MSG_DESCRIPTION,
+            MSGStore::DEFAULT_MSG_YTPE);
 }
 
 MSGStore::Ptr StoreFactory::create_msg_store(

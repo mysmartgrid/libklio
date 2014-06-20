@@ -89,7 +89,7 @@ namespace klio {
         StoreFactory(const StoreFactory& original);
         StoreFactory& operator =(const StoreFactory& rhs);
 
-        boost::uuids::random_generator _gen_uuid;
+        static boost::uuids::random_generator _gen_uuid;
     };
 };
 

@@ -21,6 +21,11 @@
 
 using namespace klio;
 
+const std::string MSGStore::DEFAULT_MSG_URL = "https://api.mysmartgrid.de:8443";    
+const std::string MSGStore::DEFAULT_MSG_DESCRIPTION = "libklio mSG Store";
+const std::string MSGStore::DEFAULT_MSG_YTPE = "libklio";
+
+
 void MSGStore::check_integrity() {
     //TODO: implement this method
 }

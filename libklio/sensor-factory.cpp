@@ -7,7 +7,10 @@
 
 using namespace klio;
 
-klio::Sensor::Ptr SensorFactory::createSensor(
+boost::uuids::random_generator SensorFactory::_gen_uuid;
+
+
+Sensor::Ptr SensorFactory::createSensor(
         const std::string& external_id,
         const std::string& name,
         const std::string& unit,
@@ -16,38 +19,38 @@ klio::Sensor::Ptr SensorFactory::createSensor(
     return createSensor(external_id, name, unit, timezone, DeviceType::UNKNOWN_DEVICE);
 }
 
-klio::Sensor::Ptr SensorFactory::createSensor(
+Sensor::Ptr SensorFactory::createSensor(
         const std::string& external_id,
         const std::string& name,
         const std::string& unit,
         const std::string& timezone,
-        const klio::DeviceType::Ptr device_type
+        const DeviceType::Ptr device_type
         ) {
-    return createSensor(external_id, name, klio::DEFAULT_SENSOR_DESCRIPTION, unit, timezone, device_type);
+    return createSensor(external_id, name, DEFAULT_SENSOR_DESCRIPTION, unit, timezone, device_type);
 }
 
-klio::Sensor::Ptr SensorFactory::createSensor(
+Sensor::Ptr SensorFactory::createSensor(
         const std::string& external_id,
         const std::string& name,
         const std::string& description,
         const std::string& unit,
         const std::string& timezone,
-        const klio::DeviceType::Ptr device_type
+        const DeviceType::Ptr device_type
         ) {
     return createSensor(_gen_uuid(), external_id, name, description, unit, timezone, device_type);
 }
 
-klio::Sensor::Ptr SensorFactory::createSensor(
+Sensor::Ptr SensorFactory::createSensor(
         const std::string& uuid_string,
         const std::string& external_id,
         const std::string& name,
         const std::string& unit,
         const std::string& timezone
         ) {
-    return createSensor(uuid_string, external_id, name, klio::DEFAULT_SENSOR_DESCRIPTION, unit, timezone);
+    return createSensor(uuid_string, external_id, name, DEFAULT_SENSOR_DESCRIPTION, unit, timezone);
 }
 
-klio::Sensor::Ptr SensorFactory::createSensor(
+Sensor::Ptr SensorFactory::createSensor(
         const std::string& uuid_string,
         const std::string& external_id,
         const std::string& name,
@@ -59,14 +62,14 @@ klio::Sensor::Ptr SensorFactory::createSensor(
     return createSensor(uuid_string, external_id, name, description, unit, timezone, DeviceType::UNKNOWN_DEVICE);
 }
 
-klio::Sensor::Ptr SensorFactory::createSensor(
+Sensor::Ptr SensorFactory::createSensor(
         const std::string& uuid_string,
         const std::string& external_id,
         const std::string& name,
         const std::string& description,
         const std::string& unit,
         const std::string& timezone,
-        const klio::DeviceType::Ptr device_type
+        const DeviceType::Ptr device_type
         ) {
 
     // type conversion: uuid_string to real uuid type
@@ -78,7 +81,7 @@ klio::Sensor::Ptr SensorFactory::createSensor(
     return createSensor(u, external_id, name, description, unit, timezone, device_type);
 }
 
-klio::Sensor::Ptr SensorFactory::createSensor(
+Sensor::Ptr SensorFactory::createSensor(
         const Sensor::uuid_t& uuid,
         const std::string& external_id,
         const std::string& name,
@@ -90,17 +93,17 @@ klio::Sensor::Ptr SensorFactory::createSensor(
     return createSensor(uuid, external_id, name, description, unit, timezone, DeviceType::UNKNOWN_DEVICE);
 }
 
-klio::Sensor::Ptr SensorFactory::createSensor(
+Sensor::Ptr SensorFactory::createSensor(
         const Sensor::uuid_t& uuid,
         const std::string& external_id,
         const std::string& name,
         const std::string& description,
         const std::string& unit,
         const std::string& timezone,
-        const klio::DeviceType::Ptr device_type
+        const DeviceType::Ptr device_type
         ) {
     
-    const klio::LocalTime::Ptr local_time(new klio::LocalTime("../.."));
+    const LocalTime::Ptr local_time(new LocalTime("../.."));
 
     if (!local_time->is_valid_timezone(timezone)) {
 
@@ -110,7 +113,7 @@ klio::Sensor::Ptr SensorFactory::createSensor(
         oss << "Invalid timezone " << timezone << ". Valid timezones are: " << std::endl;
         std::copy(valid_regions.begin(), valid_regions.end(), std::ostream_iterator<std::string> (oss, ", "));
 
-        throw klio::DataFormatException(oss.str());
+        throw DataFormatException(oss.str());
     }
     
     return Sensor::Ptr(new Sensor(uuid, external_id, name, description, unit, timezone, device_type));

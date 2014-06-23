@@ -312,10 +312,6 @@ const std::string SQLite3Store::str() {
 
 void SQLite3Store::add_sensor_record(const Sensor::Ptr sensor) {
 
-    std::ostringstream oss;
-    oss << "CREATE TABLE '" << sensor->uuid_string() << "'(timestamp INTEGER PRIMARY KEY, value DOUBLE)";
-    sqlite3_stmt* create_table_stmt = prepare(oss.str());
-
     try {
         sqlite3_bind_text(_insert_sensor_stmt, 1, sensor->uuid_string().c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_text(_insert_sensor_stmt, 2, sensor->external_id().c_str(), -1, SQLITE_TRANSIENT);
@@ -326,35 +322,51 @@ void SQLite3Store::add_sensor_record(const Sensor::Ptr sensor) {
         sqlite3_bind_int(_insert_sensor_stmt, 7, sensor->device_type()->id());
 
         execute(_insert_sensor_stmt, SQLITE_DONE);
-        execute(create_table_stmt, SQLITE_DONE);
 
     } catch (std::exception const& e) {
         reset(_insert_sensor_stmt);
-        finalize(&create_table_stmt);
         throw;
     }
     reset(_insert_sensor_stmt);
+
+    std::ostringstream oss;
+    oss << "CREATE TABLE '" << sensor->uuid_string() << "'(timestamp INTEGER PRIMARY KEY, value DOUBLE)";
+    sqlite3_stmt* create_table_stmt = prepare(oss.str());
+
+    try {
+        execute(create_table_stmt, SQLITE_DONE);
+
+    } catch (std::exception const& e) {
+        finalize(&create_table_stmt);
+        throw;
+    }
     finalize(&create_table_stmt);
 }
 
 void SQLite3Store::remove_sensor_record(const Sensor::Ptr sensor) {
 
+    try {
+        sqlite3_bind_text(_remove_sensor_stmt, 1, sensor->uuid_string().c_str(), -1, SQLITE_TRANSIENT);
+
+        execute(_remove_sensor_stmt, SQLITE_DONE);
+
+    } catch (std::exception const& e) {
+        reset(_remove_sensor_stmt);
+        throw;
+    }
+    reset(_remove_sensor_stmt);
+    
     std::ostringstream oss;
     oss << "DROP TABLE '" << sensor->uuid_string() << "'";
     sqlite3_stmt* drop_table_stmt = prepare(oss.str());
 
     try {
-        sqlite3_bind_text(_remove_sensor_stmt, 1, sensor->uuid_string().c_str(), -1, SQLITE_TRANSIENT);
-
-        execute(_remove_sensor_stmt, SQLITE_DONE);
         execute(drop_table_stmt, SQLITE_DONE);
 
     } catch (std::exception const& e) {
-        reset(_remove_sensor_stmt);
         finalize(&drop_table_stmt);
         throw;
     }
-    reset(_remove_sensor_stmt);
     finalize(&drop_table_stmt);
 }
 
@@ -397,11 +409,11 @@ std::vector<Sensor::Ptr> SQLite3Store::get_sensor_records() {
 
 readings_t_Ptr SQLite3Store::get_all_reading_records(const Sensor::Ptr sensor) {
 
+    readings_t_Ptr readings;
     std::ostringstream oss;
     oss << "SELECT timestamp, value FROM '" << sensor->uuid_string() << "'";
     sqlite3_stmt* stmt = get_statement(oss.str());
 
-    readings_t_Ptr readings;
     try {
         readings = get_readings_records(stmt);
 
@@ -415,11 +427,11 @@ readings_t_Ptr SQLite3Store::get_all_reading_records(const Sensor::Ptr sensor) {
 
 readings_t_Ptr SQLite3Store::get_timeframe_reading_records(const Sensor::Ptr sensor, const timestamp_t begin, const timestamp_t end) {
 
+    readings_t_Ptr readings;
     std::ostringstream oss;
     oss << "SELECT timestamp, value FROM '" << sensor->uuid_string() << "' WHERE timestamp BETWEEN ? AND ?";
     sqlite3_stmt* stmt = get_statement(oss.str());
 
-    readings_t_Ptr readings;
     try {
         sqlite3_bind_int(stmt, 1, begin);
         sqlite3_bind_int(stmt, 2, end);
@@ -451,11 +463,11 @@ readings_t_Ptr SQLite3Store::get_readings_records(sqlite3_stmt* stmt) {
 
 unsigned long int SQLite3Store::get_num_readings_value(const Sensor::Ptr sensor) {
 
+    int num;
     std::ostringstream oss;
     oss << "SELECT count(*) FROM '" << sensor->uuid_string() << "'";
     sqlite3_stmt* stmt = get_statement(oss.str());
 
-    int num;
     try {
         num = sqlite3_step(stmt) == SQLITE_ROW ? sqlite3_column_int(stmt, 0) : 0;
 
@@ -469,11 +481,11 @@ unsigned long int SQLite3Store::get_num_readings_value(const Sensor::Ptr sensor)
 
 reading_t SQLite3Store::get_last_reading_record(const Sensor::Ptr sensor) {
 
+    std::pair<timestamp_t, double> reading;
     std::ostringstream oss;
     oss << "SELECT timestamp, value FROM '" << sensor->uuid_string() << "' ORDER BY timestamp DESC LIMIT 1";
     sqlite3_stmt* stmt = get_statement(oss.str());
 
-    std::pair<timestamp_t, double> reading;
     try {
         if (sqlite3_step(stmt) == SQLITE_ROW) {
 
@@ -493,11 +505,11 @@ reading_t SQLite3Store::get_last_reading_record(const Sensor::Ptr sensor) {
 
 reading_t SQLite3Store::get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp) {
 
+    std::pair<timestamp_t, double> reading;
     std::ostringstream oss;
     oss << "SELECT timestamp, value FROM '" << sensor->uuid_string() << "' WHERE timestamp = ?";
     sqlite3_stmt* stmt = get_statement(oss.str());
 
-    std::pair<timestamp_t, double> reading;
     try {
         sqlite3_bind_int(stmt, 1, timestamp);
 
@@ -570,9 +582,10 @@ sqlite3_stmt *SQLite3Store::prepare(const std::string& stmt_str) {
 
     if (rc != SQLITE_OK) {
 
+        finalize(&stmt);
+
         std::ostringstream oss;
         oss << "Can't prepare SQL statement: " << stmt_str << ". Error: " << sqlite3_errmsg(_db) << ", Error code: " << rc;
-        finalize(&stmt);
         throw StoreException(oss.str());
     }
     return stmt;
@@ -583,9 +596,11 @@ sqlite3_stmt *SQLite3Store::get_statement(const std::string& sql) {
     const boost::unordered_map<const std::string, sqlite3_stmt*>::const_iterator found = _statements.find(sql);
 
     if (found == _statements.end()) {
+
         sqlite3_stmt* stmt = prepare(sql);
         _statements[sql] = stmt;
         return stmt;
+
     } else {
         return found->second;
     }
@@ -597,9 +612,10 @@ int SQLite3Store::execute(sqlite3_stmt *stmt, const int expected_code) {
 
     if (rc != expected_code) {
 
+        reset(stmt);
+
         std::ostringstream oss;
         oss << "Can't execute SQL statement. Error: " << sqlite3_errmsg(_db) << ", Error code: " << rc;
-        reset(stmt);
         throw StoreException(oss.str());
     }
     return rc;

@@ -41,16 +41,6 @@ namespace klio {
     public:
         typedef boost::shared_ptr<Store> Ptr;
 
-        Store(const bool auto_commit, const bool auto_flush, const timestamp_t flush_timeout) :
-        _auto_commit(auto_commit),
-        _auto_flush(auto_flush),
-        _flush_timeout(flush_timeout),
-        _last_flush(0) {
-        };
-
-        virtual ~Store() {
-        };
-
         virtual void open();
         virtual void close();
         virtual void check_integrity() = 0;
@@ -89,6 +79,16 @@ namespace klio {
         void sync_sensors(const Store::Ptr store);
 
     protected:
+        Store(const bool auto_commit, const bool auto_flush, const timestamp_t flush_timeout) :
+        _auto_commit(auto_commit),
+        _auto_flush(auto_flush),
+        _flush_timeout(flush_timeout),
+        _last_flush(0) {
+        };
+
+        virtual ~Store() {
+        };
+
         static const SensorFactory::Ptr sensor_factory;
         static const TimeConverter::Ptr time_converter;
 

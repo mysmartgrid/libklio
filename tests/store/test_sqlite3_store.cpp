@@ -148,7 +148,7 @@ BOOST_AUTO_TEST_CASE(check_add_sqlite3_sensor) {
         store = store_factory->create_sqlite3_store(db);
         std::cout << "Created database: " << store->str() << std::endl;
 
-        klio::Sensor::Ptr sensor(sensor_factory->createSensor(
+        klio::Sensor::Ptr sensor1(sensor_factory->createSensor(
                 "89c18074-8bcf-240b-db7c-c1281038adcb",
                 "Test",
                 "Test libklio",
@@ -156,16 +156,36 @@ BOOST_AUTO_TEST_CASE(check_add_sqlite3_sensor) {
                 "kwh",
                 "Europe/Berlin"));
 
-        store->add_sensor(sensor);
+        store->add_sensor(sensor1);
 
-        klio::Sensor::Ptr retrieved = store->get_sensor(sensor->uuid());
+        klio::Sensor::Ptr retrieved = store->get_sensor(sensor1->uuid());
 
-        BOOST_CHECK_EQUAL(sensor->uuid(), retrieved->uuid());
-        BOOST_CHECK_EQUAL(sensor->name(), retrieved->name());
-        BOOST_CHECK_EQUAL(sensor->external_id(), retrieved->external_id());
-        BOOST_CHECK_EQUAL(sensor->description(), retrieved->description());
-        BOOST_CHECK_EQUAL(sensor->unit(), retrieved->unit());
-        BOOST_CHECK_EQUAL(sensor->timezone(), retrieved->timezone());
+        BOOST_CHECK_EQUAL(sensor1->uuid(), retrieved->uuid());
+        BOOST_CHECK_EQUAL(sensor1->name(), retrieved->name());
+        BOOST_CHECK_EQUAL(sensor1->external_id(), retrieved->external_id());
+        BOOST_CHECK_EQUAL(sensor1->description(), retrieved->description());
+        BOOST_CHECK_EQUAL(sensor1->unit(), retrieved->unit());
+        BOOST_CHECK_EQUAL(sensor1->timezone(), retrieved->timezone());
+
+        std::cout << "Testing duplicated sensor addition for SQLite3" << std::endl;
+
+        klio::Sensor::Ptr sensor2(sensor_factory->createSensor(
+                sensor1->uuid_string(),
+                "Test2",
+                "Test libklio 2",
+                "this is a duplicated sensor",
+                "kwh",
+                "Europe/Berlin"));
+
+        try {
+            store->add_sensor(sensor2);
+
+            BOOST_FAIL("Duplicated addition should have been refused.");
+
+        } catch (klio::StoreException e) {
+            //expected
+            std::cout << "Cought expected exception for duplicated sensor addition attempt." << std::endl;
+        }
 
         store->dispose();
 

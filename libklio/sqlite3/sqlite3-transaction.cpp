@@ -9,7 +9,7 @@ void SQLite3Transaction::start() {
     if (pending()) {
         LOG("Transaction is already started.");
 
-    } else if (sqlite3_exec(_db, "BEGIN", 0, 0, 0) == SQLITE_OK) {
+    } else if (sqlite3_exec(_db, "BEGIN", NULL, NULL, NULL) == SQLITE_OK) {
         pending(true);
         LOG("Transaction has been started.");
 
@@ -23,7 +23,7 @@ void SQLite3Transaction::commit() {
     if (!pending()) {
         LOG("Transaction is not started.");
 
-    } else if (sqlite3_exec(_db, "COMMIT", 0, 0, 0) == SQLITE_OK) {
+    } else if (sqlite3_exec(_db, "COMMIT", NULL, NULL, NULL) == SQLITE_OK) {
         pending(false);
         LOG("Transaction has been commited.");
 
@@ -37,7 +37,7 @@ void SQLite3Transaction::rollback() {
     if (!pending()) {
         LOG("Transaction is not started.");
 
-    } else if (sqlite3_exec(_db, "ROLLBACK", 0, 0, 0) == SQLITE_OK) {
+    } else if (sqlite3_exec(_db, "ROLLBACK", NULL, NULL, NULL) == SQLITE_OK) {
         pending(false);
         LOG("Transaction has been rolled back.");
 

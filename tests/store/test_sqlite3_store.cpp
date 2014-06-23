@@ -85,6 +85,8 @@ BOOST_AUTO_TEST_CASE(check_open_close_sqlite3_storage) {
         store = store_factory->create_sqlite3_store(db);
         std::cout << "Created database: " << store->str() << std::endl;
 
+        store->close();
+        /*
         store->open();
         store->open();
 
@@ -95,7 +97,7 @@ BOOST_AUTO_TEST_CASE(check_open_close_sqlite3_storage) {
 
         store->close();
         store->open();
-
+        */
         store->dispose();
 
     } catch (klio::GenericException const& ex) {
@@ -595,7 +597,7 @@ BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensor_uuids) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_sync_sqlite3_sensor) {
+BOOST_AUTO_TEST_CASE(check_sync_sqlite3_sensors) {
 
     std::cout << "Testing sensors synchronization for SQLite3" << std::endl;
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());

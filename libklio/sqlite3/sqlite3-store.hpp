@@ -91,6 +91,8 @@ namespace klio {
         SQLite3Store(const SQLite3Store& original);
         SQLite3Store& operator =(const SQLite3Store& rhs);
 
+        void close(sqlite3 **db);
+        
         const bool has_table(const std::string& name);
         const bool has_column(const std::string& table, const std::string& column);
 

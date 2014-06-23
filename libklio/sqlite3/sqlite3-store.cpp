@@ -18,22 +18,22 @@ void SQLite3Store::open() {
 
     if (_db == NULL) {
 
-        int rc = sqlite3_open(_path.c_str(), &_db);
-        if (rc) {
+        if (sqlite3_open_v2(_path.c_str(), &_db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL) == SQLITE_OK) {
+            Store::open();
+
+        } else {
             std::ostringstream oss;
             oss << "Can't open database: ";
 
             if (_db) {
                 oss << sqlite3_errmsg(_db);
-                sqlite3_close(_db);
-                _db = NULL;
+                close(&_db);
 
             } else {
                 oss << "Not enough memory.";
             }
             throw StoreException(oss.str());
         }
-        Store::open();
     }
 }
 
@@ -41,6 +41,10 @@ void SQLite3Store::close() {
 
     if (_db != NULL) {
 
+        for (boost::unordered_map<const std::string, sqlite3_stmt*>::const_iterator it = _statements.begin(); it != _statements.end(); ++it) {
+            sqlite3_stmt* stmt = (*it).second;
+            finalize(&stmt);
+        }
         _insert_sensor_stmt = NULL;
         _remove_sensor_stmt = NULL;
         _update_sensor_stmt = NULL;
@@ -50,14 +54,20 @@ void SQLite3Store::close() {
         _select_sensors_stmt = NULL;
         _select_all_sensor_uuids_stmt = NULL;
 
-        for (boost::unordered_map<const std::string, sqlite3_stmt*>::const_iterator it = _statements.begin(); it != _statements.end(); ++it) {
-            sqlite3_stmt* stmt = (*it).second;
-            finalize(&stmt);
-        }
         Store::close();
+        close(&_db);
+    }
+}
 
-        sqlite3_close(_db);
-        _db = NULL;
+void SQLite3Store::close(sqlite3 **db) {
+
+    if (sqlite3_close_v2(*db) == SQLITE_OK) {
+        *db = NULL;
+
+    } else {
+        std::ostringstream oss;
+        oss << "Can't close the database.";
+        throw StoreException(oss.str());
     }
 }
 
@@ -181,17 +191,17 @@ void SQLite3Store::initialize() {
         sqlite3_bind_text(stmt, 2, info->getVersion().c_str(), -1, SQLITE_TRANSIENT);
         execute(stmt, SQLITE_DONE);
         finalize(&stmt);
-        
+
         std::ostringstream oss;
         oss << "PRAGMA synchronous = " << _synchronous;
         sqlite3_stmt* stmt = prepare(oss.str());
         execute(stmt, SQLITE_DONE);
+        finalize(&stmt);
 
     } catch (std::exception const& e) {
         finalize(&stmt);
         throw;
     }
-    finalize(&stmt);
 }
 
 void SQLite3Store::upgrade() {

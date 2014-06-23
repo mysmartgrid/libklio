@@ -19,6 +19,7 @@
  */
 
 #include <iostream>
+#include <boost/filesystem.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -597,9 +598,9 @@ BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensor_uuids) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_sync_sqlite3_sensors) {
+void run_sync_sqlite3_sensors_tests(bool file_renaming) {
 
-    std::cout << "Testing sensors synchronization for SQLite3" << std::endl;
+    std::cout << "Testing sensors synchronization for SQLite3 with file renaming" << std::endl;
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
     bfs::path db1(TEST_DB1_FILE);
@@ -639,7 +640,7 @@ BOOST_AUTO_TEST_CASE(check_sync_sqlite3_sensors) {
                 "this is the sensor 3 description",
                 "watt",
                 "Europe/Berlin"));
-        
+
         klio::Sensor::Ptr sensor4(sensor_factory->createSensor(
                 "22c18044-8bcf-240b-db7c-c1281038adcb",
                 "Test4",
@@ -647,7 +648,7 @@ BOOST_AUTO_TEST_CASE(check_sync_sqlite3_sensors) {
                 "this is the sensor 4 description",
                 "kwh",
                 "Europe/Berlin"));
-        
+
         klio::Sensor::Ptr sensor5(sensor_factory->createSensor(
                 "55c18044-8bcf-240b-db7c-c1281038adcb",
                 "Test5",
@@ -655,7 +656,7 @@ BOOST_AUTO_TEST_CASE(check_sync_sqlite3_sensors) {
                 "this is the sensor 5 description",
                 "watt",
                 "Europe/Berlin"));
-        
+
         //Same external Id as Test5
         klio::Sensor::Ptr sensor6(sensor_factory->createSensor(
                 "66c18044-8bcf-240b-db7c-c1281038adcb",
@@ -664,7 +665,7 @@ BOOST_AUTO_TEST_CASE(check_sync_sqlite3_sensors) {
                 "this is the sensor 6 description",
                 "watt",
                 "Europe/Berlin"));
-        
+
         store1->add_sensor(sensor1);
         store1->add_sensor(sensor2);
         store1->add_sensor(sensor4);
@@ -672,6 +673,10 @@ BOOST_AUTO_TEST_CASE(check_sync_sqlite3_sensors) {
         store2->add_sensor(sensor3);
         store2->add_sensor(sensor4);
         store2->add_sensor(sensor6);
+
+        if (file_renaming) {
+            boost::filesystem::rename(TEST_DB1_FILE, TEST_DB3_FILE);
+        }
 
         store2->sync_sensors(store1);
 
@@ -740,6 +745,18 @@ BOOST_AUTO_TEST_CASE(check_sync_sqlite3_sensors) {
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
     }
+}
+
+BOOST_AUTO_TEST_CASE(check_sync_sqlite3_sensors) {
+
+    std::cout << "Testing sensors synchronization for SQLite3, keeping the store file" << std::endl;
+    run_sync_sqlite3_sensors_tests(false);
+}
+
+BOOST_AUTO_TEST_CASE(check_sync_sqlite3_sensors_with_file_ranaming) {
+
+    std::cout << "Testing sensors synchronization for SQLite3, renaming store file" << std::endl;
+    run_sync_sqlite3_sensors_tests(true);
 }
 
 BOOST_AUTO_TEST_CASE(check_sqlite3_store_creation_performance) {

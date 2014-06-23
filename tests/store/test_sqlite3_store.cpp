@@ -86,7 +86,7 @@ BOOST_AUTO_TEST_CASE(check_open_close_sqlite3_storage) {
         std::cout << "Created database: " << store->str() << std::endl;
 
         store->close();
-        /*
+
         store->open();
         store->open();
 
@@ -97,7 +97,7 @@ BOOST_AUTO_TEST_CASE(check_open_close_sqlite3_storage) {
 
         store->close();
         store->open();
-        */
+
         store->dispose();
 
     } catch (klio::GenericException const& ex) {
@@ -620,15 +620,15 @@ BOOST_AUTO_TEST_CASE(check_sync_sqlite3_sensors) {
                 "89c18074-8bcf-240b-db7c-c1281038adcb",
                 "Test1",
                 "Test1 libklio",
-                "this is a sensor description",
-                "kwh",
+                "this is the sensor 1 description",
+                "watt",
                 "Europe/Berlin"));
 
         klio::Sensor::Ptr sensor2(sensor_factory->createSensor(
                 "66c18088-8bcf-240b-db7c-c1281038adcb",
                 "Test2",
                 "Test2 libklio",
-                "this is a sensor description",
+                "this is the sensor 2 description",
                 "kwh",
                 "Europe/Berlin"));
 
@@ -636,13 +636,42 @@ BOOST_AUTO_TEST_CASE(check_sync_sqlite3_sensors) {
                 "22c18088-8bcf-240b-db7c-c1281038adcb",
                 "Test3",
                 "Test3 libklio",
-                "this is a sensor description",
+                "this is the sensor 3 description",
+                "watt",
+                "Europe/Berlin"));
+        
+        klio::Sensor::Ptr sensor4(sensor_factory->createSensor(
+                "22c18044-8bcf-240b-db7c-c1281038adcb",
+                "Test4",
+                "Test4 libklio",
+                "this is the sensor 4 description",
                 "kwh",
                 "Europe/Berlin"));
-
+        
+        klio::Sensor::Ptr sensor5(sensor_factory->createSensor(
+                "55c18044-8bcf-240b-db7c-c1281038adcb",
+                "Test5",
+                "Test5 libklio",
+                "this is the sensor 5 description",
+                "watt",
+                "Europe/Berlin"));
+        
+        //Same external Id as Test5
+        klio::Sensor::Ptr sensor6(sensor_factory->createSensor(
+                "66c18044-8bcf-240b-db7c-c1281038adcb",
+                "Test5",
+                "Same external Id as Test5",
+                "this is the sensor 6 description",
+                "watt",
+                "Europe/Berlin"));
+        
         store1->add_sensor(sensor1);
         store1->add_sensor(sensor2);
+        store1->add_sensor(sensor4);
+        store1->add_sensor(sensor5);
         store2->add_sensor(sensor3);
+        store2->add_sensor(sensor4);
+        store2->add_sensor(sensor6);
 
         store2->sync_sensors(store1);
 
@@ -672,6 +701,35 @@ BOOST_AUTO_TEST_CASE(check_sync_sqlite3_sensors) {
         BOOST_CHECK_EQUAL(sensor3->description(), retrieved->description());
         BOOST_CHECK_EQUAL(sensor3->unit(), retrieved->unit());
         BOOST_CHECK_EQUAL(sensor3->timezone(), retrieved->timezone());
+
+        retrieved = store2->get_sensor(sensor4->uuid());
+
+        BOOST_CHECK_EQUAL(sensor4->uuid(), retrieved->uuid());
+        BOOST_CHECK_EQUAL(sensor4->name(), retrieved->name());
+        BOOST_CHECK_EQUAL(sensor4->external_id(), retrieved->external_id());
+        BOOST_CHECK_EQUAL(sensor4->description(), retrieved->description());
+        BOOST_CHECK_EQUAL(sensor4->unit(), retrieved->unit());
+        BOOST_CHECK_EQUAL(sensor4->timezone(), retrieved->timezone());
+
+        //Same external id as test5
+        retrieved = store2->get_sensor(sensor6->uuid());
+
+        BOOST_CHECK_EQUAL(sensor6->uuid(), retrieved->uuid());
+        BOOST_CHECK_EQUAL(sensor5->name(), retrieved->name());
+        BOOST_CHECK_EQUAL(sensor5->external_id(), retrieved->external_id());
+        BOOST_CHECK_EQUAL(sensor5->description(), retrieved->description());
+        BOOST_CHECK_EQUAL(sensor5->unit(), retrieved->unit());
+        BOOST_CHECK_EQUAL(sensor5->timezone(), retrieved->timezone());
+
+        try {
+            //Non existent
+            store2->get_sensor(sensor5->uuid());
+
+            BOOST_FAIL("An exception must be raised if the sensor5 is found in the second store.");
+
+        } catch (klio::StoreException const& ok) {
+            //This exception is expected
+        }
 
         store1->dispose();
         store2->dispose();

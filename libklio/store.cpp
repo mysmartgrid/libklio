@@ -53,23 +53,25 @@ void Store::rollback_transaction() {
 
 Transaction::Ptr Store::create_transaction() {
 
-    //Default
+    //TODO: implement Transaction classes for other stores and make this method virtual
     return Transaction::Ptr(new Transaction());
 }
 
 Transaction::Ptr Store::auto_start_transaction() {
 
-    const Transaction::Ptr transaction = _auto_commit ? create_transaction() : _transaction;
-
     if (_auto_commit) {
+        const Transaction::Ptr transaction = create_transaction();
         transaction->start();
+        return transaction;
 
-    } else if (!_transaction->pending()) {
+    } else if (_transaction->pending()) {
+        return _transaction;
+
+    } else {
         std::ostringstream oss;
         oss << "Automatic commits are disabled for this store. Please, start a transaction manually before invoking this method.";
         throw StoreException(oss.str());
     }
-    return transaction;
 }
 
 void Store::auto_commit_transaction(const Transaction::Ptr transaction) {
@@ -306,7 +308,7 @@ void Store::sync_sensors(const Store::Ptr store) {
 
 void Store::sync_reading_records(const Sensor::Ptr sensor, const Store::Ptr store) {
 
-    klio::readings_t_Ptr readings = store->get_all_readings(sensor);
+    readings_t_Ptr readings = store->get_all_readings(sensor);
     Sensor::Ptr local_sensor = sync_sensor_record(sensor, store);
     set_buffers(local_sensor);
     add_readings(local_sensor, *readings, UPDATE_OPERATION);

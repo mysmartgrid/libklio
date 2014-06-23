@@ -3,6 +3,7 @@
 
 
 using namespace klio;
+//TODO: implement Transaction classes for other stores and make this class abstract
 
 void Transaction::start() {
 }

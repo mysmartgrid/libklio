@@ -143,6 +143,8 @@ void SQLite3Store::check_integrity() {
         result == e.what();
     }
 
+    finalize(&stmt);
+    
     if (result == OK) {
         return;
 
@@ -256,8 +258,8 @@ void SQLite3Store::prepare() {
 
 void SQLite3Store::dispose() {
 
-    bfs::remove(_path);
     Store::dispose();
+    bfs::remove(_path);
 }
 
 Transaction::Ptr SQLite3Store::create_transaction() {

@@ -26,6 +26,7 @@ void Store::close() {
 
 void Store::dispose() {
 
+    close();
     clear_buffers();
 }
 

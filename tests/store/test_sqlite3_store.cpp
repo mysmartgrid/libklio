@@ -18,6 +18,7 @@
  * along with libklio. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <fcntl.h>
 #include <iostream>
 #include <boost/filesystem.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -74,32 +75,131 @@ BOOST_AUTO_TEST_CASE(check_create_sqlite3_storage) {
     }
 }
 
+int get_openfiles(/*fd_set *cloexec*/) {
+
+    fd_set closet;
+    int flags;
+    int fd;
+    int n = 0;
+
+    FD_ZERO(&closet);
+
+    for (fd = 0; fd < (int) FD_SETSIZE; fd++) {
+
+        errno = 0;
+        flags = fcntl(fd, F_GETFD, 0);
+        if (flags == -1 && errno) {
+
+            if (errno != EBADF) {
+#ifdef DEBUG
+                perror("fcntl(F_GETFD)");
+#endif
+                return -1;
+
+            } else {
+                continue;
+            }
+        }
+        /*
+        if (flags & FD_CLOEXEC) {
+            FD_SET(fd, &closet);
+         */
+        n++;
+        //}
+    }
+
+    /*
+    if (cloexec) {
+     *cloexec = closet;
+    }
+     */
+    return n;
+}
+
 BOOST_AUTO_TEST_CASE(check_open_close_sqlite3_storage) {
 
     std::cout << "Testing opening and closing SQLite3 store" << std::endl;
+
+    int openfiles = get_openfiles();
+    std::cout << "Open files    : " << openfiles << std::endl;
+
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
     bfs::path db(TEST_DB1_FILE);
     klio::Store::Ptr store;
 
     try {
         std::cout << "Attempting to create " << db << std::endl;
+
+        int new_openfiles = get_openfiles();
+        std::cout << "Open files +0 : " << new_openfiles << std::endl;
+
         store = store_factory->create_sqlite3_store(db);
-        std::cout << "Created database: " << store->str() << std::endl;
+        new_openfiles = get_openfiles();
+        std::cout << "Open files +1 : " << new_openfiles << std::endl;
+        //BOOST_CHECK_EQUAL(openfiles + 1, new_openfiles);
+        openfiles = new_openfiles;
 
         store->close();
 
-        store->open();
+        new_openfiles = get_openfiles();
+        std::cout << "Open files -1 : " << new_openfiles << std::endl;
+        //BOOST_CHECK_EQUAL(openfiles - 1, new_openfiles);
+        openfiles = new_openfiles;
+
         store->open();
 
-        store->close();
-        store->close();
+        new_openfiles = get_openfiles();
+        std::cout << "Open files +1 : " << new_openfiles << std::endl;
+        //BOOST_CHECK_EQUAL(openfiles + 1, new_openfiles);
+        openfiles = new_openfiles;
 
         store->open();
 
+        new_openfiles = get_openfiles();
+        std::cout << "Open files +0 : " << new_openfiles << std::endl;
+        //BOOST_CHECK_EQUAL(openfiles, new_openfiles);
+        openfiles = new_openfiles;
+
         store->close();
+
+        new_openfiles = get_openfiles();
+        std::cout << "Open files -1 : " << new_openfiles << std::endl;
+        //BOOST_CHECK_EQUAL(openfiles - 1, new_openfiles);
+        openfiles = new_openfiles;
+
+        store->close();
+
+        new_openfiles = get_openfiles();
+        std::cout << "Open files +0 : " << new_openfiles << std::endl;
+        //BOOST_CHECK_EQUAL(openfiles, new_openfiles);
+        openfiles = new_openfiles;
+
         store->open();
+
+        new_openfiles = get_openfiles();
+        std::cout << "Open files +1 : " << new_openfiles << std::endl;
+        //BOOST_CHECK_EQUAL(openfiles + 1, new_openfiles);
+        openfiles = new_openfiles;
+
+        store->close();
+
+        new_openfiles = get_openfiles();
+        std::cout << "Open files -1 : " << new_openfiles << std::endl;
+        //BOOST_CHECK_EQUAL(openfiles - 1, new_openfiles);
+        openfiles = new_openfiles;
+
+        store->open();
+
+        new_openfiles = get_openfiles();
+        std::cout << "Open files +1 : " << new_openfiles << std::endl;
+        //BOOST_CHECK_EQUAL(openfiles + 1, new_openfiles);
+        openfiles = new_openfiles;
 
         store->dispose();
+
+        new_openfiles = get_openfiles();
+        std::cout << "Open files -1 : " << new_openfiles << std::endl;
+        //BOOST_CHECK_EQUAL(openfiles - 1, new_openfiles);
 
     } catch (klio::GenericException const& ex) {
         store->dispose();

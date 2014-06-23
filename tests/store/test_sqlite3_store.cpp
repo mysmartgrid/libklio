@@ -18,6 +18,7 @@
  * along with libklio. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <fcntl.h>
 #include <iostream>
 #include <boost/filesystem.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -74,32 +75,130 @@ BOOST_AUTO_TEST_CASE(check_create_sqlite3_storage) {
     }
 }
 
+int get_openfiles(/*fd_set *cloexec*/) {
+
+    fd_set closet;
+    int flags;
+    int fd;
+    int n = 0;
+
+    FD_ZERO(&closet);
+
+    for (fd = 0; fd < (int) FD_SETSIZE; fd++) {
+
+        errno = 0;
+        flags = fcntl(fd, F_GETFD, 0);
+        if (flags == -1 && errno) {
+
+            if (errno != EBADF) {
+#ifdef DEBUG
+                perror("fcntl(F_GETFD)");
+#endif
+                return -1;
+
+            } else {
+                continue;
+            }
+        }
+        /*
+        if (flags & FD_CLOEXEC) {
+            FD_SET(fd, &closet);
+         */
+        n++;
+        //}
+    }
+    /*
+    if (cloexec) {
+     *cloexec = closet;
+    }
+     */
+    return n;
+}
+
 BOOST_AUTO_TEST_CASE(check_open_close_sqlite3_storage) {
 
     std::cout << "Testing opening and closing SQLite3 store" << std::endl;
+
+    int openfiles = get_openfiles();
+    std::cout << "Open files    : " << openfiles << std::endl;
+
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
     bfs::path db(TEST_DB1_FILE);
     klio::Store::Ptr store;
 
     try {
         std::cout << "Attempting to create " << db << std::endl;
+
+        int new_openfiles = get_openfiles();
+        std::cout << "Open files +0 : " << new_openfiles << std::endl;
+
         store = store_factory->create_sqlite3_store(db);
-        std::cout << "Created database: " << store->str() << std::endl;
+        new_openfiles = get_openfiles();
+        std::cout << "Open files +1 : " << new_openfiles << std::endl;
+        BOOST_CHECK_EQUAL(openfiles + 1, new_openfiles);
+        openfiles = new_openfiles;
 
         store->close();
 
-        store->open();
+        new_openfiles = get_openfiles();
+        std::cout << "Open files -1 : " << new_openfiles << std::endl;
+        BOOST_CHECK_EQUAL(openfiles - 1, new_openfiles);
+        openfiles = new_openfiles;
+
         store->open();
 
-        store->close();
-        store->close();
+        new_openfiles = get_openfiles();
+        std::cout << "Open files +1 : " << new_openfiles << std::endl;
+        BOOST_CHECK_EQUAL(openfiles + 1, new_openfiles);
+        openfiles = new_openfiles;
 
         store->open();
 
+        new_openfiles = get_openfiles();
+        std::cout << "Open files +0 : " << new_openfiles << std::endl;
+        BOOST_CHECK_EQUAL(openfiles, new_openfiles);
+        openfiles = new_openfiles;
+
         store->close();
+
+        new_openfiles = get_openfiles();
+        std::cout << "Open files -1 : " << new_openfiles << std::endl;
+        BOOST_CHECK_EQUAL(openfiles - 1, new_openfiles);
+        openfiles = new_openfiles;
+
+        store->close();
+
+        new_openfiles = get_openfiles();
+        std::cout << "Open files +0 : " << new_openfiles << std::endl;
+        BOOST_CHECK_EQUAL(openfiles, new_openfiles);
+        openfiles = new_openfiles;
+
         store->open();
+
+        new_openfiles = get_openfiles();
+        std::cout << "Open files +1 : " << new_openfiles << std::endl;
+        BOOST_CHECK_EQUAL(openfiles + 1, new_openfiles);
+        openfiles = new_openfiles;
+
+        store->close();
+
+        new_openfiles = get_openfiles();
+        std::cout << "Open files -1 : " << new_openfiles << std::endl;
+        BOOST_CHECK_EQUAL(openfiles - 1, new_openfiles);
+        openfiles = new_openfiles;
+
+        store->open();
+
+        new_openfiles = get_openfiles();
+        std::cout << "Open files +1 : " << new_openfiles << std::endl;
+        BOOST_CHECK_EQUAL(openfiles + 1, new_openfiles);
+        openfiles = new_openfiles;
 
         store->dispose();
+
+        new_openfiles = get_openfiles();
+        std::cout << "Open files -1 : " << new_openfiles << std::endl;
+        BOOST_CHECK_EQUAL(openfiles - 1, new_openfiles);
 
     } catch (klio::GenericException const& ex) {
         store->dispose();
@@ -148,7 +247,7 @@ BOOST_AUTO_TEST_CASE(check_add_sqlite3_sensor) {
         store = store_factory->create_sqlite3_store(db);
         std::cout << "Created database: " << store->str() << std::endl;
 
-        klio::Sensor::Ptr sensor(sensor_factory->createSensor(
+        klio::Sensor::Ptr sensor1(sensor_factory->createSensor(
                 "89c18074-8bcf-240b-db7c-c1281038adcb",
                 "Test",
                 "Test libklio",
@@ -156,16 +255,36 @@ BOOST_AUTO_TEST_CASE(check_add_sqlite3_sensor) {
                 "kwh",
                 "Europe/Berlin"));
 
-        store->add_sensor(sensor);
+        store->add_sensor(sensor1);
 
-        klio::Sensor::Ptr retrieved = store->get_sensor(sensor->uuid());
+        klio::Sensor::Ptr retrieved = store->get_sensor(sensor1->uuid());
 
-        BOOST_CHECK_EQUAL(sensor->uuid(), retrieved->uuid());
-        BOOST_CHECK_EQUAL(sensor->name(), retrieved->name());
-        BOOST_CHECK_EQUAL(sensor->external_id(), retrieved->external_id());
-        BOOST_CHECK_EQUAL(sensor->description(), retrieved->description());
-        BOOST_CHECK_EQUAL(sensor->unit(), retrieved->unit());
-        BOOST_CHECK_EQUAL(sensor->timezone(), retrieved->timezone());
+        BOOST_CHECK_EQUAL(sensor1->uuid(), retrieved->uuid());
+        BOOST_CHECK_EQUAL(sensor1->name(), retrieved->name());
+        BOOST_CHECK_EQUAL(sensor1->external_id(), retrieved->external_id());
+        BOOST_CHECK_EQUAL(sensor1->description(), retrieved->description());
+        BOOST_CHECK_EQUAL(sensor1->unit(), retrieved->unit());
+        BOOST_CHECK_EQUAL(sensor1->timezone(), retrieved->timezone());
+
+        std::cout << "Testing duplicated sensor addition for SQLite3" << std::endl;
+
+        klio::Sensor::Ptr sensor2(sensor_factory->createSensor(
+                sensor1->uuid_string(),
+                "Test2",
+                "Test libklio 2",
+                "this is a duplicated sensor",
+                "kwh",
+                "Europe/Berlin"));
+
+        try {
+            store->add_sensor(sensor2);
+
+            BOOST_FAIL("Duplicated addition should have been refused.");
+
+        } catch (klio::StoreException e) {
+            //expected
+            std::cout << "Cought expected exception for duplicated sensor addition attempt." << std::endl;
+        }
 
         store->dispose();
 

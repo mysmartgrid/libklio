@@ -75,7 +75,7 @@ void MSGStore::dispose() {
     } catch (std::exception const& e) {
         throw EnvironmentException(e.what());
     }
-    Store::dispose();
+    close();
 }
 
 void MSGStore::flush() {

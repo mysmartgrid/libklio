@@ -45,6 +45,7 @@ void SQLite3Store::close() {
             sqlite3_stmt* stmt = (*it).second;
             finalize(&stmt);
         }
+        //The iteration above finalizes all statements
         _insert_sensor_stmt = NULL;
         _remove_sensor_stmt = NULL;
         _update_sensor_stmt = NULL;
@@ -143,6 +144,8 @@ void SQLite3Store::check_integrity() {
         result == e.what();
     }
 
+    finalize(&stmt);
+    
     if (result == OK) {
         return;
 
@@ -256,8 +259,8 @@ void SQLite3Store::prepare() {
 
 void SQLite3Store::dispose() {
 
+    close();
     bfs::remove(_path);
-    Store::dispose();
 }
 
 Transaction::Ptr SQLite3Store::create_transaction() {

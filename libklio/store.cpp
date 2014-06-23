@@ -19,13 +19,8 @@ void Store::open() {
 void Store::close() {
 
     if (!_auto_commit) {
-        rollback_transaction();
+        _transaction->rollback();
     }
-    clear_buffers();
-}
-
-void Store::dispose() {
-
     clear_buffers();
 }
 
@@ -48,6 +43,7 @@ void Store::commit_transaction() {
 void Store::rollback_transaction() {
 
     _transaction->rollback();
+    clear_buffers();
     prepare();
 }
 
@@ -352,8 +348,6 @@ Sensor::Ptr Store::sync_sensor_record(const Sensor::Ptr sensor, const Store::Ptr
 }
 
 void Store::prepare() {
-
-    clear_buffers();
 
     std::vector<Sensor::Ptr> sensors = get_sensors();
     for (std::vector<Sensor::Ptr>::const_iterator sensor = sensors.begin(); sensor != sensors.end(); ++sensor) {

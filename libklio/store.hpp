@@ -134,8 +134,9 @@ namespace klio {
         boost::unordered_map<const Sensor::uuid_t, cached_reading_operations_type_t_Ptr> _reading_operations_buffer;
         boost::unordered_map<const Sensor::uuid_t, Sensor::Ptr> _sensors_buffer;
         boost::unordered_map<const std::string, Sensor::uuid_t> _external_ids_buffer;
-        
+
         void sync_reading_records(const Sensor::Ptr sensor, const Store::Ptr store);
+        Sensor::Ptr sync_sensor_record(const Sensor::Ptr sensor, const Store::Ptr store);
         void add_readings(const Sensor::Ptr sensor, const readings_t& readings, const cached_operation_type_t operation_type);
         readings_t_Ptr get_buffered_readings(const Sensor::Ptr sensor, const cached_operation_type_t operation_type);
 

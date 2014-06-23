@@ -298,8 +298,8 @@ void Store::sync_sensors(const Store::Ptr store) {
     const Transaction::Ptr transaction = auto_start_transaction();
 
     for (std::vector<Sensor::Ptr>::const_iterator sensor = sensors.begin(); sensor != sensors.end(); ++sensor) {
-        add_sensor_record(*sensor);
-        set_buffers(*sensor);
+        Sensor::Ptr local_sensor = sync_sensor_record(*sensor, store);
+        set_buffers(local_sensor);
     }
     auto_commit_transaction(transaction);
 }
@@ -307,6 +307,13 @@ void Store::sync_sensors(const Store::Ptr store) {
 void Store::sync_reading_records(const Sensor::Ptr sensor, const Store::Ptr store) {
 
     klio::readings_t_Ptr readings = store->get_all_readings(sensor);
+    Sensor::Ptr local_sensor = sync_sensor_record(sensor, store);
+    set_buffers(local_sensor);
+    add_readings(local_sensor, *readings, UPDATE_OPERATION);
+}
+
+Sensor::Ptr Store::sync_sensor_record(const Sensor::Ptr sensor, const Store::Ptr store) {
+
     std::vector<Sensor::Ptr> sensors = get_sensors_by_external_id(sensor->external_id());
     Sensor::Ptr local_sensor;
 
@@ -339,8 +346,7 @@ void Store::sync_reading_records(const Sensor::Ptr sensor, const Store::Ptr stor
             }
         }
     }
-    set_buffers(local_sensor);
-    add_readings(local_sensor, *readings, UPDATE_OPERATION);
+    return local_sensor;
 }
 
 void Store::prepare() {
@@ -381,15 +387,15 @@ void Store::flush_all() {
 
 void Store::flush(const Sensor::Ptr sensor) {
 
-    boost::unordered_map<const Sensor::uuid_t, cached_reading_operations_type_t_Ptr>::const_iterator found = 
-    _reading_operations_buffer.find(sensor->uuid());
-    
+    boost::unordered_map<const Sensor::uuid_t, cached_reading_operations_type_t_Ptr>::const_iterator found =
+            _reading_operations_buffer.find(sensor->uuid());
+
     if (found == _reading_operations_buffer.end()) {
         std::ostringstream err;
         err << "Sensor " << sensor->uuid_string() << " could not be found.";
         throw StoreException(err.str());
     }
-    
+
     readings_t_Ptr readings = found->second->at(INSERT_OPERATION);
     if (readings->size() > 0) {
         add_reading_records(sensor, *readings);

@@ -107,7 +107,6 @@ int get_openfiles(/*fd_set *cloexec*/) {
         n++;
         //}
     }
-
     /*
     if (cloexec) {
      *cloexec = closet;
@@ -136,70 +135,70 @@ BOOST_AUTO_TEST_CASE(check_open_close_sqlite3_storage) {
         store = store_factory->create_sqlite3_store(db);
         new_openfiles = get_openfiles();
         std::cout << "Open files +1 : " << new_openfiles << std::endl;
-        //BOOST_CHECK_EQUAL(openfiles + 1, new_openfiles);
+        BOOST_CHECK_EQUAL(openfiles + 1, new_openfiles);
         openfiles = new_openfiles;
 
         store->close();
 
         new_openfiles = get_openfiles();
         std::cout << "Open files -1 : " << new_openfiles << std::endl;
-        //BOOST_CHECK_EQUAL(openfiles - 1, new_openfiles);
+        BOOST_CHECK_EQUAL(openfiles - 1, new_openfiles);
         openfiles = new_openfiles;
 
         store->open();
 
         new_openfiles = get_openfiles();
         std::cout << "Open files +1 : " << new_openfiles << std::endl;
-        //BOOST_CHECK_EQUAL(openfiles + 1, new_openfiles);
+        BOOST_CHECK_EQUAL(openfiles + 1, new_openfiles);
         openfiles = new_openfiles;
 
         store->open();
 
         new_openfiles = get_openfiles();
         std::cout << "Open files +0 : " << new_openfiles << std::endl;
-        //BOOST_CHECK_EQUAL(openfiles, new_openfiles);
+        BOOST_CHECK_EQUAL(openfiles, new_openfiles);
         openfiles = new_openfiles;
 
         store->close();
 
         new_openfiles = get_openfiles();
         std::cout << "Open files -1 : " << new_openfiles << std::endl;
-        //BOOST_CHECK_EQUAL(openfiles - 1, new_openfiles);
+        BOOST_CHECK_EQUAL(openfiles - 1, new_openfiles);
         openfiles = new_openfiles;
 
         store->close();
 
         new_openfiles = get_openfiles();
         std::cout << "Open files +0 : " << new_openfiles << std::endl;
-        //BOOST_CHECK_EQUAL(openfiles, new_openfiles);
+        BOOST_CHECK_EQUAL(openfiles, new_openfiles);
         openfiles = new_openfiles;
 
         store->open();
 
         new_openfiles = get_openfiles();
         std::cout << "Open files +1 : " << new_openfiles << std::endl;
-        //BOOST_CHECK_EQUAL(openfiles + 1, new_openfiles);
+        BOOST_CHECK_EQUAL(openfiles + 1, new_openfiles);
         openfiles = new_openfiles;
 
         store->close();
 
         new_openfiles = get_openfiles();
         std::cout << "Open files -1 : " << new_openfiles << std::endl;
-        //BOOST_CHECK_EQUAL(openfiles - 1, new_openfiles);
+        BOOST_CHECK_EQUAL(openfiles - 1, new_openfiles);
         openfiles = new_openfiles;
 
         store->open();
 
         new_openfiles = get_openfiles();
         std::cout << "Open files +1 : " << new_openfiles << std::endl;
-        //BOOST_CHECK_EQUAL(openfiles + 1, new_openfiles);
+        BOOST_CHECK_EQUAL(openfiles + 1, new_openfiles);
         openfiles = new_openfiles;
 
         store->dispose();
 
         new_openfiles = get_openfiles();
         std::cout << "Open files -1 : " << new_openfiles << std::endl;
-        //BOOST_CHECK_EQUAL(openfiles - 1, new_openfiles);
+        BOOST_CHECK_EQUAL(openfiles - 1, new_openfiles);
 
     } catch (klio::GenericException const& ex) {
         store->dispose();

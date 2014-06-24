@@ -21,10 +21,9 @@
 
 using namespace klio;
 
-const std::string MSGStore::DEFAULT_MSG_URL = "https://api.mysmartgrid.de:8443";    
+const std::string MSGStore::DEFAULT_MSG_URL = "https://api.mysmartgrid.de:8443";
 const std::string MSGStore::DEFAULT_MSG_DESCRIPTION = "libklio mSG Store";
 const std::string MSGStore::DEFAULT_MSG_YTPE = "libklio";
-
 
 void MSGStore::check_integrity() {
     //TODO: implement this method
@@ -152,12 +151,12 @@ void MSGStore::update_sensor_record(const Sensor::Ptr sensor) {
     }
 }
 
-void MSGStore::add_reading_records(const Sensor::Ptr sensor, const readings_t& readings) {
+void MSGStore::add_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
 
-    update_reading_records(sensor, readings);
+    update_reading_records(sensor, readings, ignore_errors);
 }
 
-void MSGStore::update_reading_records(const Sensor::Ptr sensor, const readings_t& readings) {
+void MSGStore::update_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
 
     json_object *jmeasurements = NULL;
 
@@ -168,7 +167,7 @@ void MSGStore::update_reading_records(const Sensor::Ptr sensor, const readings_t
 
             timestamp_t timestamp = (*rit).first;
             double value = (*rit).second;
-            
+
             struct json_object *jtuple = create_json_array();
             json_object_array_add(jmeasurements, jtuple);
 
@@ -189,11 +188,11 @@ void MSGStore::update_reading_records(const Sensor::Ptr sensor, const readings_t
 
     } catch (GenericException const& e) {
         destroy_object(jmeasurements);
-        throw;
+        handle_reading_insertion_error(ignore_errors, sensor);
 
     } catch (std::exception const& e) {
         destroy_object(jmeasurements);
-        throw EnvironmentException(e.what());
+        handle_reading_insertion_error(ignore_errors, sensor);
     }
 }
 

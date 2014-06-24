@@ -36,7 +36,7 @@ void Store::start_transaction() {
 
 void Store::commit_transaction() {
 
-    flush_all();
+    flush_all(_auto_flush);
     _transaction->commit();
 }
 
@@ -225,7 +225,7 @@ readings_t_Ptr Store::get_all_readings(const Sensor::Ptr sensor) {
 
     LOG("Retrieving all readings of sensor " << sensor->str());
 
-    flush(sensor);
+    flush(sensor, true);
 
     return get_all_reading_records(sensor);
 }
@@ -234,7 +234,7 @@ readings_t_Ptr Store::get_timeframe_readings(const Sensor::Ptr sensor, const tim
 
     LOG("Retrieving readings of sensor " << sensor->str() << " between " << begin << " and " << end);
 
-    flush(sensor);
+    flush(sensor, true);
 
     return get_timeframe_reading_records(sensor, begin, end);
 }
@@ -243,7 +243,7 @@ unsigned long int Store::get_num_readings(const Sensor::Ptr sensor) {
 
     LOG("Retrieving number of readings for sensor " << sensor->str());
 
-    flush(sensor);
+    flush(sensor, true);
 
     return get_num_readings_value(sensor);
 }
@@ -252,7 +252,7 @@ reading_t Store::get_last_reading(const Sensor::Ptr sensor) {
 
     LOG("Retrieving last reading of sensor " << sensor->str());
 
-    flush(sensor);
+    flush(sensor, true);
 
     return get_last_reading_record(sensor);
 }
@@ -261,7 +261,7 @@ reading_t Store::get_reading(const Sensor::Ptr sensor, const timestamp_t timesta
 
     LOG("Retrieving reading of sensor " << sensor->str());
 
-    flush(sensor);
+    flush(sensor, true);
 
     return get_reading_record(sensor, timestamp);
 }
@@ -357,8 +357,13 @@ void Store::prepare() {
 
 void Store::flush() {
 
+    flush(_auto_flush);
+}
+
+void Store::flush(bool ignore_errors) {
+
     const Transaction::Ptr transaction = auto_start_transaction();
-    flush_all();
+    flush_all(ignore_errors);
     auto_commit_transaction(transaction);
 }
 
@@ -368,20 +373,20 @@ void Store::auto_flush() {
 
     if (_auto_flush && now - _last_flush >= _flush_timeout) {
         const Transaction::Ptr transaction = auto_start_transaction();
-        flush_all();
+        flush_all(true);
         auto_commit_transaction(transaction);
         _last_flush = now;
     }
 }
 
-void Store::flush_all() {
+void Store::flush_all(bool ignore_errors) {
 
     for (boost::unordered_map<Sensor::uuid_t, Sensor::Ptr>::const_iterator it = _sensors_buffer.begin(); it != _sensors_buffer.end(); ++it) {
-        flush((*it).second);
+        flush((*it).second, ignore_errors);
     }
 }
 
-void Store::flush(const Sensor::Ptr sensor) {
+void Store::flush(const Sensor::Ptr sensor, bool ignore_errors) {
 
     boost::unordered_map<const Sensor::uuid_t, cached_reading_operations_type_t_Ptr>::const_iterator found =
             _reading_operations_buffer.find(sensor->uuid());
@@ -394,13 +399,13 @@ void Store::flush(const Sensor::Ptr sensor) {
 
     readings_t_Ptr readings = found->second->at(INSERT_OPERATION);
     if (readings->size() > 0) {
-        add_reading_records(sensor, *readings);
+        add_reading_records(sensor, *readings, ignore_errors);
         readings->clear();
     }
 
     readings = found->second->at(UPDATE_OPERATION);
     if (readings->size() > 0) {
-        update_reading_records(sensor, *readings);
+        update_reading_records(sensor, *readings, ignore_errors);
         readings->clear();
     }
 }
@@ -442,4 +447,27 @@ void Store::clear_buffers() {
     _sensors_buffer.clear();
     _external_ids_buffer.clear();
     _reading_operations_buffer.clear();
+}
+
+void Store::handle_reading_insertion_error(const bool ignore_errors, const timestamp_t timestamp, const double value) {
+
+    std::ostringstream oss;
+    oss << "Error adding reading: (" << timestamp << ", " << value << ")";
+    handle_reading_insertion_error(ignore_errors, oss.str());
+}
+
+void Store::handle_reading_insertion_error(const bool ignore_errors, const Sensor::Ptr sensor) {
+
+    std::ostringstream oss;
+    oss << "Error adding readings for sensor: " << sensor->uuid_string();
+    handle_reading_insertion_error(ignore_errors, oss.str());
+}
+
+void Store::handle_reading_insertion_error(const bool ignore_errors, const std::string message) {
+
+    if (ignore_errors) {
+        LOG(message);
+    } else {
+        throw StoreException(message);
+    }
 }

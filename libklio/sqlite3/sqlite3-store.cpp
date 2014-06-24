@@ -145,7 +145,7 @@ void SQLite3Store::check_integrity() {
     }
 
     finalize(&stmt);
-    
+
     if (result == OK) {
         return;
 
@@ -358,7 +358,7 @@ void SQLite3Store::remove_sensor_record(const Sensor::Ptr sensor) {
         throw;
     }
     reset(_remove_sensor_stmt);
-    
+
     std::ostringstream oss;
     oss << "DROP TABLE '" << sensor->uuid_string() << "'";
     sqlite3_stmt* drop_table_stmt = prepare(oss.str());
@@ -532,21 +532,21 @@ reading_t SQLite3Store::get_reading_record(const Sensor::Ptr sensor, const times
     return reading;
 }
 
-void SQLite3Store::add_reading_records(const Sensor::Ptr sensor, const readings_t& readings) {
+void SQLite3Store::add_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
 
     for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
-        add_reading_record(sensor, (*it).first, (*it).second, "INSERT");
+        add_reading_record(sensor, (*it).first, (*it).second, "INSERT", ignore_errors);
     }
 }
 
-void SQLite3Store::update_reading_records(const Sensor::Ptr sensor, const readings_t& readings) {
+void SQLite3Store::update_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
 
     for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
-        add_reading_record(sensor, (*it).first, (*it).second, "INSERT OR REPLACE");
+        add_reading_record(sensor, (*it).first, (*it).second, "INSERT OR REPLACE", ignore_errors);
     }
 }
 
-void SQLite3Store::add_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value, const std::string& operation) {
+void SQLite3Store::add_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value, const std::string& operation, const bool ignore_errors) {
 
     std::ostringstream oss;
     oss << operation << " INTO '" << sensor->uuid_string() << "' (timestamp, value) VALUES (?, ?)";
@@ -561,7 +561,7 @@ void SQLite3Store::add_reading_record(const Sensor::Ptr sensor, const timestamp_
 
     } catch (std::exception const& e) {
         reset(stmt);
-        throw;
+        handle_reading_insertion_error(ignore_errors, timestamp, value);
     }
 }
 

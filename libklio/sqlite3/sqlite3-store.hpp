@@ -75,8 +75,8 @@ namespace klio {
         void add_sensor_record(const Sensor::Ptr sensor);
         void remove_sensor_record(const Sensor::Ptr sensor);
         void update_sensor_record(const Sensor::Ptr sensor);
-        void add_reading_records(const Sensor::Ptr sensor, const readings_t& readings);
-        void update_reading_records(const Sensor::Ptr sensor, const readings_t& readings);
+        void add_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors);
+        void update_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors);
 
         std::vector<Sensor::Ptr> get_sensor_records();
         readings_t_Ptr get_all_reading_records(const Sensor::Ptr sensor);
@@ -96,7 +96,7 @@ namespace klio {
         const bool has_table(const std::string& name);
         const bool has_column(const std::string& table, const std::string& column);
 
-        void add_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value, const std::string& operation);
+        void add_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value, const std::string& operation, const bool ignore_errors);
         readings_t_Ptr get_readings_records(sqlite3_stmt* stmt);
 
         sqlite3_stmt *prepare(const std::string& stmt_str);

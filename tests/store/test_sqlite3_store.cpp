@@ -719,7 +719,7 @@ BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensor_uuids) {
 
 void run_sync_sqlite3_sensors_tests(bool file_renaming) {
 
-    std::cout << "Testing sensors synchronization for SQLite3 with file renaming" << std::endl;
+    std::cout << "Testing Raspberry Pi store rotating" << std::endl;
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
     bfs::path db1(TEST_DB1_FILE);
@@ -753,51 +753,33 @@ void run_sync_sqlite3_sensors_tests(bool file_renaming) {
                 "Europe/Berlin"));
 
         klio::Sensor::Ptr sensor3(sensor_factory->createSensor(
-                "22c18088-8bcf-240b-db7c-c1281038adcb",
+                "22c18044-8bcf-240b-db7c-c1281038adcb",
                 "Test3",
                 "Test3 libklio",
                 "this is the sensor 3 description",
-                "watt",
-                "Europe/Berlin"));
-
-        klio::Sensor::Ptr sensor4(sensor_factory->createSensor(
-                "22c18044-8bcf-240b-db7c-c1281038adcb",
-                "Test4",
-                "Test4 libklio",
-                "this is the sensor 4 description",
                 "kwh",
-                "Europe/Berlin"));
-
-        klio::Sensor::Ptr sensor5(sensor_factory->createSensor(
-                "55c18044-8bcf-240b-db7c-c1281038adcb",
-                "Test5",
-                "Test5 libklio",
-                "this is the sensor 5 description",
-                "watt",
-                "Europe/Berlin"));
-
-        //Same external Id as Test5
-        klio::Sensor::Ptr sensor6(sensor_factory->createSensor(
-                "66c18044-8bcf-240b-db7c-c1281038adcb",
-                "Test5",
-                "Same external Id as Test5",
-                "this is the sensor 6 description",
-                "watt",
                 "Europe/Berlin"));
 
         store1->add_sensor(sensor1);
         store1->add_sensor(sensor2);
-        store1->add_sensor(sensor4);
-        store1->add_sensor(sensor5);
-        store2->add_sensor(sensor3);
-        store2->add_sensor(sensor4);
-        store2->add_sensor(sensor6);
+        store1->add_sensor(sensor3);
+
+        klio::TimeConverter::Ptr tc(new klio::TimeConverter());
+        for (size_t i = 0; i < 10; i++) {
+            store1->add_reading(sensor1, tc->get_timestamp() - i, 23);
+        }
+
+        store1->flush();
 
         if (file_renaming) {
             boost::filesystem::rename(TEST_DB1_FILE, TEST_DB3_FILE);
+            bfs::path db3(TEST_DB3_FILE);
+            db1 = db3;
         }
 
         store2->sync_sensors(store1);
+
+        store1->close();
 
         klio::Sensor::Ptr retrieved = store2->get_sensor(sensor1->uuid());
 
@@ -826,37 +808,20 @@ void run_sync_sqlite3_sensors_tests(bool file_renaming) {
         BOOST_CHECK_EQUAL(sensor3->unit(), retrieved->unit());
         BOOST_CHECK_EQUAL(sensor3->timezone(), retrieved->timezone());
 
-        retrieved = store2->get_sensor(sensor4->uuid());
+        BOOST_CHECK_EQUAL(0, store2->get_num_readings(sensor1));
 
-        BOOST_CHECK_EQUAL(sensor4->uuid(), retrieved->uuid());
-        BOOST_CHECK_EQUAL(sensor4->name(), retrieved->name());
-        BOOST_CHECK_EQUAL(sensor4->external_id(), retrieved->external_id());
-        BOOST_CHECK_EQUAL(sensor4->description(), retrieved->description());
-        BOOST_CHECK_EQUAL(sensor4->unit(), retrieved->unit());
-        BOOST_CHECK_EQUAL(sensor4->timezone(), retrieved->timezone());
+        store1 = store_factory->create_sqlite3_store(db1);
+        BOOST_CHECK_EQUAL(10, store1->get_num_readings(sensor1));
 
-        //Same external id as test5
-        retrieved = store2->get_sensor(sensor6->uuid());
+        klio::readings_t_Ptr readings = store1->get_all_readings(sensor1);
+        BOOST_CHECK_EQUAL(10, readings->size());
 
-        BOOST_CHECK_EQUAL(sensor6->uuid(), retrieved->uuid());
-        BOOST_CHECK_EQUAL(sensor5->name(), retrieved->name());
-        BOOST_CHECK_EQUAL(sensor5->external_id(), retrieved->external_id());
-        BOOST_CHECK_EQUAL(sensor5->description(), retrieved->description());
-        BOOST_CHECK_EQUAL(sensor5->unit(), retrieved->unit());
-        BOOST_CHECK_EQUAL(sensor5->timezone(), retrieved->timezone());
-
-        try {
-            //Non existent
-            store2->get_sensor(sensor5->uuid());
-
-            BOOST_FAIL("An exception must be raised if the sensor5 is found in the second store.");
-
-        } catch (klio::StoreException const& ok) {
-            //This exception is expected
+        std::map<klio::timestamp_t, double>::iterator it;
+        for (it = readings->begin(); it != readings->end(); it++) {
+            BOOST_CHECK_EQUAL(23, (*it).second);
         }
 
-        store1->dispose();
-        store2->dispose();
+        store2->close();
 
     } catch (klio::GenericException const& ex) {
         store1->dispose();
@@ -864,6 +829,8 @@ void run_sync_sqlite3_sensors_tests(bool file_renaming) {
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected exception occurred for initialize request");
     }
+    store1->dispose();
+    store2->dispose();
 }
 
 BOOST_AUTO_TEST_CASE(check_sync_sqlite3_sensors) {

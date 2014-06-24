@@ -838,6 +838,13 @@ void run_sync_sqlite3_sensors_tests(bool file_renaming) {
         
         BOOST_CHECK_EQUAL(0, store1->get_num_readings(sensor3));
 
+        for (size_t i = 0; i < 50; i++) {
+            store2->add_reading(sensor1, tc->get_timestamp() - i, 111);
+        }
+        
+        readings1 = store2->get_all_readings(sensor1);
+        BOOST_CHECK_EQUAL(50, readings1->size());
+        
         store2->close();
 
     } catch (klio::GenericException const& ex) {

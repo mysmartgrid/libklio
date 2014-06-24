@@ -142,7 +142,7 @@ namespace klio {
 
         void auto_flush();
         void flush_all();
-        virtual void flush(const Sensor::Ptr sensor);
+        void flush(const Sensor::Ptr sensor);
         void set_buffers(const Sensor::Ptr sensor);
         void clear_buffers(const Sensor::Ptr sensor);
     };

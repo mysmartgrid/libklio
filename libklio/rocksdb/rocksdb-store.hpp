@@ -93,6 +93,7 @@ namespace klio {
         void put_value(rocksdb::DB* db, const std::string& key, const std::string& value);
         std::string get_value(rocksdb::DB* db, const std::string& key);
         void delete_value(rocksdb::DB* db, const std::string& key);
+        Sensor::Ptr load_sensor(const Sensor::uuid_t& uuid);
 
         const std::string compose_db_path();
         const std::string compose_sensors_path();

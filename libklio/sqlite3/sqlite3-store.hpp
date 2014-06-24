@@ -86,7 +86,7 @@ namespace klio {
         reading_t get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp);
 
         void clear_buffers();
-
+        
     private:
         SQLite3Store(const SQLite3Store& original);
         SQLite3Store& operator =(const SQLite3Store& rhs);

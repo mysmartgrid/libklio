@@ -765,8 +765,12 @@ void run_sync_sqlite3_sensors_tests(bool file_renaming) {
         store1->add_sensor(sensor3);
 
         klio::TimeConverter::Ptr tc(new klio::TimeConverter());
-        for (size_t i = 0; i < 10; i++) {
-            store1->add_reading(sensor1, tc->get_timestamp() - i, 23);
+        for (size_t i = 0; i < 100; i++) {
+            store1->add_reading(sensor1, tc->get_timestamp() - i, 111);
+        }
+        
+        for (size_t i = 0; i < 200; i++) {
+            store1->add_reading(sensor2, tc->get_timestamp() - i, 222);
         }
 
         store1->flush();
@@ -809,17 +813,30 @@ void run_sync_sqlite3_sensors_tests(bool file_renaming) {
         BOOST_CHECK_EQUAL(sensor3->timezone(), retrieved->timezone());
 
         BOOST_CHECK_EQUAL(0, store2->get_num_readings(sensor1));
+        BOOST_CHECK_EQUAL(0, store2->get_num_readings(sensor2));
+        BOOST_CHECK_EQUAL(0, store2->get_num_readings(sensor3));
+
 
         store1 = store_factory->create_sqlite3_store(db1);
-        BOOST_CHECK_EQUAL(10, store1->get_num_readings(sensor1));
+        BOOST_CHECK_EQUAL(100, store1->get_num_readings(sensor1));
 
-        klio::readings_t_Ptr readings = store1->get_all_readings(sensor1);
-        BOOST_CHECK_EQUAL(10, readings->size());
+        klio::readings_t_Ptr readings1 = store1->get_all_readings(sensor1);
+        BOOST_CHECK_EQUAL(100, readings1->size());
 
-        std::map<klio::timestamp_t, double>::iterator it;
-        for (it = readings->begin(); it != readings->end(); it++) {
-            BOOST_CHECK_EQUAL(23, (*it).second);
+        std::map<klio::timestamp_t, double>::iterator it1;
+        for (it1 = readings1->begin(); it1 != readings1->end(); it1++) {
+            BOOST_CHECK_EQUAL(111, (*it1).second);
         }
+        
+        klio::readings_t_Ptr readings2 = store1->get_all_readings(sensor2);
+        BOOST_CHECK_EQUAL(200, readings2->size());
+
+        std::map<klio::timestamp_t, double>::iterator it2;
+        for (it2 = readings2->begin(); it2 != readings2->end(); it2++) {
+            BOOST_CHECK_EQUAL(222, (*it2).second);
+        }
+        
+        BOOST_CHECK_EQUAL(0, store1->get_num_readings(sensor3));
 
         store2->close();
 
@@ -841,7 +858,7 @@ BOOST_AUTO_TEST_CASE(check_sync_sqlite3_sensors) {
 
 BOOST_AUTO_TEST_CASE(check_sync_sqlite3_sensors_with_file_ranaming) {
 
-    std::cout << "Testing sensors synchronization for SQLite3, renaming store file" << std::endl;
+    std::cout << "Testing sensors synchronization for SQLite3, renaming the store file" << std::endl;
     run_sync_sqlite3_sensors_tests(true);
 }
 

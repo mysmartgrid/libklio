@@ -263,7 +263,7 @@ void SQLite3Store::dispose() {
     bfs::remove(_path);
 }
 
-Transaction::Ptr SQLite3Store::create_transaction() {
+Transaction::Ptr SQLite3Store::create_transaction_handler() {
 
     return SQLite3Transaction::Ptr(new SQLite3Transaction(_db));
 }

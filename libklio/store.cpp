@@ -13,7 +13,7 @@ const Store::cached_operation_type_t Store::UPDATE_OPERATION = 2;
 const Store::cached_operation_type_t Store::DELETE_OPERATION = 3;
 
 void Store::open() {
-    _transaction = create_transaction();
+    _transaction = create_transaction_handler();
 }
 
 void Store::close() {
@@ -47,7 +47,7 @@ void Store::rollback_transaction() {
     prepare();
 }
 
-Transaction::Ptr Store::create_transaction() {
+Transaction::Ptr Store::create_transaction_handler() {
 
     //TODO: implement Transaction classes for other stores and make this method virtual
     return Transaction::Ptr(new Transaction());
@@ -56,7 +56,7 @@ Transaction::Ptr Store::create_transaction() {
 Transaction::Ptr Store::auto_start_transaction() {
 
     if (_auto_commit) {
-        const Transaction::Ptr transaction = create_transaction();
+        const Transaction::Ptr transaction = create_transaction_handler();
         transaction->start();
         return transaction;
 

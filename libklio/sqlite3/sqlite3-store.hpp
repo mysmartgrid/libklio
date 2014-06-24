@@ -70,7 +70,7 @@ namespace klio {
         const std::string str();
 
     protected:
-        Transaction::Ptr create_transaction();
+        Transaction::Ptr create_transaction_handler();
 
         void add_sensor_record(const Sensor::Ptr sensor);
         void remove_sensor_record(const Sensor::Ptr sensor);

@@ -92,7 +92,7 @@ namespace klio {
         static const SensorFactory::Ptr sensor_factory;
         static const TimeConverter::Ptr time_converter;
 
-        virtual Transaction::Ptr create_transaction();
+        virtual Transaction::Ptr create_transaction_handler();
         Transaction::Ptr auto_start_transaction();
         virtual void auto_commit_transaction(const Transaction::Ptr transaction);
 

@@ -756,7 +756,7 @@ BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensor_uuids) {
     }
 }
 
-void run_sync_sqlite3_sensors_tests(bool file_renaming) {
+void run_sync_sqlite3_sensors_tests(const bool file_renaming, const bool auto_commit, const bool auto_flush, const std::string& synchronous) {
 
     std::cout << "Testing Raspberry Pi store rotating" << std::endl;
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
@@ -768,11 +768,11 @@ void run_sync_sqlite3_sensors_tests(bool file_renaming) {
 
     try {
         std::cout << "Attempting to create " << db1 << std::endl;
-        store1 = store_factory->create_sqlite3_store(db1);
+        store1 = store_factory->create_sqlite3_store(db1, true, auto_commit, auto_flush, 6000, synchronous);
         std::cout << "Created database: " << store1->str() << std::endl;
 
         std::cout << "Attempting to create " << db2 << std::endl;
-        store2 = store_factory->create_sqlite3_store(db2);
+        store2 = store_factory->create_sqlite3_store(db2, true, auto_commit, auto_flush, 6000, synchronous);
         std::cout << "Created database: " << store2->str() << std::endl;
 
         klio::Sensor::Ptr sensor1(sensor_factory->createSensor(
@@ -856,7 +856,7 @@ void run_sync_sqlite3_sensors_tests(bool file_renaming) {
         BOOST_CHECK_EQUAL(0, store2->get_num_readings(sensor3));
 
 
-        store1 = store_factory->open_sqlite3_store(db1);
+        store1 = store_factory->open_sqlite3_store(db1, auto_commit, auto_flush, 6000, synchronous);
         BOOST_CHECK_EQUAL(100, store1->get_num_readings(sensor1));
 
         klio::readings_t_Ptr readings1 = store1->get_all_readings(sensor1);
@@ -899,13 +899,13 @@ void run_sync_sqlite3_sensors_tests(bool file_renaming) {
 BOOST_AUTO_TEST_CASE(check_sync_sqlite3_sensors) {
 
     std::cout << "Testing sensors synchronization for SQLite3, keeping the store file" << std::endl;
-    run_sync_sqlite3_sensors_tests(false);
+    run_sync_sqlite3_sensors_tests(false, true, true, "OFF");
 }
 
 BOOST_AUTO_TEST_CASE(check_sync_sqlite3_sensors_with_file_ranaming) {
 
     std::cout << "Testing sensors synchronization for SQLite3, renaming the store file" << std::endl;
-    run_sync_sqlite3_sensors_tests(true);
+    run_sync_sqlite3_sensors_tests(true, true, true, "OFF");
 }
 
 BOOST_AUTO_TEST_CASE(check_sqlite3_store_creation_performance) {

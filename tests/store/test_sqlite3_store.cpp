@@ -775,8 +775,12 @@ void run_sync_sqlite3_sensors_tests(const bool file_renaming, const bool auto_co
         store2 = store_factory->create_sqlite3_store(db2, true, auto_commit, auto_flush, 6000, synchronous);
         std::cout << "Created database: " << store2->str() << std::endl;
 
+        if (!auto_commit) {
+            store1->start_transaction();
+        }
+
         klio::Sensor::Ptr sensor1(sensor_factory->createSensor(
-                "89c18074-8bcf-240b-db7c-c1281038adcb",
+                "89c18074-8bcf-260b-db7c-c1281038adcb",
                 "Test1",
                 "Test1 libklio",
                 "this is the sensor 1 description",
@@ -784,7 +788,7 @@ void run_sync_sqlite3_sensors_tests(const bool file_renaming, const bool auto_co
                 "Europe/Berlin"));
 
         klio::Sensor::Ptr sensor2(sensor_factory->createSensor(
-                "66c18088-8bcf-240b-db7c-c1281038adcb",
+                "66c18088-8bcf-280b-db7c-c1281038adcb",
                 "Test2",
                 "Test2 libklio",
                 "this is the sensor 2 description",
@@ -792,7 +796,7 @@ void run_sync_sqlite3_sensors_tests(const bool file_renaming, const bool auto_co
                 "Europe/Berlin"));
 
         klio::Sensor::Ptr sensor3(sensor_factory->createSensor(
-                "22c18044-8bcf-240b-db7c-c1281038adcb",
+                "22c18044-8bcf-220b-db7c-c1281038adcb",
                 "Test3",
                 "Test3 libklio",
                 "this is the sensor 3 description",
@@ -802,17 +806,35 @@ void run_sync_sqlite3_sensors_tests(const bool file_renaming, const bool auto_co
         store1->add_sensor(sensor1);
         store1->add_sensor(sensor2);
         store1->add_sensor(sensor3);
+        
+        for (int i = 0; i < 197; i++) {
+            
+            std::ostringstream oss;
+            oss << "Extra" << i;
+            
+            klio::Sensor::Ptr sensor(sensor_factory->createSensor(
+                    oss.str(),
+                    oss.str(),
+                    "kwh",
+                    "Europe/Berlin"));
+
+            store1->add_sensor(sensor);
+        }
 
         klio::TimeConverter::Ptr tc(new klio::TimeConverter());
-        for (size_t i = 0; i < 100; i++) {
+        for (int i = 0; i < 100; i++) {
             store1->add_reading(sensor1, tc->get_timestamp() - i, 111);
         }
 
-        for (size_t i = 0; i < 200; i++) {
+        for (int i = 0; i < 200; i++) {
             store1->add_reading(sensor2, tc->get_timestamp() - i, 222);
         }
+        
+        store1->flush(true);
 
-        store1->flush();
+        if (!auto_commit) {
+            store1->commit_transaction();
+        }
 
         if (file_renaming) {
             boost::filesystem::rename(TEST_DB1_FILE, TEST_DB3_FILE);
@@ -820,10 +842,17 @@ void run_sync_sqlite3_sensors_tests(const bool file_renaming, const bool auto_co
             db1 = db3;
         }
 
+        if (!auto_commit) {
+            store2->start_transaction();
+        }
+
         store2->sync_sensors(store1);
 
         store1->close();
 
+        std::vector<klio::Sensor::uuid_t> uuids = store2->get_sensor_uuids();
+        BOOST_CHECK_EQUAL(200, uuids.size());
+        
         klio::Sensor::Ptr retrieved = store2->get_sensor(sensor1->uuid());
 
         BOOST_CHECK_EQUAL(sensor1->uuid(), retrieved->uuid());
@@ -877,8 +906,14 @@ void run_sync_sqlite3_sensors_tests(const bool file_renaming, const bool auto_co
 
         BOOST_CHECK_EQUAL(0, store1->get_num_readings(sensor3));
 
-        for (size_t i = 0; i < 50; i++) {
+        for (int i = 0; i < 50; i++) {
             store2->add_reading(sensor1, tc->get_timestamp() - i, 111);
+        }
+
+        store2->flush(true);
+        
+        if (!auto_commit) {
+            store2->commit_transaction();
         }
 
         readings1 = store2->get_all_readings(sensor1);
@@ -896,16 +931,44 @@ void run_sync_sqlite3_sensors_tests(const bool file_renaming, const bool auto_co
     store2->dispose();
 }
 
-BOOST_AUTO_TEST_CASE(check_sync_sqlite3_sensors) {
+void run_sync_sqlite3_sensors_performance_tests(const bool file_renaming, const bool auto_commit, const bool auto_flush, const std::string& synchronous) {
 
-    std::cout << "Testing sensors synchronization for SQLite3, keeping the store file" << std::endl;
-    run_sync_sqlite3_sensors_tests(false, true, true, "OFF");
+    boost::posix_time::time_duration elapsed_time;
+    boost::posix_time::ptime time_before;
+    boost::posix_time::ptime time_after;
+
+    std::cout << std::endl << "Performance Test - SQLite3Store - " <<
+            "file renaming: " << (file_renaming ? "true" : "false") <<
+            ", auto commit: " << (auto_commit ? "true" : "false") <<
+            ", auto flushing: " << (auto_flush ? "true" : "false") <<
+            ", synchronous: " << synchronous << std::endl;
+
+    time_before = boost::posix_time::microsec_clock::local_time();
+    run_sync_sqlite3_sensors_tests(file_renaming, auto_commit, auto_flush, synchronous);
+    time_after = boost::posix_time::microsec_clock::local_time();
+
+    elapsed_time = time_after - time_before;
+    double seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+    std::cout << "Performance Test - SQLite3Store - " <<
+            "Sensors synchronization:                    "
+            << seconds << " s" << std::endl;
 }
 
-BOOST_AUTO_TEST_CASE(check_sync_sqlite3_sensors_with_file_ranaming) {
+BOOST_AUTO_TEST_CASE(check_sync_sqlite3_sensors) {
 
-    std::cout << "Testing sensors synchronization for SQLite3, renaming the store file" << std::endl;
-    run_sync_sqlite3_sensors_tests(true, true, true, "OFF");
+    std::cout << "Testing sensors synchronization for SQLite3" << std::endl;
+
+    std::cout.precision(7);
+    std::cout << std::fixed;
+
+    std::cout << std::endl << "Performance Test" << std::endl;
+
+    run_sync_sqlite3_sensors_performance_tests(false, true, true, "OFF");
+
+    run_sync_sqlite3_sensors_performance_tests(true, true, true, "OFF");
+    run_sync_sqlite3_sensors_performance_tests(true, false, true, "OFF");
+    run_sync_sqlite3_sensors_performance_tests(true, false, false, "OFF");
+    run_sync_sqlite3_sensors_performance_tests(true, false, false, "FULL");
 }
 
 BOOST_AUTO_TEST_CASE(check_sqlite3_store_creation_performance) {

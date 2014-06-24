@@ -817,7 +817,7 @@ void run_sync_sqlite3_sensors_tests(bool file_renaming) {
         BOOST_CHECK_EQUAL(0, store2->get_num_readings(sensor3));
 
 
-        store1 = store_factory->create_sqlite3_store(db1);
+        store1 = store_factory->open_sqlite3_store(db1);
         BOOST_CHECK_EQUAL(100, store1->get_num_readings(sensor1));
 
         klio::readings_t_Ptr readings1 = store1->get_all_readings(sensor1);

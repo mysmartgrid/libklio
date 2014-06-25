@@ -1239,6 +1239,7 @@ BOOST_AUTO_TEST_CASE(check_store_rotation_tests) {
     std::cout << "Testing sensors synchronization for SQLite3" <<
             "Performance Test" << std::endl;
 
+    /*
     run_store_old_rotation_tests(false, true,  true,  600, klio::SQLite3Store::OS_SYNC_OFF);
     run_store_old_rotation_tests(true,  true,  true,  600, klio::SQLite3Store::OS_SYNC_OFF);
     run_store_old_rotation_tests(true,  true,  true,    0, klio::SQLite3Store::OS_SYNC_OFF);
@@ -1247,6 +1248,7 @@ BOOST_AUTO_TEST_CASE(check_store_rotation_tests) {
     run_store_old_rotation_tests(true,  false, false, 600, klio::SQLite3Store::OS_SYNC_OFF);
     run_store_old_rotation_tests(true,  false, false, 600, klio::SQLite3Store::OS_SYNC_NORMAL);
     run_store_old_rotation_tests(true,  false, false, 600, klio::SQLite3Store::OS_SYNC_FULL);
+    */
 
     run_store_new_rotation_tests(true,  true,  600, klio::SQLite3Store::OS_SYNC_OFF);
     run_store_new_rotation_tests(true,  true,    0, klio::SQLite3Store::OS_SYNC_OFF);

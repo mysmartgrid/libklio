@@ -47,11 +47,6 @@ void Store::rollback_transaction() {
     prepare();
 }
 
-bool Store::is_transaction_pending() {
-    
-    return _transaction->pending();
-}
-
 Transaction::Ptr Store::create_transaction_handler() {
 
     //TODO: implement Transaction classes for other stores and make this method virtual

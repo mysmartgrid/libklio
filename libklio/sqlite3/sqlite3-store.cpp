@@ -21,23 +21,8 @@ const std::string SQLite3Store::OS_SYNC_FULL = "FULL";
 void SQLite3Store::open() {
 
     if (_db == NULL) {
-
-        if (sqlite3_open_v2(_path.c_str(), &_db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL) == SQLITE_OK) {
-            Store::open();
-
-        } else {
-            std::ostringstream oss;
-            oss << "Can't open database: ";
-
-            if (_db) {
-                oss << sqlite3_errmsg(_db);
-                close(&_db);
-
-            } else {
-                oss << "Not enough memory.";
-            }
-            throw StoreException(oss.str());
-        }
+        open_db();
+        Store::open();
     }
 }
 
@@ -46,14 +31,33 @@ void SQLite3Store::close() {
     if (_db != NULL) {
         finalize_statements();
         Store::close();
-        close(&_db);
+        close_db();
     }
 }
 
-void SQLite3Store::close(sqlite3 **db) {
+void SQLite3Store::open_db() {
 
-    if (sqlite3_close_v2(*db) == SQLITE_OK) {
-        *db = NULL;
+    if (sqlite3_open_v2(_path.c_str(), &_db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL) != SQLITE_OK) {
+
+        std::ostringstream oss;
+        oss << "Can't open database: ";
+
+        if (_db) {
+            oss << sqlite3_errmsg(_db);
+            close_db();
+
+        } else {
+            oss << "Not enough memory.";
+        }
+        throw StoreException(oss.str());
+    }
+}
+
+void SQLite3Store::close_db() {
+
+    if (sqlite3_close_v2(_db) == SQLITE_OK) {
+        _db = NULL;
+
     } else {
         std::ostringstream oss;
         oss << "Can't close the database.";
@@ -277,18 +281,20 @@ void SQLite3Store::dispose() {
 
 void SQLite3Store::rotate(bfs::path to_path) {
 
-    if (_db == NULL || is_transaction_pending()) {
+    if (_db == NULL || _transaction->pending()) {
         std::ostringstream oss;
         oss << "The database must be open and all transactions finalized so that the store can be rotated.";
         throw StoreException(oss.str());
     }
 
     finalize_statements();
-    close(&_db);
+    close_db();
 
     boost::filesystem::rename(_path, to_path);
 
-    open();
+    open_db();
+    boost::static_pointer_cast<SQLite3Transaction>(_transaction)->db(_db);
+    
     initialize();
     prepare_statements();
     

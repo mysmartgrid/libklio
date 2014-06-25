@@ -41,6 +41,9 @@ namespace klio {
     public:
         typedef boost::shared_ptr<Store> Ptr;
 
+        virtual ~Store() {
+        };
+
         virtual void open();
         virtual void close();
         virtual void check_integrity() = 0;
@@ -87,16 +90,12 @@ namespace klio {
         _last_flush(0) {
         };
 
-        virtual ~Store() {
-        };
-
         static const SensorFactory::Ptr sensor_factory;
         static const TimeConverter::Ptr time_converter;
 
         virtual Transaction::Ptr create_transaction_handler();
         Transaction::Ptr auto_start_transaction();
         virtual void auto_commit_transaction(const Transaction::Ptr transaction);
-        bool is_transaction_pending();
 
         virtual void add_sensor_record(const Sensor::Ptr sensor) = 0;
         virtual void remove_sensor_record(const Sensor::Ptr sensor) = 0;
@@ -115,6 +114,7 @@ namespace klio {
         void handle_reading_insertion_error(const bool ignore_errors, const timestamp_t timestamp, const double value);
         void handle_reading_insertion_error(const bool ignore_errors, const Sensor::Ptr sensor);
 
+        Transaction::Ptr _transaction;
         boost::unordered_map<const Sensor::uuid_t, Sensor::Ptr> _sensors_buffer;
 
     private:
@@ -131,7 +131,6 @@ namespace klio {
         static const cached_operation_type_t UPDATE_OPERATION;
         static const cached_operation_type_t DELETE_OPERATION;
 
-        Transaction::Ptr _transaction;
         bool _auto_commit;
         bool _auto_flush;
         timestamp_t _flush_timeout;

@@ -81,15 +81,10 @@ BOOST_AUTO_TEST_CASE(check_add_retrieve_reading) {
             BOOST_CHECK_EQUAL(timestamp, retrieved.first);
             BOOST_CHECK_EQUAL(reading, retrieved.second);
 
-            try {
-                reading = 23;
-                store->add_reading(sensor, timestamp, reading);
+            //Duplicated reading with auto flush does not raise exception
+            reading = 23;
+            store->add_reading(sensor, timestamp, reading);
 
-                BOOST_FAIL("A DataFormatException must be thrown when a duplicated reading is added.");
-
-            } catch (klio::StoreException const& e) {
-                //This exception was expected
-            }
             store->dispose();
 
         } catch (klio::StoreException const& ex) {

@@ -75,7 +75,7 @@ BOOST_AUTO_TEST_CASE(check_create_sqlite3_storage) {
     }
 }
 
-int get_openfiles(/*fd_set *cloexec*/) {
+int get_openfiles() {
 
     fd_set closet;
     int flags;
@@ -91,27 +91,14 @@ int get_openfiles(/*fd_set *cloexec*/) {
         if (flags == -1 && errno) {
 
             if (errno != EBADF) {
-#ifdef DEBUG
-                perror("fcntl(F_GETFD)");
-#endif
                 return -1;
 
             } else {
                 continue;
             }
         }
-        /*
-        if (flags & FD_CLOEXEC) {
-            FD_SET(fd, &closet);
-         */
         n++;
-        //}
     }
-    /*
-    if (cloexec) {
-     *cloexec = closet;
-    }
-     */
     return n;
 }
 
@@ -376,6 +363,58 @@ BOOST_AUTO_TEST_CASE(check_sqlite3_no_auto_commit) {
 
         BOOST_CHECK_EQUAL(sensor->uuid(), retrieved->uuid());
         BOOST_CHECK_EQUAL(10, store->get_num_readings(sensor));
+
+        store->dispose();
+
+    } catch (klio::GenericException const& ex) {
+        store->dispose();
+        std::cout << "Caught invalid exception: " << ex.what() << std::endl;
+        BOOST_FAIL("Unexpected exception occurred for initialize request");
+    }
+}
+
+BOOST_AUTO_TEST_CASE(check_sqlite3_flush_errors_handling) {
+
+    std::cout << "Testing SQLite3 flushing errors handling" << std::endl;
+    klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
+    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+    bfs::path db(TEST_DB1_FILE);
+    klio::SQLite3Store::Ptr store;
+
+    try {
+        store = store_factory->create_sqlite3_store(db, true, true, true, 6000, "FULL");
+
+        klio::Sensor::Ptr sensor(sensor_factory->createSensor(
+                "89c18074-8bcf-240b-db7c-c1281038adcb",
+                "Test",
+                "Test libklio",
+                "this is a sensor description",
+                "kwh",
+                "Europe/Berlin"));
+
+        store->add_sensor(sensor);
+
+        klio::TimeConverter::Ptr tc(new klio::TimeConverter());
+        klio::timestamp_t timestamp = tc->get_timestamp();
+
+        store->add_reading(sensor, timestamp, 23);
+        store->add_reading(sensor, timestamp, 23);
+
+        store->flush(true);
+
+        BOOST_CHECK_EQUAL(1, store->get_num_readings(sensor));
+
+        store->add_reading(sensor, timestamp, 23);
+        store->add_reading(sensor, timestamp, 23);
+
+        try {
+            store->flush(false);
+
+            BOOST_FAIL("When flushing without ignoring errors, an exception must be raised.");
+
+        } catch (klio::StoreException e) {
+            //expected
+        }
 
         store->dispose();
 
@@ -717,7 +756,7 @@ BOOST_AUTO_TEST_CASE(check_get_sqlite3_sensor_uuids) {
     }
 }
 
-void run_sync_sqlite3_sensors_tests(bool file_renaming) {
+void run_sync_sqlite3_sensors_tests(const bool file_renaming, const bool auto_commit, const bool auto_flush, const std::string& synchronous) {
 
     std::cout << "Testing Raspberry Pi store rotating" << std::endl;
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
@@ -729,15 +768,19 @@ void run_sync_sqlite3_sensors_tests(bool file_renaming) {
 
     try {
         std::cout << "Attempting to create " << db1 << std::endl;
-        store1 = store_factory->create_sqlite3_store(db1);
+        store1 = store_factory->create_sqlite3_store(db1, true, auto_commit, auto_flush, 6000, synchronous);
         std::cout << "Created database: " << store1->str() << std::endl;
 
         std::cout << "Attempting to create " << db2 << std::endl;
-        store2 = store_factory->create_sqlite3_store(db2);
+        store2 = store_factory->create_sqlite3_store(db2, true, auto_commit, auto_flush, 6000, synchronous);
         std::cout << "Created database: " << store2->str() << std::endl;
 
+        if (!auto_commit) {
+            store1->start_transaction();
+        }
+
         klio::Sensor::Ptr sensor1(sensor_factory->createSensor(
-                "89c18074-8bcf-240b-db7c-c1281038adcb",
+                "89c18074-8bcf-260b-db7c-c1281038adcb",
                 "Test1",
                 "Test1 libklio",
                 "this is the sensor 1 description",
@@ -745,7 +788,7 @@ void run_sync_sqlite3_sensors_tests(bool file_renaming) {
                 "Europe/Berlin"));
 
         klio::Sensor::Ptr sensor2(sensor_factory->createSensor(
-                "66c18088-8bcf-240b-db7c-c1281038adcb",
+                "66c18088-8bcf-280b-db7c-c1281038adcb",
                 "Test2",
                 "Test2 libklio",
                 "this is the sensor 2 description",
@@ -753,7 +796,7 @@ void run_sync_sqlite3_sensors_tests(bool file_renaming) {
                 "Europe/Berlin"));
 
         klio::Sensor::Ptr sensor3(sensor_factory->createSensor(
-                "22c18044-8bcf-240b-db7c-c1281038adcb",
+                "22c18044-8bcf-220b-db7c-c1281038adcb",
                 "Test3",
                 "Test3 libklio",
                 "this is the sensor 3 description",
@@ -763,13 +806,35 @@ void run_sync_sqlite3_sensors_tests(bool file_renaming) {
         store1->add_sensor(sensor1);
         store1->add_sensor(sensor2);
         store1->add_sensor(sensor3);
+        
+        for (int i = 0; i < 197; i++) {
+            
+            std::ostringstream oss;
+            oss << "Extra" << i;
+            
+            klio::Sensor::Ptr sensor(sensor_factory->createSensor(
+                    oss.str(),
+                    oss.str(),
+                    "kwh",
+                    "Europe/Berlin"));
 
-        klio::TimeConverter::Ptr tc(new klio::TimeConverter());
-        for (size_t i = 0; i < 10; i++) {
-            store1->add_reading(sensor1, tc->get_timestamp() - i, 23);
+            store1->add_sensor(sensor);
         }
 
-        store1->flush();
+        klio::TimeConverter::Ptr tc(new klio::TimeConverter());
+        for (int i = 0; i < 100; i++) {
+            store1->add_reading(sensor1, tc->get_timestamp() - i, 111);
+        }
+
+        for (int i = 0; i < 200; i++) {
+            store1->add_reading(sensor2, tc->get_timestamp() - i, 222);
+        }
+        
+        store1->flush(true);
+
+        if (!auto_commit) {
+            store1->commit_transaction();
+        }
 
         if (file_renaming) {
             boost::filesystem::rename(TEST_DB1_FILE, TEST_DB3_FILE);
@@ -777,10 +842,17 @@ void run_sync_sqlite3_sensors_tests(bool file_renaming) {
             db1 = db3;
         }
 
+        if (!auto_commit) {
+            store2->start_transaction();
+        }
+
         store2->sync_sensors(store1);
 
         store1->close();
 
+        std::vector<klio::Sensor::uuid_t> uuids = store2->get_sensor_uuids();
+        BOOST_CHECK_EQUAL(200, uuids.size());
+        
         klio::Sensor::Ptr retrieved = store2->get_sensor(sensor1->uuid());
 
         BOOST_CHECK_EQUAL(sensor1->uuid(), retrieved->uuid());
@@ -809,17 +881,43 @@ void run_sync_sqlite3_sensors_tests(bool file_renaming) {
         BOOST_CHECK_EQUAL(sensor3->timezone(), retrieved->timezone());
 
         BOOST_CHECK_EQUAL(0, store2->get_num_readings(sensor1));
+        BOOST_CHECK_EQUAL(0, store2->get_num_readings(sensor2));
+        BOOST_CHECK_EQUAL(0, store2->get_num_readings(sensor3));
 
-        store1 = store_factory->create_sqlite3_store(db1);
-        BOOST_CHECK_EQUAL(10, store1->get_num_readings(sensor1));
 
-        klio::readings_t_Ptr readings = store1->get_all_readings(sensor1);
-        BOOST_CHECK_EQUAL(10, readings->size());
+        store1 = store_factory->open_sqlite3_store(db1, auto_commit, auto_flush, 6000, synchronous);
+        BOOST_CHECK_EQUAL(100, store1->get_num_readings(sensor1));
 
-        std::map<klio::timestamp_t, double>::iterator it;
-        for (it = readings->begin(); it != readings->end(); it++) {
-            BOOST_CHECK_EQUAL(23, (*it).second);
+        klio::readings_t_Ptr readings1 = store1->get_all_readings(sensor1);
+        BOOST_CHECK_EQUAL(100, readings1->size());
+
+        std::map<klio::timestamp_t, double>::iterator it1;
+        for (it1 = readings1->begin(); it1 != readings1->end(); it1++) {
+            BOOST_CHECK_EQUAL(111, (*it1).second);
         }
+
+        klio::readings_t_Ptr readings2 = store1->get_all_readings(sensor2);
+        BOOST_CHECK_EQUAL(200, readings2->size());
+
+        std::map<klio::timestamp_t, double>::iterator it2;
+        for (it2 = readings2->begin(); it2 != readings2->end(); it2++) {
+            BOOST_CHECK_EQUAL(222, (*it2).second);
+        }
+
+        BOOST_CHECK_EQUAL(0, store1->get_num_readings(sensor3));
+
+        for (int i = 0; i < 50; i++) {
+            store2->add_reading(sensor1, tc->get_timestamp() - i, 111);
+        }
+
+        store2->flush(true);
+        
+        if (!auto_commit) {
+            store2->commit_transaction();
+        }
+
+        readings1 = store2->get_all_readings(sensor1);
+        BOOST_CHECK_EQUAL(50, readings1->size());
 
         store2->close();
 
@@ -833,16 +931,44 @@ void run_sync_sqlite3_sensors_tests(bool file_renaming) {
     store2->dispose();
 }
 
-BOOST_AUTO_TEST_CASE(check_sync_sqlite3_sensors) {
+void run_sync_sqlite3_sensors_performance_tests(const bool file_renaming, const bool auto_commit, const bool auto_flush, const std::string& synchronous) {
 
-    std::cout << "Testing sensors synchronization for SQLite3, keeping the store file" << std::endl;
-    run_sync_sqlite3_sensors_tests(false);
+    boost::posix_time::time_duration elapsed_time;
+    boost::posix_time::ptime time_before;
+    boost::posix_time::ptime time_after;
+
+    std::cout << std::endl << "Performance Test - SQLite3Store - " <<
+            "file renaming: " << (file_renaming ? "true" : "false") <<
+            ", auto commit: " << (auto_commit ? "true" : "false") <<
+            ", auto flushing: " << (auto_flush ? "true" : "false") <<
+            ", synchronous: " << synchronous << std::endl;
+
+    time_before = boost::posix_time::microsec_clock::local_time();
+    run_sync_sqlite3_sensors_tests(file_renaming, auto_commit, auto_flush, synchronous);
+    time_after = boost::posix_time::microsec_clock::local_time();
+
+    elapsed_time = time_after - time_before;
+    double seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+    std::cout << "Performance Test - SQLite3Store - " <<
+            "Sensors synchronization:                    "
+            << seconds << " s" << std::endl;
 }
 
-BOOST_AUTO_TEST_CASE(check_sync_sqlite3_sensors_with_file_ranaming) {
+BOOST_AUTO_TEST_CASE(check_sync_sqlite3_sensors) {
 
-    std::cout << "Testing sensors synchronization for SQLite3, renaming store file" << std::endl;
-    run_sync_sqlite3_sensors_tests(true);
+    std::cout << "Testing sensors synchronization for SQLite3" << std::endl;
+
+    std::cout.precision(7);
+    std::cout << std::fixed;
+
+    std::cout << std::endl << "Performance Test" << std::endl;
+
+    run_sync_sqlite3_sensors_performance_tests(false, true, true, "OFF");
+
+    run_sync_sqlite3_sensors_performance_tests(true, true, true, "OFF");
+    run_sync_sqlite3_sensors_performance_tests(true, false, true, "OFF");
+    run_sync_sqlite3_sensors_performance_tests(true, false, false, "OFF");
+    run_sync_sqlite3_sensors_performance_tests(true, false, false, "FULL");
 }
 
 BOOST_AUTO_TEST_CASE(check_sqlite3_store_creation_performance) {

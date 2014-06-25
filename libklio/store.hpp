@@ -48,6 +48,7 @@ namespace klio {
         virtual void dispose() = 0;
         virtual void prepare();
         virtual void flush();
+        void flush(bool ignore_errors);
         virtual const std::string str() = 0;
 
         void start_transaction();
@@ -92,15 +93,15 @@ namespace klio {
         static const SensorFactory::Ptr sensor_factory;
         static const TimeConverter::Ptr time_converter;
 
-        virtual Transaction::Ptr create_transaction();
+        virtual Transaction::Ptr create_transaction_handler();
         Transaction::Ptr auto_start_transaction();
         virtual void auto_commit_transaction(const Transaction::Ptr transaction);
 
         virtual void add_sensor_record(const Sensor::Ptr sensor) = 0;
         virtual void remove_sensor_record(const Sensor::Ptr sensor) = 0;
         virtual void update_sensor_record(const Sensor::Ptr sensor) = 0;
-        virtual void add_reading_records(const Sensor::Ptr sensor, const readings_t& readings) = 0;
-        virtual void update_reading_records(const Sensor::Ptr sensor, const readings_t& readings) = 0;
+        virtual void add_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) = 0;
+        virtual void update_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) = 0;
 
         virtual std::vector<Sensor::Ptr> get_sensor_records() = 0;
         virtual readings_t_Ptr get_all_reading_records(const Sensor::Ptr sensor) = 0;
@@ -110,6 +111,8 @@ namespace klio {
         virtual unsigned long int get_num_readings_value(const Sensor::Ptr sensor) = 0;
 
         virtual void clear_buffers();
+        void handle_reading_insertion_error(const bool ignore_errors, const timestamp_t timestamp, const double value);
+        void handle_reading_insertion_error(const bool ignore_errors, const Sensor::Ptr sensor);
 
     private:
         typedef unsigned int cached_operation_type_t;
@@ -141,10 +144,11 @@ namespace klio {
         readings_t_Ptr get_buffered_readings(const Sensor::Ptr sensor, const cached_operation_type_t operation_type);
 
         void auto_flush();
-        void flush_all();
-        virtual void flush(const Sensor::Ptr sensor);
+        void flush_all(const bool ignore_errors);
+        void flush(const Sensor::Ptr sensor, const bool ignore_errors);
         void set_buffers(const Sensor::Ptr sensor);
         void clear_buffers(const Sensor::Ptr sensor);
+        void handle_reading_insertion_error(const bool ignore_errors, const std::string message);
     };
 };
 

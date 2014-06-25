@@ -231,20 +231,25 @@ reading_t RocksDBStore::get_reading_record(const Sensor::Ptr sensor, const times
     return reading;
 }
 
-void RocksDBStore::add_reading_records(const Sensor::Ptr sensor, const readings_t& readings) {
+void RocksDBStore::add_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
 
     rocksdb::DB* db = open_db(true, false,
             compose_sensor_readings_path(sensor->uuid_string()));
 
     for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
 
-        put_value(db, std::to_string((*it).first), std::to_string((*it).second));
+        try {
+            put_value(db, std::to_string((*it).first), std::to_string((*it).second));
+
+        } catch (std::exception const& e) {
+            handle_reading_insertion_error(ignore_errors, (*it).first, (*it).second);
+        }
     }
 }
 
-void RocksDBStore::update_reading_records(const Sensor::Ptr sensor, const readings_t& readings) {
+void RocksDBStore::update_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
 
-    add_reading_records(sensor, readings);
+    add_reading_records(sensor, readings, ignore_errors);
 }
 
 void RocksDBStore::clear_buffers() {

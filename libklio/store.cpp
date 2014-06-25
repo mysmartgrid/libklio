@@ -347,7 +347,7 @@ Sensor::Ptr Store::sync_sensor_record(const Sensor::Ptr sensor) {
 
 void Store::prepare() {
 
-    std::vector<Sensor::Ptr> sensors = get_sensors();
+    std::vector<Sensor::Ptr> sensors = get_sensor_records();
     for (std::vector<Sensor::Ptr>::const_iterator sensor = sensors.begin(); sensor != sensors.end(); ++sensor) {
         set_buffers(*sensor);
     }

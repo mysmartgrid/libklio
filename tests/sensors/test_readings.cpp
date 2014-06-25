@@ -484,6 +484,7 @@ BOOST_AUTO_TEST_CASE(check_num_readings) {
 
 BOOST_AUTO_TEST_CASE(check_sync_readings) {
 
+    std::cout << std::endl << "Testing readings synchronization." << std::endl;
     try {
         klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
 
@@ -523,10 +524,9 @@ BOOST_AUTO_TEST_CASE(check_sync_readings) {
             klio::readings_t readings;
             size_t num_readings = 10;
 
+            klio::timestamp_t timestamp = tc->get_timestamp();
             for (size_t i = 0; i < num_readings; i++) {
-                klio::timestamp_t timestamp = tc->get_timestamp() - i;
-                double reading = 23;
-                klio::reading_t foo(timestamp, reading);
+                klio::reading_t foo(timestamp--, 23);
                 readings.insert(foo);
             }
             std::cout << "Inserting " << readings.size() << " readings to sensor 1 and 3." << std::endl;
@@ -636,6 +636,7 @@ BOOST_AUTO_TEST_CASE(check_sync_readings) {
 
 BOOST_AUTO_TEST_CASE(check_sync_store) {
 
+    std::cout << std::endl << "Testing store synchronization." << std::endl;
     try {
         klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
 
@@ -647,8 +648,8 @@ BOOST_AUTO_TEST_CASE(check_sync_store) {
         klio::Store::Ptr source2(store_factory->create_sqlite3_store(db2));
         std::cout << "Created: " << source2->str() << std::endl;
 
-        bfs::path db4(TEST_DB4_FILE);
-        klio::Store::Ptr target(store_factory->create_sqlite3_store(db4));
+        bfs::path db3(TEST_DB3_FILE);
+        klio::Store::Ptr target(store_factory->create_sqlite3_store(db3));
         std::cout << "Created: " << target->str() << std::endl;
 
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
@@ -666,15 +667,19 @@ BOOST_AUTO_TEST_CASE(check_sync_store) {
             klio::readings_t readings1;
             klio::readings_t readings2;
 
+            klio::timestamp_t timestamp = 1400000000;
             for (size_t i = 0; i < 10; i++) {
-                klio::timestamp_t timestamp = tc->get_timestamp() - i;
-                klio::reading_t foo1(timestamp, 123);
-                klio::reading_t foo2(timestamp + 5, 321);
+                klio::reading_t foo1(timestamp, 888);
+                klio::reading_t foo2(timestamp + 5, 999);
                 readings1.insert(foo1);
                 readings2.insert(foo2);
+                timestamp++;
             }
             source1->add_readings(sensor1, readings1);
             source2->add_readings(sensor2, readings2);
+
+            BOOST_CHECK_EQUAL(10, source1->get_num_readings(sensor1));
+            BOOST_CHECK_EQUAL(10, source2->get_num_readings(sensor2));
 
             target->sync(source1);
             target->sync(source2);

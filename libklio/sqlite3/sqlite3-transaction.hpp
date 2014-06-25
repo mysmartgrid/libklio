@@ -39,6 +39,10 @@ namespace klio {
         virtual ~SQLite3Transaction() {
             rollback();
         }
+        
+        void db(sqlite3* db) {
+            _db = db;
+        }
 
         void start();
         void commit();

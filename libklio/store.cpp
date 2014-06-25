@@ -296,7 +296,7 @@ void Store::sync_sensors(const Store::Ptr store) {
     const Transaction::Ptr transaction = auto_start_transaction();
 
     for (std::vector<Sensor::Ptr>::const_iterator sensor = sensors.begin(); sensor != sensors.end(); ++sensor) {
-        Sensor::Ptr local_sensor = sync_sensor_record(*sensor, store);
+        Sensor::Ptr local_sensor = sync_sensor_record(*sensor);
         set_buffers(local_sensor);
     }
     auto_commit_transaction(transaction);
@@ -305,51 +305,49 @@ void Store::sync_sensors(const Store::Ptr store) {
 void Store::sync_reading_records(const Sensor::Ptr sensor, const Store::Ptr store) {
 
     readings_t_Ptr readings = store->get_all_readings(sensor);
-    Sensor::Ptr local_sensor = sync_sensor_record(sensor, store);
+    Sensor::Ptr local_sensor = sync_sensor_record(sensor);
     set_buffers(local_sensor);
     add_readings(local_sensor, *readings, UPDATE_OPERATION);
 }
 
-Sensor::Ptr Store::sync_sensor_record(const Sensor::Ptr sensor, const Store::Ptr store) {
+Sensor::Ptr Store::sync_sensor_record(const Sensor::Ptr sensor) {
 
-    std::vector<Sensor::Ptr> sensors = get_sensors_by_external_id(sensor->external_id());
     Sensor::Ptr local_sensor;
 
-    if (sensors.empty()) {
+    if (_external_ids_buffer.count(sensor->external_id()) > 0) {
 
-        add_sensor_record(sensor);
-        local_sensor = sensor;
+        const Sensor::uuid_t uuid = _external_ids_buffer[sensor->external_id()];
+        const Sensor::Ptr found = _sensors_buffer[uuid];
+
+        local_sensor = sensor_factory->createSensor(
+                uuid,
+                sensor->external_id(),
+                sensor->name(),
+                sensor->description(),
+                sensor->unit(),
+                sensor->timezone(),
+                sensor->device_type());
+
+        //Update sensor if any of its properties changed
+        if (found->name() != sensor->name() ||
+                found->description() != sensor->description() ||
+                found->unit() != sensor->unit() ||
+                found->timezone() != sensor->timezone() ||
+                found->device_type() != sensor->device_type()) {
+
+            update_sensor_record(local_sensor);
+        }
 
     } else {
-        //Exactly one sensor is processed
-        for (std::vector<Sensor::Ptr>::const_iterator found = sensors.begin(); found != sensors.end(); ++found) {
-
-            local_sensor = sensor_factory->createSensor(
-                    (*found)->uuid(),
-                    sensor->external_id(),
-                    sensor->name(),
-                    sensor->description(),
-                    sensor->unit(),
-                    sensor->timezone(),
-                    sensor->device_type());
-
-            //Update sensor if any of its properties changed
-            if ((*found)->name() != sensor->name() ||
-                    (*found)->description() != sensor->description() ||
-                    (*found)->unit() != sensor->unit() ||
-                    (*found)->timezone() != sensor->timezone() ||
-                    (*found)->device_type() != sensor->device_type()) {
-
-                update_sensor_record(local_sensor);
-            }
-        }
+        add_sensor_record(sensor);
+        local_sensor = sensor;
     }
     return local_sensor;
 }
 
 void Store::prepare() {
 
-    std::vector<Sensor::Ptr> sensors = get_sensors();
+    std::vector<Sensor::Ptr> sensors = get_sensor_records();
     for (std::vector<Sensor::Ptr>::const_iterator sensor = sensors.begin(); sensor != sensors.end(); ++sensor) {
         set_buffers(*sensor);
     }

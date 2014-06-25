@@ -14,56 +14,49 @@
 
 using namespace klio;
 
+const std::string SQLite3Store::OS_SYNC_OFF = "OFF";
+const std::string SQLite3Store::OS_SYNC_NORMAL = "NORMAL";
+const std::string SQLite3Store::OS_SYNC_FULL = "FULL";
+
 void SQLite3Store::open() {
 
     if (_db == NULL) {
-
-        if (sqlite3_open_v2(_path.c_str(), &_db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL) == SQLITE_OK) {
-            Store::open();
-
-        } else {
-            std::ostringstream oss;
-            oss << "Can't open database: ";
-
-            if (_db) {
-                oss << sqlite3_errmsg(_db);
-                close(&_db);
-
-            } else {
-                oss << "Not enough memory.";
-            }
-            throw StoreException(oss.str());
-        }
+        open_db();
+        Store::open();
     }
 }
 
 void SQLite3Store::close() {
 
     if (_db != NULL) {
-
-        for (boost::unordered_map<const std::string, sqlite3_stmt*>::const_iterator it = _statements.begin(); it != _statements.end(); ++it) {
-            sqlite3_stmt* stmt = (*it).second;
-            finalize(&stmt);
-        }
-        //The iteration above finalizes all statements
-        _insert_sensor_stmt = NULL;
-        _remove_sensor_stmt = NULL;
-        _update_sensor_stmt = NULL;
-        _select_sensor_stmt = NULL;
-        _select_sensor_by_external_id_stmt = NULL;
-        _select_sensor_by_name_stmt = NULL;
-        _select_sensors_stmt = NULL;
-        _select_all_sensor_uuids_stmt = NULL;
-
+        finalize_statements();
         Store::close();
-        close(&_db);
+        close_db();
     }
 }
 
-void SQLite3Store::close(sqlite3 **db) {
+void SQLite3Store::open_db() {
 
-    if (sqlite3_close_v2(*db) == SQLITE_OK) {
-        *db = NULL;
+    if (sqlite3_open_v2(_path.c_str(), &_db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL) != SQLITE_OK) {
+
+        std::ostringstream oss;
+        oss << "Can't open database: ";
+
+        if (_db) {
+            oss << sqlite3_errmsg(_db);
+            close_db();
+
+        } else {
+            oss << "Not enough memory.";
+        }
+        throw StoreException(oss.str());
+    }
+}
+
+void SQLite3Store::close_db() {
+
+    if (sqlite3_close_v2(_db) == SQLITE_OK) {
+        _db = NULL;
 
     } else {
         std::ostringstream oss;
@@ -245,6 +238,12 @@ void SQLite3Store::upgrade() {
 
 void SQLite3Store::prepare() {
 
+    prepare_statements();
+    Store::prepare();
+}
+
+void SQLite3Store::prepare_statements() {
+
     _insert_sensor_stmt = get_statement("INSERT INTO sensors (uuid, external_id, name, description, unit, timezone, device_type_id) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)");
     _remove_sensor_stmt = get_statement("DELETE FROM sensors WHERE uuid = ?1");
     _update_sensor_stmt = get_statement("UPDATE sensors SET external_id = ?2, name = ?3, description = ?4, unit = ?5, timezone = ?6, device_type_id = ?7 WHERE uuid = ?1");
@@ -253,14 +252,55 @@ void SQLite3Store::prepare() {
     _select_sensor_by_name_stmt = get_statement("SELECT uuid, external_id, name, description, unit, timezone, device_type_id FROM sensors WHERE name = ?1");
     _select_sensors_stmt = get_statement("SELECT uuid, external_id, name, description, unit, timezone, device_type_id FROM sensors");
     _select_all_sensor_uuids_stmt = get_statement("SELECT uuid FROM sensors");
+}
 
-    Store::prepare();
+void SQLite3Store::finalize_statements() {
+
+    for (boost::unordered_map<const std::string, sqlite3_stmt*>::const_iterator it = _statements.begin(); it != _statements.end(); ++it) {
+        sqlite3_stmt* stmt = (*it).second;
+        finalize(&stmt);
+    }
+    //The iteration above finalizes all statements
+    _insert_sensor_stmt = NULL;
+    _remove_sensor_stmt = NULL;
+    _update_sensor_stmt = NULL;
+    _select_sensor_stmt = NULL;
+    _select_sensor_by_external_id_stmt = NULL;
+    _select_sensor_by_name_stmt = NULL;
+    _select_sensors_stmt = NULL;
+    _select_all_sensor_uuids_stmt = NULL;
+
+    _statements.clear();
 }
 
 void SQLite3Store::dispose() {
 
     close();
     bfs::remove(_path);
+}
+
+void SQLite3Store::rotate(bfs::path to_path) {
+
+    if (_db == NULL || _transaction->pending()) {
+        std::ostringstream oss;
+        oss << "The database must be open and all transactions finalized so that the store can be rotated.";
+        throw StoreException(oss.str());
+    }
+
+    finalize_statements();
+    close_db();
+
+    boost::filesystem::rename(_path, to_path);
+
+    open_db();
+    boost::static_pointer_cast<SQLite3Transaction>(_transaction)->db(_db);
+    
+    initialize();
+    prepare_statements();
+    
+    for (boost::unordered_map<Sensor::uuid_t, Sensor::Ptr>::const_iterator it = _sensors_buffer.begin(); it != _sensors_buffer.end(); ++it) {
+        add_sensor_record((*it).second);
+    }
 }
 
 Transaction::Ptr SQLite3Store::create_transaction_handler() {

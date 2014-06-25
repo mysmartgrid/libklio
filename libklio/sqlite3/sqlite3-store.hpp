@@ -67,7 +67,12 @@ namespace klio {
         void upgrade();
         void prepare();
         void dispose();
+        void rotate(bfs::path to_path);
         const std::string str();
+
+        static const std::string OS_SYNC_OFF;
+        static const std::string OS_SYNC_NORMAL;
+        static const std::string OS_SYNC_FULL;
 
     protected:
         Transaction::Ptr create_transaction_handler();
@@ -90,7 +95,9 @@ namespace klio {
     private:
         SQLite3Store(const SQLite3Store& original);
         SQLite3Store& operator =(const SQLite3Store& rhs);
-
+        
+        void prepare_statements();
+        void finalize_statements();
         void close(sqlite3 **db);
         
         const bool has_table(const std::string& name);

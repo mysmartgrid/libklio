@@ -17,7 +17,7 @@ SQLite3Store::Ptr StoreFactory::create_sqlite3_store(const bfs::path& path) {
 
 SQLite3Store::Ptr StoreFactory::create_sqlite3_store(const bfs::path& path, const bool prepare) {
 
-    return create_sqlite3_store(path, prepare, true, true, 600, "FULL");
+    return create_sqlite3_store(path, prepare, true, true, 600, SQLite3Store::OS_SYNC_FULL);
 }
 
 SQLite3Store::Ptr StoreFactory::create_sqlite3_store(
@@ -39,7 +39,7 @@ SQLite3Store::Ptr StoreFactory::create_sqlite3_store(
 
 SQLite3Store::Ptr StoreFactory::open_sqlite3_store(const bfs::path& path) {
 
-    return open_sqlite3_store(path, true, true, 600, "FULL");
+    return open_sqlite3_store(path, true, true, 600, SQLite3Store::OS_SYNC_FULL);
 }
 
 SQLite3Store::Ptr StoreFactory::open_sqlite3_store(

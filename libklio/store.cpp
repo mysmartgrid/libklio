@@ -47,6 +47,11 @@ void Store::rollback_transaction() {
     prepare();
 }
 
+bool Store::is_transaction_pending() {
+    
+    return _transaction->pending();
+}
+
 Transaction::Ptr Store::create_transaction_handler() {
 
     //TODO: implement Transaction classes for other stores and make this method virtual
@@ -314,12 +319,8 @@ Sensor::Ptr Store::sync_sensor_record(const Sensor::Ptr sensor) {
 
     Sensor::Ptr local_sensor;
 
-    if (_external_ids_buffer.count(sensor->external_id()) == 0) {
+    if (_external_ids_buffer.count(sensor->external_id()) > 0) {
 
-        add_sensor_record(sensor);
-        local_sensor = sensor;
-
-    } else {
         const Sensor::uuid_t uuid = _external_ids_buffer[sensor->external_id()];
         const Sensor::Ptr found = _sensors_buffer[uuid];
 
@@ -341,6 +342,10 @@ Sensor::Ptr Store::sync_sensor_record(const Sensor::Ptr sensor) {
 
             update_sensor_record(local_sensor);
         }
+
+    } else {
+        add_sensor_record(sensor);
+        local_sensor = sensor;
     }
     return local_sensor;
 }

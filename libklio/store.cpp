@@ -296,8 +296,8 @@ void Store::sync_sensors(const Store::Ptr store) {
     const Transaction::Ptr transaction = auto_start_transaction();
 
     for (std::vector<Sensor::Ptr>::const_iterator sensor = sensors.begin(); sensor != sensors.end(); ++sensor) {
-        Sensor::Ptr local_sensor = sync_sensor_record(*sensor);
-        set_buffers(local_sensor);
+
+        set_buffers(sync_sensor_record(*sensor));
     }
     auto_commit_transaction(transaction);
 }

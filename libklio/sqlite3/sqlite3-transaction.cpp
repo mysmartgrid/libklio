@@ -6,11 +6,11 @@ using namespace klio;
 
 void SQLite3Transaction::start() {
 
-    if (pending()) {
+    if (_pending) {
         LOG("Transaction is already started.");
 
     } else if (sqlite3_exec(_db, "BEGIN", NULL, NULL, NULL) == SQLITE_OK) {
-        pending(true);
+        _pending = true;
         LOG("Transaction has been started.");
 
     } else {
@@ -20,28 +20,32 @@ void SQLite3Transaction::start() {
 
 void SQLite3Transaction::commit() {
 
-    if (!pending()) {
-        LOG("Transaction is not started.");
+    if (_pending) {
 
-    } else if (sqlite3_exec(_db, "COMMIT", NULL, NULL, NULL) == SQLITE_OK) {
-        pending(false);
-        LOG("Transaction has been commited.");
+        if (sqlite3_exec(_db, "COMMIT", NULL, NULL, NULL) == SQLITE_OK) {
+            _pending = false;
+            LOG("Transaction has been committed.");
 
+        } else {
+            LOG("Can't commit transaction: " << sqlite3_errmsg(_db));
+        }
     } else {
-        LOG("Can't commit transaction: " << sqlite3_errmsg(_db));
+        LOG("Transaction is not started.");
     }
 }
 
 void SQLite3Transaction::rollback() {
 
-    if (!pending()) {
-        LOG("Transaction is not started.");
+    if (_pending) {
 
-    } else if (sqlite3_exec(_db, "ROLLBACK", NULL, NULL, NULL) == SQLITE_OK) {
-        pending(false);
-        LOG("Transaction has been rolled back.");
+        if (sqlite3_exec(_db, "ROLLBACK", NULL, NULL, NULL) == SQLITE_OK) {
+            _pending = false;
+            LOG("Transaction has been rolled back.");
 
+        } else {
+            LOG("Can't rollback transaction: " << sqlite3_errmsg(_db));
+        }
     } else {
-        LOG("Can't rollback transaction: " << sqlite3_errmsg(_db));
+        LOG("Transaction is not started.");
     }
 }

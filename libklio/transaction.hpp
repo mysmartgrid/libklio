@@ -42,19 +42,16 @@ namespace klio {
             return _pending;
         };
 
-        void pending(const bool pending) {
-            _pending = pending;
-        }
-
         virtual void start();
         virtual void commit();
         virtual void rollback();
 
+    protected:
+        bool _pending;
+
     private:
         Transaction(const Transaction& original);
         Transaction& operator=(const Transaction& rhs);
-
-        bool _pending;
     };
 };
 

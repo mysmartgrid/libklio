@@ -31,10 +31,6 @@ namespace klio {
     public:
         typedef boost::shared_ptr<Transaction> Ptr;
 
-        Transaction() :
-        _pending(false) {
-        }
-
         virtual ~Transaction() {
         }
 
@@ -42,11 +38,17 @@ namespace klio {
             return _pending;
         };
 
-        virtual void start();
-        virtual void commit();
-        virtual void rollback();
+        virtual void start() = 0;
+        virtual void commit() = 0;
+        virtual void rollback() = 0;
+        
+        static Ptr Null;
 
     protected:
+        Transaction() :
+        _pending(false) {
+        }
+
         bool _pending;
 
     private:

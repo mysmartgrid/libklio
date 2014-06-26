@@ -47,7 +47,7 @@ namespace klio {
         void start();
         void commit();
         void rollback();
-
+        
     private:
         SQLite3Transaction(const SQLite3Transaction& original);
         SQLite3Transaction& operator=(const SQLite3Transaction& rhs);

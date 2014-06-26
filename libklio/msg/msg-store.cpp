@@ -25,6 +25,14 @@ const std::string MSGStore::DEFAULT_MSG_URL = "https://api.mysmartgrid.de:8443";
 const std::string MSGStore::DEFAULT_MSG_DESCRIPTION = "libklio mSG Store";
 const std::string MSGStore::DEFAULT_MSG_YTPE = "libklio";
 
+void MSGStore::open() {
+    //Nothing is done with the remote store
+}
+
+void MSGStore::close() {
+    Store::clear_buffers();
+}
+
 void MSGStore::check_integrity() {
     //TODO: implement this method
 }
@@ -84,10 +92,10 @@ void MSGStore::flush() {
 
 const std::string MSGStore::str() {
 
-    std::ostringstream str;
-    str << "mSG store " << compose_device_url();
-    return str.str();
-};
+    std::ostringstream oss;
+    oss << "mSG store " << compose_device_url();
+    return oss.str();
+}
 
 void MSGStore::add_sensor_record(const Sensor::Ptr sensor) {
 
@@ -309,20 +317,21 @@ reading_t MSGStore::get_last_reading_record(const Sensor::Ptr sensor) {
     try {
         jreadings = get_json_readings(sensor);
 
-        int i = json_object_array_length(jreadings) - 1;
+        int length = json_object_array_length(jreadings);
+        std::pair<timestamp_t, double> last_reading = std::pair<timestamp_t, double>(0, 0);
 
-        if (i >= 0) {
+        for (int i = 0; i < length; i++) {
+
             json_object *jpair = json_object_array_get_idx(jreadings, i);
             std::pair<timestamp_t, double > reading = create_reading_pair(jpair);
 
-            if (reading.first > 0) {
-                destroy_object(jreadings);
-                return reading;
+            if (reading.first > last_reading.first) {
+                last_reading = reading;
             }
         }
-        std::ostringstream err;
-        err << "No reading found for sensor " << sensor->uuid_short() << ".";
-        throw StoreException(err.str());
+
+        destroy_object(jreadings);
+        return last_reading;
 
     } catch (GenericException const& e) {
         destroy_object(jreadings);

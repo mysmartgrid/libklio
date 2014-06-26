@@ -165,7 +165,7 @@ BOOST_AUTO_TEST_CASE(check_retrieve_reading_timeframe) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_retrieve_last_reading) {
+BOOST_AUTO_TEST_CASE(check_sqlite3_retrieve_last_reading) {
 
     try {
         std::cout << std::endl << "*** retrieving the last reading from a sensor." << std::endl;
@@ -971,6 +971,65 @@ BOOST_AUTO_TEST_CASE(check_add_hsbs_reading_msg) {
             store->dispose();
             std::cout << "Caught invalid exception: " << ex.what() << std::endl;
             BOOST_FAIL("Unexpected exception occurred for initialize request");
+        }
+    } catch (std::exception const& ex) {
+        BOOST_FAIL("Unexpected exception occurred during sensor test");
+    }
+}
+
+BOOST_AUTO_TEST_CASE(check_msg_retrieve_last_reading) {
+
+    try {
+        std::cout << std::endl << "Retrieving the last reading from a MSG sensor." << std::endl;
+        klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
+        std::string url = "https://dev3-api.mysmartgrid.de:8443";
+
+        std::cout << "Attempting to create MSG store " << url << std::endl;
+        klio::MSGStore::Ptr store(store_factory->create_msg_store(url,
+                "2424f4de-3ecd-f3d3-24db-3e96755d2424",
+                "2424f4de-3ecd-f3d3-00db-3e96245d2424",
+                "libklio test store",
+                "libklio"));
+
+        std::cout << "Created: " << store->str() << std::endl;
+
+        try {
+            klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+
+            klio::Sensor::Ptr sensor(sensor_factory->createSensor(
+                    "90328074-8bcf-240b-db7c-c12810383232",
+                    "Test 90328074-8bcf-240b-db7c-c12810383232",
+                    "Test libklio1",
+                    "description1",
+                    "wh",
+                    "Europe/Berlin"));
+
+            store->add_sensor(sensor);
+            std::cout << "added to store: " << sensor->str() << std::endl;
+
+            klio::timestamp_t last_timestamp = time(0) - 3000;
+            last_timestamp -= last_timestamp % 60;
+            double last_value = 1000;
+
+            for (int i = 0; i < 12; i++) {
+                last_value += 1000;
+                last_timestamp += 60;
+                store->add_reading(sensor, last_timestamp, last_value);
+            }
+
+            klio::readings_t readings = *store->get_all_readings(sensor);
+            BOOST_CHECK_EQUAL(11, readings.size());
+
+            klio::reading_t last_reading = store->get_last_reading(sensor);
+
+            BOOST_CHECK_EQUAL(last_timestamp, last_reading.first);
+
+            store->dispose();
+
+        } catch (klio::StoreException const& ex) {
+            std::cout << "Caught invalid exception: " << ex.what() << std::endl;
+            BOOST_FAIL("Unexpected store exception occurred during sensor test");
+            store->dispose();
         }
     } catch (std::exception const& ex) {
         BOOST_FAIL("Unexpected exception occurred during sensor test");

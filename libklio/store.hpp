@@ -44,8 +44,8 @@ namespace klio {
         virtual ~Store() {
         };
 
-        virtual void open();
-        virtual void close();
+        virtual void open() = 0;
+        virtual void close() = 0;
         virtual void check_integrity() = 0;
         virtual void initialize() = 0;
         virtual void dispose() = 0;
@@ -54,6 +54,7 @@ namespace klio {
         void flush(bool ignore_errors);
         virtual const std::string str() = 0;
 
+        //FIXME: move transactions handling out of this class
         void start_transaction();
         void commit_transaction();
         void rollback_transaction();
@@ -93,7 +94,7 @@ namespace klio {
         static const SensorFactory::Ptr sensor_factory;
         static const TimeConverter::Ptr time_converter;
 
-        virtual Transaction::Ptr create_transaction_handler();
+        virtual Transaction::Ptr get_transaction_handler();
         Transaction::Ptr auto_start_transaction();
         virtual void auto_commit_transaction(const Transaction::Ptr transaction);
 
@@ -114,7 +115,7 @@ namespace klio {
         void handle_reading_insertion_error(const bool ignore_errors, const timestamp_t timestamp, const double value);
         void handle_reading_insertion_error(const bool ignore_errors, const Sensor::Ptr sensor);
 
-        Transaction::Ptr _transaction;
+        bool _auto_commit;
         boost::unordered_map<const Sensor::uuid_t, Sensor::Ptr> _sensors_buffer;
 
     private:
@@ -131,7 +132,6 @@ namespace klio {
         static const cached_operation_type_t UPDATE_OPERATION;
         static const cached_operation_type_t DELETE_OPERATION;
 
-        bool _auto_commit;
         bool _auto_flush;
         timestamp_t _flush_timeout;
         timestamp_t _last_flush;
@@ -144,6 +144,7 @@ namespace klio {
         void add_readings(const Sensor::Ptr sensor, const readings_t& readings, const cached_operation_type_t operation_type);
         readings_t_Ptr get_buffered_readings(const Sensor::Ptr sensor, const cached_operation_type_t operation_type);
 
+        void check_out_commit_off();
         void auto_flush();
         void flush_all(const bool ignore_errors);
         void flush(const Sensor::Ptr sensor, const bool ignore_errors);

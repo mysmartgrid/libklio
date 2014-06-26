@@ -25,6 +25,7 @@
 #include <boost/filesystem.hpp>
 #include <libklio/store.hpp>
 #include <libklio/sensor-factory.hpp>
+#include "sqlite3-transaction.hpp"
 
 
 namespace bfs = boost::filesystem;
@@ -75,7 +76,7 @@ namespace klio {
         static const std::string OS_SYNC_FULL;
 
     protected:
-        Transaction::Ptr create_transaction_handler();
+        Transaction::Ptr get_transaction_handler();
 
         void add_sensor_record(const Sensor::Ptr sensor);
         void remove_sensor_record(const Sensor::Ptr sensor);
@@ -100,6 +101,7 @@ namespace klio {
         void close_db();
         void prepare_statements();
         void finalize_statements();
+        SQLite3Transaction::Ptr create_transaction_handler();
         
         const bool has_table(const std::string& name);
         const bool has_column(const std::string& table, const std::string& column);
@@ -116,6 +118,7 @@ namespace klio {
 
         bfs::path _path;
         sqlite3 *_db;
+        SQLite3Transaction::Ptr _transaction;
         std::string _synchronous;
         sqlite3_stmt* _insert_sensor_stmt;
         sqlite3_stmt* _remove_sensor_stmt;

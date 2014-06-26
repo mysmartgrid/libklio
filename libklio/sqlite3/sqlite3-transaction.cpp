@@ -6,7 +6,12 @@ using namespace klio;
 
 void SQLite3Transaction::start() {
 
-    if (_pending) {
+    if (_db == NULL) {
+        std::ostringstream oss;
+        oss << "Database is not open.";
+        throw StoreException(oss.str());
+
+    } else if (_pending) {
         LOG("Transaction is already started.");
 
     } else if (sqlite3_exec(_db, "BEGIN", NULL, NULL, NULL) == SQLITE_OK) {
@@ -20,7 +25,11 @@ void SQLite3Transaction::start() {
 
 void SQLite3Transaction::commit() {
 
-    if (_pending) {
+    if (_db == NULL) {
+        //FIXME: raise an exception
+        LOG("Database is not open.");
+
+    } else if (_pending) {
 
         if (sqlite3_exec(_db, "COMMIT", NULL, NULL, NULL) == SQLITE_OK) {
             _pending = false;
@@ -36,7 +45,11 @@ void SQLite3Transaction::commit() {
 
 void SQLite3Transaction::rollback() {
 
-    if (_pending) {
+    if (_db == NULL) {
+        //FIXME: raise an exception
+        LOG("Database is not open.");
+
+    } else if (_pending) {
 
         if (sqlite3_exec(_db, "ROLLBACK", NULL, NULL, NULL) == SQLITE_OK) {
             _pending = false;
@@ -46,6 +59,6 @@ void SQLite3Transaction::rollback() {
             LOG("Can't rollback transaction: " << sqlite3_errmsg(_db));
         }
     } else {
-        LOG("Transaction is not started.");
+        LOG("Transaction is not rolled back.");
     }
 }

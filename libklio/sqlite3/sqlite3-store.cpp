@@ -9,7 +9,6 @@
 #include <libklio/sqlite3/sqlite3-transaction.hpp>
 #include <libklio/common.hpp>
 #include "sqlite3-store.hpp"
-#include "sqlite3-transaction.hpp"
 
 
 using namespace klio;
@@ -22,31 +21,51 @@ void SQLite3Store::open() {
 
     if (_db == NULL) {
         open_db();
-        Store::open();
+
+    } else {
+        LOG("Store is already open.");
     }
 }
 
 void SQLite3Store::close() {
 
-    if (_db != NULL) {
+    if (_db == NULL) {
+        LOG("Store is already closed.");
+
+    } else {
         finalize_statements();
-        Store::close();
+
+        if (_db && _transaction) {
+            _transaction->rollback();
+        }
+
+        clear_buffers();
         close_db();
     }
 }
 
 void SQLite3Store::open_db() {
 
-    if (sqlite3_open_v2(_path.c_str(), &_db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL) != SQLITE_OK) {
+    if (sqlite3_open_v2(_path.c_str(), &_db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL) == SQLITE_OK) {
 
+        if (_transaction) {
+            _transaction->db(_db);
+
+        } else {
+            _transaction = create_transaction_handler();
+        }
+
+    } else {
         std::ostringstream oss;
-        oss << "Can't open database: ";
-
         if (_db) {
             oss << sqlite3_errmsg(_db);
             close_db();
 
         } else {
+
+            if (_transaction) {
+                _transaction->db(NULL);
+            }
             oss << "Not enough memory.";
         }
         throw StoreException(oss.str());
@@ -57,6 +76,10 @@ void SQLite3Store::close_db() {
 
     if (sqlite3_close_v2(_db) == SQLITE_OK) {
         _db = NULL;
+
+        if (_transaction) {
+            _transaction->db(NULL);
+        }
 
     } else {
         std::ostringstream oss;
@@ -293,17 +316,21 @@ void SQLite3Store::rotate(bfs::path to_path) {
     boost::filesystem::rename(_path, to_path);
 
     open_db();
-    boost::static_pointer_cast<SQLite3Transaction>(_transaction)->db(_db);
-    
+
     initialize();
     prepare_statements();
-    
+
     for (boost::unordered_map<Sensor::uuid_t, Sensor::Ptr>::const_iterator it = _sensors_buffer.begin(); it != _sensors_buffer.end(); ++it) {
         add_sensor_record((*it).second);
     }
 }
 
-Transaction::Ptr SQLite3Store::create_transaction_handler() {
+Transaction::Ptr SQLite3Store::get_transaction_handler() {
+
+    return _auto_commit ? create_transaction_handler() : _transaction;
+}
+
+SQLite3Transaction::Ptr SQLite3Store::create_transaction_handler() {
 
     return SQLite3Transaction::Ptr(new SQLite3Transaction(_db));
 }

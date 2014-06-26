@@ -32,21 +32,23 @@ namespace klio {
     class TimeConverter {
     public:
         typedef boost::shared_ptr<TimeConverter> Ptr;
-        TimeConverter();
-        virtual ~TimeConverter();
 
-        timestamp_t get_timestamp();
-        long convert_to_epoch(klio::timestamp_t time);
-        timestamp_t convert_from_epoch(long epoch);
-        std::string str_local(timestamp_t time);
-        std::string str_utc(timestamp_t time);
+        TimeConverter(){
+        };
+
+        virtual ~TimeConverter(){
+        };
+
+        const timestamp_t get_timestamp();
+        const long convert_to_epoch(const timestamp_t time);
+        const timestamp_t convert_from_epoch(const long epoch);
+        const std::string str_local(const timestamp_t time);
+        const std::string str_utc(const timestamp_t time);
 
     private:
         TimeConverter(const TimeConverter& original);
         TimeConverter& operator=(const TimeConverter& rhs);
-
     };
-
 };
 
 #endif /* LIBKLIO_TIME_HPP */

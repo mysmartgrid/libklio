@@ -24,41 +24,36 @@
 
 using namespace klio;
 
-TimeConverter::TimeConverter() {
-};
+const timestamp_t TimeConverter::get_timestamp() {
 
-TimeConverter::~TimeConverter() {
-};
-
-timestamp_t TimeConverter::get_timestamp() {
     std::time_t rawtime;
     std::time(&rawtime);
     return rawtime;
 }
 
-long TimeConverter::convert_to_epoch(timestamp_t time) {
+const long TimeConverter::convert_to_epoch(const timestamp_t time) {
     //TODO
     return time;
 }
 
-timestamp_t TimeConverter::convert_from_epoch(long epoch) {
+const timestamp_t TimeConverter::convert_from_epoch(const long epoch) {
     //TODO
     return epoch;
 }
 
-std::string TimeConverter::str_local(timestamp_t time) {
-    struct tm * timeinfo;
-    //std::time ( &time );
+const std::string TimeConverter::str_local(const timestamp_t time) {
+    struct tm* timeinfo;
     timeinfo = localtime(&time);
+
     std::ostringstream oss;
     oss << asctime(timeinfo);
     return oss.str();
 }
 
-std::string TimeConverter::str_utc(timestamp_t time) {
-    struct tm * timeinfo;
-    //std::time ( &time );
+const std::string TimeConverter::str_utc(const timestamp_t time) {
+    struct tm* timeinfo;
     timeinfo = gmtime(&time);
+
     std::ostringstream oss;
     oss << asctime(timeinfo);
     return oss.str();

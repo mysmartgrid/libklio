@@ -83,6 +83,8 @@ namespace klio {
             return _id.substr(0, 10);
         };
 
+        void open();
+        void close();
         void check_integrity();
         void initialize();
         void dispose();

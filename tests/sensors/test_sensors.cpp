@@ -94,8 +94,6 @@ BOOST_AUTO_TEST_CASE(check_create_sensor_sqlite3) {
             BOOST_FAIL("Unexpected store exception occurred during sensor test");
         }
 
-        std::cout << "TEST1 " << sensor1->str() << std::endl;
-        
         try {
             store->add_sensor(sensor1);
             BOOST_FAIL("No exception occurred during duplicate sensor add request");

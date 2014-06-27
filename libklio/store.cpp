@@ -12,67 +12,63 @@ const Store::cached_operation_type_t Store::INSERT_OPERATION = 1;
 const Store::cached_operation_type_t Store::UPDATE_OPERATION = 2;
 const Store::cached_operation_type_t Store::DELETE_OPERATION = 3;
 
-void Store::open() {
-    _transaction = create_transaction_handler();
-}
-
-void Store::close() {
-
-    if (!_auto_commit) {
-        _transaction->rollback();
-    }
-    clear_buffers();
-}
-
 void Store::start_transaction() {
+
+    check_out_commit_off();
+    get_transaction_handler()->start();
+}
+
+void Store::commit_transaction() {
+
+    check_out_commit_off();
+    flush_all(_auto_flush);
+    get_transaction_handler()->commit();
+}
+
+void Store::rollback_transaction() {
+
+    check_out_commit_off();
+    get_transaction_handler()->rollback();
+    clear_buffers();
+    prepare();
+}
+
+void Store::check_out_commit_off() {
 
     if (_auto_commit) {
         std::ostringstream oss;
         oss << "This operation can not be performed because the store is configured to perform commits automatically.";
         throw StoreException(oss.str());
     }
-    _transaction->start();
 }
 
-void Store::commit_transaction() {
+Transaction::Ptr Store::get_transaction_handler() {
 
-    flush_all(_auto_flush);
-    _transaction->commit();
-}
-
-void Store::rollback_transaction() {
-
-    _transaction->rollback();
-    clear_buffers();
-    prepare();
-}
-
-Transaction::Ptr Store::create_transaction_handler() {
-
-    //TODO: implement Transaction classes for other stores and make this method virtual
-    return Transaction::Ptr(new Transaction());
+    //By default, stores do not provide transactions
+    return Transaction::Null;
 }
 
 Transaction::Ptr Store::auto_start_transaction() {
 
-    if (_auto_commit) {
-        const Transaction::Ptr transaction = create_transaction_handler();
-        transaction->start();
-        return transaction;
+    Transaction::Ptr transaction = get_transaction_handler();
 
-    } else if (_transaction->pending()) {
-        return _transaction;
+    if (transaction) {
 
-    } else {
-        std::ostringstream oss;
-        oss << "Automatic commits are disabled for this store. Please, start a transaction manually before invoking this method.";
-        throw StoreException(oss.str());
+        if (_auto_commit) {
+            transaction->start();
+
+        } else if (!transaction->pending()) {
+            std::ostringstream oss;
+            oss << "Automatic commits are disabled for this store. Please, start a transaction manually before invoking this method.";
+            throw StoreException(oss.str());
+        }
     }
+    return transaction;
 }
 
 void Store::auto_commit_transaction(const Transaction::Ptr transaction) {
 
-    if (_auto_commit) {
+    if (transaction && _auto_commit) {
         transaction->commit();
     }
 }
@@ -296,8 +292,8 @@ void Store::sync_sensors(const Store::Ptr store) {
     const Transaction::Ptr transaction = auto_start_transaction();
 
     for (std::vector<Sensor::Ptr>::const_iterator sensor = sensors.begin(); sensor != sensors.end(); ++sensor) {
-        Sensor::Ptr local_sensor = sync_sensor_record(*sensor);
-        set_buffers(local_sensor);
+
+        set_buffers(sync_sensor_record(*sensor));
     }
     auto_commit_transaction(transaction);
 }
@@ -370,6 +366,7 @@ void Store::auto_flush() {
     const timestamp_t now = time_converter->get_timestamp();
 
     if (_auto_flush && now - _last_flush >= _flush_timeout) {
+
         const Transaction::Ptr transaction = auto_start_transaction();
         flush_all(true);
         auto_commit_transaction(transaction);

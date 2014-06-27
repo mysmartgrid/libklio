@@ -26,7 +26,6 @@ void RocksDBStore::open() {
             open_db(true, false, compose_sensor_readings_path(uuid_str));
         }
     }
-    Store::open();
 }
 
 void RocksDBStore::close() {
@@ -34,7 +33,7 @@ void RocksDBStore::close() {
     for (std::map<std::string, rocksdb::DB*>::const_iterator it = _db_buffer.begin(); it != _db_buffer.end(); ++it) {
         delete (*it).second;
     }
-    Store::close();
+    clear_buffers();
 }
 
 void RocksDBStore::check_integrity() {
@@ -83,7 +82,7 @@ const std::string RocksDBStore::str() {
     std::ostringstream oss;
     oss << "RocksDB database, stored in path " << _path.string();
     return oss.str();
-};
+}
 
 void RocksDBStore::add_sensor_record(const Sensor::Ptr sensor) {
 

@@ -72,7 +72,7 @@ MSGStore::Ptr StoreFactory::create_msg_store(const std::string& id, const std::s
             id,
             key,
             MSGStore::DEFAULT_MSG_DESCRIPTION,
-            MSGStore::DEFAULT_MSG_YTPE);
+            MSGStore::DEFAULT_MSG_TYPE);
 }
 
 MSGStore::Ptr StoreFactory::create_msg_store(

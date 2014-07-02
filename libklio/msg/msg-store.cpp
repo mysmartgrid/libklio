@@ -23,7 +23,7 @@ using namespace klio;
 
 const std::string MSGStore::DEFAULT_MSG_URL = "https://api.mysmartgrid.de:8443";
 const std::string MSGStore::DEFAULT_MSG_DESCRIPTION = "libklio mSG Store";
-const std::string MSGStore::DEFAULT_MSG_YTPE = "libklio";
+const std::string MSGStore::DEFAULT_MSG_TYPE = "libklio";
 
 void MSGStore::open() {
     //Nothing is done with the remote store

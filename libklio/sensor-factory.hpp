@@ -36,30 +36,39 @@ namespace klio {
         SensorFactory() {
         };
 
-        klio::Sensor::Ptr createSensor(
+        Sensor::Ptr createSensor(
                 const std::string& external_id,
                 const std::string& name,
                 const std::string& unit,
                 const std::string& timezone
                 );
-        
-        klio::Sensor::Ptr createSensor(
+
+        Sensor::Ptr createSensor(
                 const std::string& external_id,
                 const std::string& name,
                 const std::string& unit,
                 const std::string& timezone,
-                const klio::DeviceType::Ptr device_type
+                const DeviceType::Ptr device_type
                 );
 
-        klio::Sensor::Ptr createSensor(
+        Sensor::Ptr createSensor(
+                const std::string& external_id,
+                const std::string& name,
+                const std::string& description,
+                const std::string& unit,
+                const std::string& timezone,
+                const DeviceType::Ptr device_type
+                );
+
+        Sensor::Ptr createSensor(
                 const std::string& uuid_string,
                 const std::string& external_id,
                 const std::string& name,
                 const std::string& unit,
                 const std::string& timezone
                 );
-        
-        klio::Sensor::Ptr createSensor(
+
+        Sensor::Ptr createSensor(
                 const std::string& uuid_string,
                 const std::string& external_id,
                 const std::string& name,
@@ -68,17 +77,17 @@ namespace klio {
                 const std::string& timezone
                 );
 
-        klio::Sensor::Ptr createSensor(
+        Sensor::Ptr createSensor(
                 const std::string& uuid_string,
                 const std::string& external_id,
                 const std::string& name,
                 const std::string& description,
                 const std::string& unit,
                 const std::string& timezone,
-                const klio::DeviceType::Ptr device_type
+                const DeviceType::Ptr device_type
                 );
-        
-        klio::Sensor::Ptr createSensor(
+
+        Sensor::Ptr createSensor(
                 const Sensor::uuid_t& uuid,
                 const std::string& external_id,
                 const std::string& name,
@@ -86,15 +95,15 @@ namespace klio {
                 const std::string& unit,
                 const std::string& timezone
                 );
-        
-        klio::Sensor::Ptr createSensor(
+
+        Sensor::Ptr createSensor(
                 const Sensor::uuid_t& uuid,
                 const std::string& external_id,
                 const std::string& name,
                 const std::string& description,
                 const std::string& unit,
                 const std::string& timezone,
-                const klio::DeviceType::Ptr device_type
+                const DeviceType::Ptr device_type
                 );
 
         virtual ~SensorFactory() {
@@ -103,6 +112,8 @@ namespace klio {
     private:
         SensorFactory(const SensorFactory& original);
         SensorFactory& operator=(const SensorFactory& rhs);
+        
+        static boost::uuids::random_generator _gen_uuid;
     };
 };
 

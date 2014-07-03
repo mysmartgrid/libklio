@@ -29,6 +29,13 @@
 #include <libklio/types.hpp>
 
 
+namespace bpt = boost::posix_time;
+namespace bg = boost::gregorian;
+
+using namespace boost::gregorian;
+using namespace boost::local_time;
+using namespace boost::posix_time;
+
 namespace klio {
 
     class LocalTime {
@@ -40,36 +47,23 @@ namespace klio {
         };
 
         std::vector<std::string> get_valid_timezones();
-        bool is_valid_timezone(const std::string& zone);
+        const bool is_valid_timezone(const std::string& zone);
+        const time_zone_ptr get_timezone_ptr(const Sensor::Ptr sensor);
 
-        boost::local_time::time_zone_ptr
-        get_timezone_ptr(klio::Sensor::Ptr sensor);
+        const local_date_time get_local_time(const Sensor::Ptr sensor, const timestamp_t time);
+        const bpt::ptime get_utc_time(const Sensor::Ptr sensor, const timestamp_t time);
+        const bg::date get_local_date(const Sensor::Ptr sensor, const timestamp_t time);
+        const uint16_t get_local_day_of_year(const Sensor::Ptr sensor, const timestamp_t time);
+        const uint16_t get_local_hour(const Sensor::Ptr sensor, const timestamp_t time);
 
-        boost::local_time::local_date_time
-        get_local_time(klio::Sensor::Ptr sensor, klio::timestamp_t time);
-
-        boost::posix_time::ptime
-        get_utc_time(klio::Sensor::Ptr sensor, klio::timestamp_t time);
-
-        boost::gregorian::date
-        get_local_date(klio::Sensor::Ptr sensor, klio::timestamp_t time);
-
-        uint16_t
-        get_local_day_of_year(klio::Sensor::Ptr sensor, klio::timestamp_t time);
-        uint16_t
-        get_local_hour(klio::Sensor::Ptr sensor, klio::timestamp_t time);
-
-        klio::timestamp_t
-        get_timestamp(boost::posix_time::ptime ptime);
-
-        klio::timestamp_t
-        get_timestamp(klio::Sensor::Ptr sensor, boost::local_time::local_date_time time);
+        const timestamp_t get_timestamp(const ptime ptime);
+        const timestamp_t get_timestamp(const Sensor::Ptr sensor, const local_date_time time);
 
     private:
         LocalTime(const LocalTime& original);
         LocalTime& operator=(const LocalTime& rhs);
-        boost::local_time::tz_database _tz_db;
 
+        tz_database _tz_db;
     };
 };
 

@@ -22,38 +22,37 @@
 #define LIBKLIO_SQLITE3_TRANSACTION_HPP 1
 
 #include <sqlite3.h>
-#include <boost/shared_ptr.hpp>
-#include <libklio/common.hpp>
+#include <libklio/transaction.hpp>
 
 
 namespace klio {
 
-    class Transaction {
+    class SQLite3Transaction : public Transaction {
     public:
-        typedef boost::shared_ptr<Transaction> Ptr;
+        typedef boost::shared_ptr<SQLite3Transaction> Ptr;
 
-        Transaction(sqlite3* _db) :
-        _db(_db),
-        _pending(false) {
-            start();
+        SQLite3Transaction(sqlite3* _db) :
+        Transaction(),
+        _db(_db) {
         }
 
-        virtual ~Transaction() {
+        virtual ~SQLite3Transaction() {
             rollback();
         }
-
-        void commit();
-
-    private:
-        Transaction(const Transaction& original);
-        Transaction& operator=(const Transaction& rhs);
+        
+        void db(sqlite3* db) {
+            _db = db;
+        }
 
         void start();
+        void commit();
         void rollback();
-        void log_error(const std::string& operation);
+        
+    private:
+        SQLite3Transaction(const SQLite3Transaction& original);
+        SQLite3Transaction& operator=(const SQLite3Transaction& rhs);
 
         sqlite3* _db;
-        bool _pending;
     };
 };
 

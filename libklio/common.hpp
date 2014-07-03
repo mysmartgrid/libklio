@@ -66,14 +66,13 @@ namespace klio {
 
         virtual ~VersionInfo() {
         };
+
         const std::string getVersion();
 
     private:
         VersionInfo(const VersionInfo& original);
         VersionInfo& operator=(const VersionInfo& rhs);
-
     };
-
 };
 
 #endif /* LIBKLIO_COMMON_HPP */

@@ -72,7 +72,7 @@ BOOST_AUTO_TEST_CASE(check_create_msg_storage) {
 
                 BOOST_FAIL("A DataFormatException must be thrown when an invalid type is informed.");
 
-            } catch (klio::GenericException const& e) {
+            } catch (klio::DataFormatException const& e) {
                 //This exception was expected
             }
             store->dispose();

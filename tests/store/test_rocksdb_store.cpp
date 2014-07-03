@@ -33,6 +33,29 @@
  * see http://www.boost.org/doc/libs/1_43_0/libs/test/doc/html/tutorials/hello-the-testing-world.html
  */
 
+BOOST_AUTO_TEST_CASE(check_open_corrupt_rocksdb_path) {
+
+    std::cout << "Testing storage creation for RocksDB" << std::endl;
+    klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
+
+    bfs::path db = boost::filesystem::unique_path();
+
+    klio::Store::Ptr store;
+
+    try {
+        std::cout << "Attempting to create " << db << std::endl;
+        klio::Store::Ptr store(store_factory->open_rocksdb_store(db));
+
+        store->dispose();
+
+        BOOST_FAIL("An exception is expected to be risen when a corrupt store is opened.");
+
+    } catch (klio::StoreException const& ex) {
+        //This exception is expected
+        bfs::remove(db);//TODO: use dispose() here
+    }
+}
+
 BOOST_AUTO_TEST_CASE(check_create_rocksdb_storage) {
 
     std::cout << "Testing storage creation for RocksDB" << std::endl;
@@ -44,9 +67,6 @@ BOOST_AUTO_TEST_CASE(check_create_rocksdb_storage) {
     std::cout << "Created: " << store->str() << std::endl;
 
     try {
-        store->open();
-        store->initialize();
-
         klio::Store::Ptr loaded(store_factory->create_rocksdb_store(db));
         loaded->open();
         std::cout << "Opened database: " << loaded->str() << std::endl;
@@ -72,9 +92,6 @@ BOOST_AUTO_TEST_CASE(check_add_rocksdb_sensor) {
     std::cout << "Created: " << store->str() << std::endl;
 
     try {
-        store->open();
-        store->initialize();
-
         klio::Sensor::Ptr sensor(sensor_factory->createSensor(
                 "89c18074-8bcf-240b-db7c-c1281038adcb",
                 "Test",
@@ -115,9 +132,6 @@ BOOST_AUTO_TEST_CASE(check_update_rocksdb_sensor) {
     std::cout << "Created: " << store->str() << std::endl;
 
     try {
-        store->open();
-        store->initialize();
-
         klio::Sensor::Ptr sensor(sensor_factory->createSensor(
                 "92c18074-8bcf-240b-db7c-c1281038adcb",
                 "Test",
@@ -164,9 +178,6 @@ BOOST_AUTO_TEST_CASE(check_remove_rocksdb_sensor) {
     std::cout << "Created: " << store->str() << std::endl;
 
     try {
-        store->open();
-        store->initialize();
-
         klio::Sensor::Ptr sensor(sensor_factory->createSensor(
                 "89c18074-8bcf-890b-db7c-c1281038adcb",
                 "Test",
@@ -208,9 +219,6 @@ BOOST_AUTO_TEST_CASE(check_get_rocksdb_sensor) {
     std::cout << "Created: " << store->str() << std::endl;
 
     try {
-        store->open();
-        store->initialize();
-
         klio::Sensor::Ptr sensor(sensor_factory->createSensor(
                 "98c18074-8bcf-890b-db7c-c1281038adcb",
                 "GetTest",
@@ -260,9 +268,6 @@ BOOST_AUTO_TEST_CASE(check_get_rocksdb_sensor_by_name) {
     std::cout << "Created: " << store->str() << std::endl;
 
     try {
-        store->open();
-        store->initialize();
-
         klio::Sensor::Ptr sensor1(sensor_factory->createSensor(
                 "98c18074-8bcf-890b-db7c-c1281038adcb",
                 "Unique External Id",
@@ -275,7 +280,7 @@ BOOST_AUTO_TEST_CASE(check_get_rocksdb_sensor_by_name) {
 
         klio::Sensor::Ptr sensor2(sensor_factory->createSensor(
                 "88c18074-890b-8bcf-db7c-c1281038adcb",
-                "Duplicated External Id",
+                "External Id 1",
                 "Duplicated Name",
                 "Duplicated Description",
                 "watt",
@@ -285,7 +290,7 @@ BOOST_AUTO_TEST_CASE(check_get_rocksdb_sensor_by_name) {
 
         klio::Sensor::Ptr sensor3(sensor_factory->createSensor(
                 "99c18074-890b-8bcf-db7c-c1281038adcb",
-                "Duplicated External Id",
+                "External Id 2",
                 "Duplicated Name",
                 "Duplicated Description",
                 "watt",
@@ -330,9 +335,6 @@ BOOST_AUTO_TEST_CASE(check_get_rocksdb_sensors_by_external_id) {
     std::cout << "Created: " << store->str() << std::endl;
 
     try {
-        store->open();
-        store->initialize();
-
         klio::Sensor::Ptr sensor1(sensor_factory->createSensor(
                 "82c18074-8bcf-890b-db7c-c1281038adcb",
                 "External Id 1",
@@ -391,9 +393,6 @@ BOOST_AUTO_TEST_CASE(check_get_rocksdb_sensor_uuids) {
     std::cout << "Created: " << store->str() << std::endl;
 
     try {
-        store->open();
-        store->initialize();
-
         klio::Sensor::Ptr sensor1(sensor_factory->createSensor(
                 "98c17480-8bcf-890b-db7c-c1081038adcb",
                 "TestA",
@@ -447,9 +446,6 @@ BOOST_AUTO_TEST_CASE(check_add_retrieve_rocksdb_reading) {
     std::cout << "Created: " << store->str() << std::endl;
 
     try {
-        store->open();
-        store->initialize();
-
         klio::Sensor::Ptr sensor(sensor_factory->createSensor("sensor", "sensor", "Watt", "Europe/Berlin"));
         store->add_sensor(sensor);
         std::cout << "added to store: " << sensor->str() << std::endl;
@@ -495,9 +491,6 @@ BOOST_AUTO_TEST_CASE(check_rocksdb_num_readings) {
     std::cout << "Created: " << store->str() << std::endl;
 
     try {
-        store->open();
-        store->initialize();
-
         klio::Sensor::Ptr sensor(sensor_factory->createSensor("sensor", "sensor", "Watt", "Europe/Berlin"));
         store->add_sensor(sensor);
         std::cout << "added to store: " << sensor->str() << std::endl;

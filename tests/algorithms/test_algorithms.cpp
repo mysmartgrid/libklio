@@ -56,7 +56,7 @@ void fill_symmetric_test_data(
 
 BOOST_AUTO_TEST_CASE ( check_collate ) {
   std::cout << std::endl << "*** Testing collate algorithm." << std::endl;
-  try {
+
     klio::Store::Ptr store(generate_store());
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
     klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "sensor1", "Watt", "Europe/Berlin")); 
@@ -95,9 +95,6 @@ BOOST_AUTO_TEST_CASE ( check_collate ) {
     } catch (klio::DataFormatException& dfe) {
       std::cout << "Caught expected dataformat exception." << std::endl;
     }
-  } catch (std::exception const& ex) {
-    BOOST_FAIL( "Unexpected exception occured during sensor test" );
-  }
 
   //BOOST_CHECK_EQUAL (timestamp, reversed_ts);
 }

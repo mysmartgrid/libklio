@@ -18,37 +18,43 @@
  * along with libklio. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LIBKLIO_TIME_HPP
-#define LIBKLIO_TIME_HPP 1
+#ifndef LIBKLIO_TRANSACTION_HPP
+#define LIBKLIO_TRANSACTION_HPP 1
 
-#include <ctime>
 #include <boost/shared_ptr.hpp>
 #include <libklio/common.hpp>
-#include <libklio/types.hpp>
 
 
 namespace klio {
 
-    class TimeConverter {
+    class Transaction {
     public:
-        typedef boost::shared_ptr<TimeConverter> Ptr;
+        typedef boost::shared_ptr<Transaction> Ptr;
 
-        TimeConverter(){
+        virtual ~Transaction() {
+        }
+
+        const bool pending() const {
+            return _pending;
         };
 
-        virtual ~TimeConverter(){
-        };
+        virtual void start() = 0;
+        virtual void commit() = 0;
+        virtual void rollback() = 0;
+        
+        static Ptr Null;
 
-        const timestamp_t get_timestamp();
-        const long convert_to_epoch(const timestamp_t time);
-        const timestamp_t convert_from_epoch(const long epoch);
-        const std::string str_local(const timestamp_t time);
-        const std::string str_utc(const timestamp_t time);
+    protected:
+        Transaction() :
+        _pending(false) {
+        }
+
+        bool _pending;
 
     private:
-        TimeConverter(const TimeConverter& original);
-        TimeConverter& operator=(const TimeConverter& rhs);
+        Transaction(const Transaction& original);
+        Transaction& operator=(const Transaction& rhs);
     };
 };
 
-#endif /* LIBKLIO_TIME_HPP */
+#endif /* LIBKLIO_TRANSACTION_HPP */

@@ -721,6 +721,9 @@ BOOST_AUTO_TEST_CASE(check_add_retrieve_single_readings_msg) {
 
             store->dispose();
 
+        } catch (klio::CommunicationException const& ce) {
+            //Ignore this kind of exception
+
         } catch (klio::StoreException const& ex) {
             store->dispose();
             std::cout << "Caught invalid exception: " << ex.what() << std::endl;

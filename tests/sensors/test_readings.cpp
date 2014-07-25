@@ -800,7 +800,7 @@ BOOST_AUTO_TEST_CASE(check_add_kwh_readings_msg) {
             readings = *store->get_all_readings(sensor);
             store->dispose();
 
-            BOOST_CHECK(readings.size() >= 22 && readings.size() <= 24);
+            BOOST_CHECK(readings.size() >= 21 && readings.size() <= 24);
 
             int i = 23;
             for (klio::readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
@@ -847,7 +847,7 @@ BOOST_AUTO_TEST_CASE(check_add_celsius_readings_msg) {
 
                 readings = *store->get_all_readings(sensor);
 
-                BOOST_CHECK(readings.size() >= 22 && readings.size() <= 24);
+                BOOST_CHECK(readings.size() >= 21 && readings.size() <= 24);
 
                 int i = 23;
                 for (klio::readings_cit_t it = readings.begin(); it != readings.end(); ++it) {

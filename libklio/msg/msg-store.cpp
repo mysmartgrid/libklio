@@ -34,7 +34,7 @@ void MSGStore::close() {
 }
 
 void MSGStore::check_integrity() {
-    //TODO: implement this method
+    heartbeat();
 }
 
 void MSGStore::initialize() {
@@ -57,6 +57,41 @@ void MSGStore::initialize() {
         json_object *jresponse = perform_http_post(url, _key, jobject);
 
         destroy_object(jresponse);
+        destroy_object(jobject);
+
+    } catch (GenericException const& e) {
+        destroy_object(jobject);
+        throw;
+
+    } catch (std::exception const& e) {
+        destroy_object(jobject);
+        throw EnvironmentException(e.what());
+    }
+}
+
+void MSGStore::prepare() {
+
+    struct json_object *jobject = NULL;
+
+    try {
+        std::string url = compose_device_url();
+        jobject = perform_http_get(url, _key);
+
+        json_object *jdescription = json_object_object_get(jobject, "description");
+        _description = std::string(json_object_get_string(jdescription));
+
+        json_object *jsensors = json_object_object_get(jobject, "sensors");
+
+        for (int i = 0; i < json_object_array_length(jsensors); i++) {
+
+            json_object *jsensor = json_object_array_get_idx(jsensors, i);
+            json_object *jmeter = json_object_object_get(jsensor, "meter");
+            const char* meter = json_object_get_string(jmeter);
+
+            set_buffers(parse_sensor(
+                    format_uuid_string(meter),
+                    jsensor));
+        }
         destroy_object(jobject);
 
     } catch (GenericException const& e) {

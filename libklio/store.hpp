@@ -111,6 +111,7 @@ namespace klio {
         virtual reading_t get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp) = 0;
         virtual unsigned long int get_num_readings_value(const Sensor::Ptr sensor) = 0;
 
+        void set_buffers(const Sensor::Ptr sensor);
         virtual void clear_buffers();
         void handle_reading_insertion_error(const bool ignore_errors, const timestamp_t timestamp, const double value);
         void handle_reading_insertion_error(const bool ignore_errors, const Sensor::Ptr sensor);
@@ -148,7 +149,6 @@ namespace klio {
         void auto_flush();
         void flush_all(const bool ignore_errors);
         void flush(const Sensor::Ptr sensor, const bool ignore_errors);
-        void set_buffers(const Sensor::Ptr sensor);
         void clear_buffers(const Sensor::Ptr sensor);
         void handle_reading_insertion_error(const bool ignore_errors, const std::string message);
     };

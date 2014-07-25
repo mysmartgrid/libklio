@@ -93,6 +93,30 @@ MSGStore::Ptr StoreFactory::create_msg_store(
     return store;
 }
 
+MSGStore::Ptr StoreFactory::open_msg_store(const std::string& id, const std::string& key) {
+
+    return open_msg_store(
+            MSGStore::DEFAULT_MSG_URL,
+            id,
+            key);
+}
+
+MSGStore::Ptr StoreFactory::open_msg_store(
+        const std::string& url,
+        const std::string& id,
+        const std::string& key) {
+
+    MSGStore::Ptr store = MSGStore::Ptr(new MSGStore(url,
+            erase_all_copy(id, "-"),
+            erase_all_copy(key, "-"),
+            MSGStore::DEFAULT_MSG_DESCRIPTION,
+            MSGStore::DEFAULT_MSG_TYPE));
+    store->open();
+    store->check_integrity();
+    store->prepare();
+    return store;
+}
+
 #endif /* ENABLE_MSG */
 
 #ifdef ENABLE_ROCKSDB

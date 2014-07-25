@@ -74,7 +74,7 @@ namespace klio {
         const std::string description() const {
             return _description;
         };
-
+        
         const std::string type() const {
             return _type;
         };
@@ -88,6 +88,7 @@ namespace klio {
         void check_integrity();
         void initialize();
         void dispose();
+        void prepare();
         void flush();
         const std::string str();
 

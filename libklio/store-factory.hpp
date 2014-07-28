@@ -84,6 +84,14 @@ namespace klio {
                 const std::string& description,
                 const std::string& type
                 );
+        
+        MSGStore::Ptr open_msg_store(const std::string& id, const std::string& key);
+
+        MSGStore::Ptr open_msg_store(
+                const std::string& url,
+                const std::string& id,
+                const std::string& key
+                );
 
 #endif /* ENABLE_MSG */
 

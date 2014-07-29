@@ -30,15 +30,15 @@ namespace klio {
     public:
         typedef boost::shared_ptr<CSVImporter> Ptr;
 
-        CSVImporter(std::ifstream& in) :
-        Importer(in) {
+        CSVImporter(std::ifstream& in, std::string& separator) :
+        Importer(in, separator) {
         };
 
         virtual ~CSVImporter() {
         };
 
         readings_t_Ptr process();
-        
+
     private:
         CSVImporter(const CSVImporter& original);
         CSVImporter& operator=(const CSVImporter& rhs);

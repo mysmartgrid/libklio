@@ -8,7 +8,7 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * libklio is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -44,8 +44,9 @@ int main(int argc, char** argv) {
                 ("help,h", "produce help message")
                 ("version,v", "print libklio version and exit")
                 ("action,a", po::value<std::string>(), "Valid actions: csv")
+                ("separator,c", po::value<std::string>(), "the character used in the readings file to separate columns")
                 ("storefile,s", po::value<std::string>(), "the data store to use")
-                ("inputfile,f", po::value<std::string>(), "the measurements file to import")
+                ("inputfile,f", po::value<std::string>(), "the readings file to import")
                 ("id,i", po::value<std::string>(), "the internal id of the sensor (i.e. 3e3b6ef2-d960-4677-8845-1f52977b16d6)")
                 ;
         po::positional_options_description p;
@@ -105,6 +106,8 @@ int main(int argc, char** argv) {
             return 2;
         }
 
+        std::string separator = vm.count("separator") ? vm["separator"].as<std::string>() : ",";
+
         if (!vm.count("id")) {
             std::cout << "You must specify the internal id of the sensor." << std::endl;
             return 2;
@@ -128,15 +131,15 @@ int main(int argc, char** argv) {
                 std::cout << "Found sensor \"" << sensor->name() << "\"" << std::endl;
 
                 if (boost::iequals(action, std::string("CSV"))) {
-                    //CSV command 
+                    //CSV command
 
-                    klio::Importer::Ptr importer(new klio::CSVImporter(*inputstream));
+                    klio::Importer::Ptr importer(new klio::CSVImporter(*inputstream, separator));
                     klio::readings_t_Ptr readings = importer->process();
-                    
+
                     store->update_readings(sensor, *readings);
 
                 } else {
-                    //UNKNOWN command 
+                    //UNKNOWN command
                     std::cerr << "Unknown command " << action << std::endl;
                     return 1;
                 }

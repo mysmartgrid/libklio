@@ -18,33 +18,36 @@
  * along with libklio. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LIBKLIO_JSON_EXPORTER_HPP
-#define LIBKLIO_JSON_EXPORTER_HPP 1
+#ifndef LIBKLIO_IMPORTER_HPP
+#define LIBKLIO_IMPORTER_HPP 1
 
-#include "exporter.hpp"
+#include <iostream>
+#include <boost/shared_ptr.hpp>
+#include <libklio/types.hpp>
 
 
 namespace klio {
 
-    class JSONExporter : public Exporter {
+    class Importer {
     public:
-        typedef boost::shared_ptr<JSONExporter> Ptr;
+        typedef boost::shared_ptr<Importer> Ptr;
 
-        JSONExporter(std::ostream& out) : Exporter(out) {
+        virtual ~Importer() {
         };
 
-        virtual ~JSONExporter() {
-        };
+        virtual readings_t_Ptr process() = 0;
 
-        void process(
-                klio::readings_t_Ptr readings,
-                const std::string& name,
-                const std::string& description);
+    protected:
+        std::ifstream& _in;
+
+        Importer(std::ifstream& in) :
+        _in(in) {
+        };
 
     private:
-        JSONExporter(const JSONExporter& original);
-        JSONExporter& operator=(const JSONExporter& rhs);
+        Importer(const Importer& original);
+        Importer& operator=(const Importer& rhs);
     };
-}
+};
 
-#endif /* LIBKLIO_JSON_EXPORTER_HPP */
+#endif /* LIBKLIO_IMPORTER_HPP */

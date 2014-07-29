@@ -15,7 +15,7 @@ set(CMAKE_VERBOSE_MAKEFILE true)
 
 set(V_MAJOR 0)
 set(V_MINOR 5)
-set(V_PATCH 3)
+set(V_PATCH 4)
 
 # use ctest
 include(CTest)
@@ -193,7 +193,7 @@ set(CPACK_DEBIAN_PACKAGE_DEPENDS "libstdc++6 (>= 4.6.0), libc6 (>= 2.13)")
 #SET(CPACK_PACKAGE_INSTALL_DIRECTORY "CMake ${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
 SET(CPACK_PACKAGE_EXECUTABLES "klio-sensor" "Functions for handling sensors")
 SET(CPACK_PACKAGE_EXECUTABLES "klio-store" "Tool for dealing with sensor data stores")
-set(CPACK_STRIP_FILES "usr/bin/klio-export;usr/bin/klio-sensor;usr/bin/klio-store")
+set(CPACK_STRIP_FILES "usr/bin/klio-import;usr/bin/klio-export;usr/bin/klio-sensor;usr/bin/klio-store")
 SET(CPACK_SOURCE_STRIP_FILES "")
 SET(CPACK_SOURCE_STRIP_FILES TRUE)
 set(CPACK_SECTION "net")

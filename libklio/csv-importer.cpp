@@ -17,7 +17,7 @@ readings_t_Ptr CSVImporter::process() {
     std::vector<std::string> record;
     std::string line;
 
-    std::cout << "Importing readings using separators: \"" << _separators << "\""<< std::endl;
+    std::cout << "Importing readings using separators: \"" << _separators << "\"" << std::endl;
     boost::char_separator<char> separators(_separators.c_str());
 
     while (getline(_in, line)) {
@@ -32,24 +32,29 @@ readings_t_Ptr CSVImporter::process() {
 
                 if (record.size() > 1) {
 
-                    try {
-                        std::string column1 = record.at(0);
-                        std::string column2 = record.at(1);
+                    std::string column2 = record.at(1);
+                    std::transform(column2.begin(), column2.end(), column2.begin(), ::tolower);
+
+                    if (column2.find("nan") == std::string::npos) {
+
                         size_t pos = column2.find(',');
                         if (pos != std::string::npos) {
                             column2.replace(pos, 1, ".");
                         }
-                        
-                        timestamp_t timestamp = boost::lexical_cast<timestamp_t>(column1);
-                        double reading = boost::lexical_cast<double>(column2);
-                        std::cout << timestamp << ": " << reading << std::endl;
 
-                        readings->insert(std::pair<timestamp_t, double>(
-                                time_converter->convert_from_epoch(timestamp),
-                                reading));
+                        try {
 
-                    } catch (boost::bad_lexical_cast &) {
-                        //Ignore
+                            timestamp_t timestamp = boost::lexical_cast<timestamp_t>(record.at(0));
+                            double reading = boost::lexical_cast<double>(column2);
+                            std::cout << timestamp << ": " << reading << std::endl;
+
+                            readings->insert(std::pair<timestamp_t, double>(
+                                    time_converter->convert_from_epoch(timestamp),
+                                    reading));
+
+                        } catch (boost::bad_lexical_cast &) {
+                            //Ignore
+                        }
                     }
                 }
             }

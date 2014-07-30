@@ -39,11 +39,11 @@ namespace klio {
 
     protected:
         std::ifstream& _in;
-        std::string& _separator;
+        std::string& _separators;
 
         Importer(std::ifstream& in, std::string& separator) :
         _in(in),
-        _separator(separator) {
+        _separators(separator) {
         };
 
     private:

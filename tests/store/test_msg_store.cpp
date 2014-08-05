@@ -147,7 +147,7 @@ BOOST_AUTO_TEST_CASE(check_open_msg_storage) {
                 "d271f4de-3ecd-f3d3-00db-3e96755d8711",
                 "d221f4de-3ecd-f3d3-00db-3e96755d8712",
                 "libklio mSG Store - test",
-                "libklio"));
+                "raspberrypi"));
 
         store = factory->open_msg_store(url,
                 "d271f4de-3ecd-f3d3-00db-3e96755d8711",
@@ -158,7 +158,7 @@ BOOST_AUTO_TEST_CASE(check_open_msg_storage) {
             BOOST_CHECK_EQUAL(store->id(), "d271f4de3ecdf3d300db3e96755d8711");
             BOOST_CHECK_EQUAL(store->key(), "d221f4de3ecdf3d300db3e96755d8712");
             BOOST_CHECK_EQUAL(store->description(), "libklio mSG Store - test");
-            BOOST_CHECK_EQUAL(store->type(), "libklio");
+            BOOST_CHECK_EQUAL(store->type(), "raspberrypi");
             BOOST_CHECK_EQUAL(store->activation_code(), "d271f4de3e");
 
             store->dispose();

@@ -79,6 +79,9 @@ void MSGStore::prepare() {
 
         json_object *jdescription = json_object_object_get(jobject, "description");
         _description = std::string(json_object_get_string(jdescription));
+        
+        json_object *jtype = json_object_object_get(jobject, "type");
+        _type = std::string(json_object_get_string(jtype));
 
         json_object *jsensors = json_object_object_get(jobject, "sensors");
 

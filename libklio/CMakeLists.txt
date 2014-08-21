@@ -28,10 +28,8 @@ file(GLOB klio_algorithm_hdrs algorithm/*.h algorithm/*.hpp)
 install(FILES ${klio_algorithm_hdrs} DESTINATION include/libklio/algorithm)
 
 include_directories(${CMAKE_SOURCE_DIR}
-                    ${SQLITE3_INCLUDE_DIR}
-                    ${ROCKSDB_INCLUDE_DIR}
-                    ${CURL_INCLUDE_DIR}
-                    ${OPENSSL_INCLUDE_DIR}
+                    ${JSONCPP_INCLUDE}
+                    ${LIBMYSMARTGRID_INCLUDE_DIRS}
 )
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
@@ -53,10 +51,11 @@ if( ENABLE_ROCKSDB )
 endif()
 target_link_libraries(klio
   ${Boost_LIBRARIES}
-  ${CURL_LIBRARIES}
-  ${JSON_LIBRARY}
-  ${OPENSSL_CRYPTO_LIBRARY}
 )
+
+if( ENABLE_MSG )
+  target_link_libraries(klio ${JSONCPP_LIBRARY} ${LIBMYSMARTGRID_LIBRARIES} ${LIBMYSMARTGRID_LIBRARY})
+endif()
 
 #if(BUILD_SHARED_LIBS)
 # install(TARGETS klio LIBRARY DESTINATION lib)

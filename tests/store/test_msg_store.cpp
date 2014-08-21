@@ -100,7 +100,7 @@ BOOST_AUTO_TEST_CASE(check_create_msg_storage) {
 
                 BOOST_FAIL("A DataFormatException must be thrown when an invalid uuid is informed.");
 
-            } catch (klio::GenericException const& ex) {
+            } catch (klio::DataFormatException const& ex) {
                 //This exception was expected
             }
             store->dispose();
@@ -245,7 +245,7 @@ BOOST_AUTO_TEST_CASE(check_add_msg_sensor) {
 
                 BOOST_FAIL("A DataFormatException must be thrown when an invalid unit is informed.");
 
-            } catch (klio::GenericException const& ex) {
+            } catch (klio::DataFormatException const& ex) {
                 //This exception was expected
             }
 
@@ -262,7 +262,7 @@ BOOST_AUTO_TEST_CASE(check_add_msg_sensor) {
 
                 BOOST_FAIL("A DataFormatException must be thrown when an invalid external_id is informed.");
 
-            } catch (klio::GenericException const& ex) {
+            } catch (klio::DataFormatException const& ex) {
                 //This exception was expected
             }
 

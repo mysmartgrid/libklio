@@ -191,9 +191,11 @@ if( NOT CMAKE_TOOLCHAIN_FILE )
   set_if_exists (BOOST_ROOT ${EXTERNAL_SOFTWARE}/boost/${BOOST_VERSION})
   set_if_exists (GRAPHVIZ_HOME ${EXTERNAL_SOFTWARE}/graphviz/2.24)
   set_if_exists (ROCKSDB_HOME ${EXTERNAL_SOFTWARE}/rocksdb)
+  set_if_exists (SQLITE3_HOME ${EXTERNAL_SOFTWARE}/sqlite3/3.8.5)
 else()
   set_if_exists (EXTERNAL_SOFTWARE "${_baseDir}/opt")
   set_if_exists (BOOST_ROOT ${EXTERNAL_SOFTWARE}/boost/${BOOST_VERSION})
+  set_if_exists (SQLITE3_HOME ${EXTERNAL_SOFTWARE}/sqlite/3.8.5)
 endif()
 # LIBKLIO_HOME
 # LIBHXB_HOME
@@ -238,6 +240,7 @@ foreach (VARIABLE_NAME
     BOOST_ROOT
     GRAPHVIZ_HOME
     ROCKSDB_HOME
+    SQLITE3_HOME
 
     )
   if (DEFINED ${VARIABLE_NAME})

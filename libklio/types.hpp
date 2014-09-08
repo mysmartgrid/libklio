@@ -49,7 +49,6 @@ namespace klio {
     typedef boost::multi_array<double, 2 > sensordata_array_t;
     typedef sensordata_array_t::index sensordata_array_idx_t;
     typedef boost::tuple<sensordata_array_t, unsigned long int, unsigned long int> sensordata_table_t;
-
 }
 
 #endif /* LIBKLIO_TYPES_HPP */

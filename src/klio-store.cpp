@@ -116,14 +116,16 @@ int main(int argc, char** argv) {
             }
 
             try {
-                //  std::cout << "Attempting to open " << db << std::endl;
+                std::cout << "Attempting to open " << db << std::endl;
                 klio::Store::Ptr store(factory->open_sqlite3_store(db));
-                //  std::cout << "opened store: " << store->str() << std::endl;
+                std::cout << "opened store: " << store->str() << std::endl;
 
                 std::vector<klio::Sensor::uuid_t> uuids = store->get_sensor_uuids();
                 std::vector<klio::Sensor::uuid_t>::iterator it;
                 klio::timestamp_t all_sensors_last_timestamp = 0;
                 // First pass: get the latest timestamps of all sensors
+                std::cout << "First pass: get the latest timestamps of all sensors" << db << std::endl;
+
                 for (it = uuids.begin(); it < uuids.end(); it++) {
                   klio::Sensor::Ptr loadedSensor(store->get_sensor(*it));
                   klio::reading_t last_reading = store->get_last_reading(loadedSensor);

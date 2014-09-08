@@ -23,7 +23,7 @@
 
 #include <iostream>
 #include <boost/shared_ptr.hpp>
-#include "store.hpp"
+#include <libklio/types.hpp>
 
 
 namespace klio {
@@ -32,24 +32,25 @@ namespace klio {
     public:
         typedef boost::shared_ptr<Exporter> Ptr;
 
-        Exporter(std::ostream& out) :
-        _out(out) {
-        };
-        virtual void process(klio::readings_t_Ptr readings,
-                const std::string& name, const std::string& description) = 0;
-
         virtual ~Exporter() {
         };
+
+        virtual void process(
+                klio::readings_t_Ptr readings,
+                const std::string& name,
+                const std::string& description) = 0;
 
     protected:
         std::ostream& _out;
 
+        Exporter(std::ostream& out) :
+        _out(out) {
+        };
+
     private:
         Exporter(const Exporter& original);
         Exporter& operator=(const Exporter& rhs);
-
     };
-
 };
 
 #endif /* LIBKLIO_EXPORTER_HPP */

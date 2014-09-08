@@ -18,33 +18,43 @@
  * along with libklio. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LIBKLIO_JSON_EXPORTER_HPP
-#define LIBKLIO_JSON_EXPORTER_HPP 1
+#ifndef LIBKLIO_TRANSACTION_HPP
+#define LIBKLIO_TRANSACTION_HPP 1
 
-#include "exporter.hpp"
+#include <boost/shared_ptr.hpp>
+#include <libklio/common.hpp>
 
 
 namespace klio {
 
-    class JSONExporter : public Exporter {
+    class Transaction {
     public:
-        typedef boost::shared_ptr<JSONExporter> Ptr;
+        typedef boost::shared_ptr<Transaction> Ptr;
 
-        JSONExporter(std::ostream& out) : Exporter(out) {
+        virtual ~Transaction() {
+        }
+
+        const bool pending() const {
+            return _pending;
         };
 
-        virtual ~JSONExporter() {
-        };
+        virtual void start() = 0;
+        virtual void commit() = 0;
+        virtual void rollback() = 0;
+        
+        static Ptr Null;
 
-        void process(
-                klio::readings_t_Ptr readings,
-                const std::string& name,
-                const std::string& description);
+    protected:
+        Transaction() :
+        _pending(false) {
+        }
+
+        bool _pending;
 
     private:
-        JSONExporter(const JSONExporter& original);
-        JSONExporter& operator=(const JSONExporter& rhs);
+        Transaction(const Transaction& original);
+        Transaction& operator=(const Transaction& rhs);
     };
-}
+};
 
-#endif /* LIBKLIO_JSON_EXPORTER_HPP */
+#endif /* LIBKLIO_TRANSACTION_HPP */

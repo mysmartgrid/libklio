@@ -12,8 +12,6 @@
 #include <openssl/hmac.h>
 #include <openssl/sha.h>
 #include <openssl/evp.h>
-#include <curl/curl.h>
-#include <json/json.h>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/algorithm/string/erase.hpp>
@@ -23,7 +21,20 @@
 
 using namespace klio;
 
+const std::string MSGStore::DEFAULT_MSG_URL = "https://api.mysmartgrid.de:8443";
+const std::string MSGStore::DEFAULT_MSG_DESCRIPTION = "libklio mSG Store";
+const std::string MSGStore::DEFAULT_MSG_TYPE = "libklio";
+
 void MSGStore::open() {
+    //Nothing is done with the remote store
+}
+
+void MSGStore::close() {
+    Store::clear_buffers();
+}
+
+void MSGStore::check_integrity() {
+    heartbeat();
 }
 
 void MSGStore::initialize() {
@@ -60,30 +71,47 @@ void MSGStore::initialize() {
 
 void MSGStore::prepare() {
 
-    clear_buffers();
+    struct json_object *jobject = NULL;
 
-    std::vector<Sensor::Ptr> sensors = get_sensors();
-    for (std::vector<Sensor::Ptr>::const_iterator sensor = sensors.begin(); sensor != sensors.end(); ++sensor) {
-        set_buffers(*sensor);
+    try {
+        std::string url = compose_device_url();
+        jobject = perform_http_get(url, _key);
+
+        json_object *jdescription = json_object_object_get(jobject, "description");
+        _description = std::string(json_object_get_string(jdescription));
+        
+        json_object *jtype = json_object_object_get(jobject, "type");
+        _type = std::string(json_object_get_string(jtype));
+
+        json_object *jsensors = json_object_object_get(jobject, "sensors");
+
+        for (int i = 0; i < json_object_array_length(jsensors); i++) {
+
+            json_object *jsensor = json_object_array_get_idx(jsensors, i);
+            json_object *jmeter = json_object_object_get(jsensor, "meter");
+            const char* meter = json_object_get_string(jmeter);
+
+            set_buffers(parse_sensor(
+                    format_uuid_string(meter),
+                    jsensor));
+        }
+        destroy_object(jobject);
+
+    } catch (GenericException const& e) {
+        destroy_object(jobject);
+        throw;
+
+    } catch (std::exception const& e) {
+        destroy_object(jobject);
+        throw EnvironmentException(e.what());
     }
-}
-
-void MSGStore::close() {
-    flush(true);
-    clear_buffers();
-}
-
-void MSGStore::check_integrity() {
-    //TODO: implement this
 }
 
 void MSGStore::dispose() {
 
     //Tries to delete the remote store
     try {
-        clear_buffers();
         std::string url = compose_device_url();
-
         perform_http_delete(url, _key);
 
     } catch (GenericException const& e) {
@@ -92,31 +120,31 @@ void MSGStore::dispose() {
     } catch (std::exception const& e) {
         throw EnvironmentException(e.what());
     }
+    close();
 }
 
 void MSGStore::flush() {
     heartbeat();
-    flush(true);
+    Store::flush();
 }
 
 const std::string MSGStore::str() {
 
-    std::ostringstream str;
-    str << "mSG store " << compose_device_url();
-    return str.str();
-};
-
-void MSGStore::add_sensor(const Sensor::Ptr sensor) {
-
-    update_sensor(sensor);
+    std::ostringstream oss;
+    oss << "mSG store " << compose_device_url();
+    return oss.str();
 }
 
-void MSGStore::remove_sensor(const Sensor::Ptr sensor) {
+void MSGStore::add_sensor_record(const Sensor::Ptr sensor) {
+
+    update_sensor_record(sensor);
+}
+
+void MSGStore::remove_sensor_record(const Sensor::Ptr sensor) {
 
     try {
         std::string url = compose_sensor_url(sensor);
         perform_http_delete(url, _key);
-        clear_buffers(sensor);
 
     } catch (GenericException const& e) {
         throw;
@@ -126,7 +154,7 @@ void MSGStore::remove_sensor(const Sensor::Ptr sensor) {
     }
 }
 
-void MSGStore::update_sensor(const Sensor::Ptr sensor) {
+void MSGStore::update_sensor_record(const Sensor::Ptr sensor) {
 
     json_object *jconfig = NULL;
 
@@ -155,7 +183,6 @@ void MSGStore::update_sensor(const Sensor::Ptr sensor) {
         std::string url = compose_sensor_url(sensor);
 
         json_object *jresponse = perform_http_post(url, _key, jconfig);
-        set_buffers(sensor);
 
         destroy_object(jresponse);
         destroy_object(jconfig);
@@ -170,60 +197,52 @@ void MSGStore::update_sensor(const Sensor::Ptr sensor) {
     }
 }
 
-Sensor::Ptr MSGStore::get_sensor(const Sensor::uuid_t& uuid) {
+void MSGStore::add_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
 
-    Sensor::Ptr sensor = _sensors_buffer[uuid];
-    if (sensor) {
-        return sensor;
-
-    } else {
-        std::ostringstream err;
-        err << "Sensor " << boost::uuids::to_string(uuid) << " could not be found.";
-        throw StoreException(err.str());
-    }
+    update_reading_records(sensor, readings, ignore_errors);
 }
 
-std::vector<Sensor::Ptr> MSGStore::get_sensors_by_external_id(const std::string& external_id) {
+void MSGStore::update_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
 
-    std::vector<Sensor::Ptr> sensors;
+    json_object *jmeasurements = NULL;
 
-    for (std::map<Sensor::uuid_t, Sensor::Ptr>::const_iterator it = _sensors_buffer.begin(); it != _sensors_buffer.end(); ++it) {
+    try {
+        jmeasurements = create_json_array();
 
-        Sensor::Ptr sensor = (*it).second;
+        for (readings_cit_t rit = readings.begin(); rit != readings.end(); ++rit) {
 
-        if (external_id == sensor->external_id()) {
-            sensors.push_back(sensor);
+            timestamp_t timestamp = (*rit).first;
+            double value = (*rit).second;
+
+            struct json_object *jtuple = create_json_array();
+            json_object_array_add(jmeasurements, jtuple);
+
+            json_object_array_add(jtuple, create_json_int(timestamp));
+            json_object_array_add(jtuple, create_json_double(value));
         }
+
+        json_object *jobject = create_json_object();
+        json_object_object_add(jobject, "measurements", jmeasurements);
+        jmeasurements = jobject;
+
+        std::string url = compose_sensor_url(sensor);
+
+        json_object *jresponse = perform_http_post(url, _key, jmeasurements);
+
+        destroy_object(jresponse);
+        destroy_object(jmeasurements);
+
+    } catch (GenericException const& e) {
+        destroy_object(jmeasurements);
+        handle_reading_insertion_error(ignore_errors, sensor);
+
+    } catch (std::exception const& e) {
+        destroy_object(jmeasurements);
+        handle_reading_insertion_error(ignore_errors, sensor);
     }
-    return sensors;
 }
 
-std::vector<Sensor::Ptr> MSGStore::get_sensors_by_name(const std::string& name) {
-
-    std::vector<Sensor::Ptr> sensors;
-
-    for (std::map<Sensor::uuid_t, Sensor::Ptr>::const_iterator it = _sensors_buffer.begin(); it != _sensors_buffer.end(); ++it) {
-
-        Sensor::Ptr sensor = (*it).second;
-
-        if (name == sensor->name()) {
-            sensors.push_back(sensor);
-        }
-    }
-    return sensors;
-}
-
-std::vector<Sensor::uuid_t> MSGStore::get_sensor_uuids() {
-
-    std::vector<Sensor::uuid_t> uuids;
-
-    for (std::map<Sensor::uuid_t, Sensor::Ptr>::const_iterator it = _sensors_buffer.begin(); it != _sensors_buffer.end(); ++it) {
-        uuids.push_back((*it).first);
-    }
-    return uuids;
-}
-
-std::vector<Sensor::Ptr> MSGStore::get_sensors() {
+std::vector<Sensor::Ptr> MSGStore::get_sensor_records() {
 
     struct json_object *jobject = NULL;
 
@@ -258,34 +277,11 @@ std::vector<Sensor::Ptr> MSGStore::get_sensors() {
     }
 }
 
-void MSGStore::add_reading(const Sensor::Ptr sensor, timestamp_t timestamp, double value) {
-
-    set_buffers(sensor);
-    _readings_buffer[sensor->uuid()]->insert(reading_t(timestamp, value));
-    flush(false);
-}
-
-void MSGStore::add_readings(const Sensor::Ptr sensor, const readings_t& readings) {
-
-    set_buffers(sensor);
-
-    for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
-        _readings_buffer[sensor->uuid()]->insert(reading_t((*it).first, (*it).second));
-    }
-    flush(false);
-}
-
-void MSGStore::update_readings(const Sensor::Ptr sensor, const readings_t& readings) {
-
-    add_readings(sensor, readings);
-}
-
-readings_t_Ptr MSGStore::get_all_readings(const Sensor::Ptr sensor) {
+readings_t_Ptr MSGStore::get_all_reading_records(const Sensor::Ptr sensor) {
 
     struct json_object *jreadings = NULL;
 
     try {
-        flush(sensor);
         jreadings = get_json_readings(sensor);
 
         int length = json_object_array_length(jreadings);
@@ -314,7 +310,7 @@ readings_t_Ptr MSGStore::get_all_readings(const Sensor::Ptr sensor) {
     }
 }
 
-readings_t_Ptr MSGStore::get_timeframe_readings(klio::Sensor::Ptr sensor,
+readings_t_Ptr MSGStore::get_timeframe_reading_records(const Sensor::Ptr sensor,
         timestamp_t begin, timestamp_t end) {
 
     //TODO: improve this method
@@ -331,12 +327,11 @@ readings_t_Ptr MSGStore::get_timeframe_readings(klio::Sensor::Ptr sensor,
     return selected;
 }
 
-unsigned long int MSGStore::get_num_readings(const Sensor::Ptr sensor) {
+unsigned long int MSGStore::get_num_readings_value(const Sensor::Ptr sensor) {
 
     struct json_object *jreadings = NULL;
 
     try {
-        flush(sensor);
         jreadings = get_json_readings(sensor);
         long int num = json_object_array_length(jreadings);
 
@@ -353,28 +348,28 @@ unsigned long int MSGStore::get_num_readings(const Sensor::Ptr sensor) {
     }
 }
 
-reading_t MSGStore::get_last_reading(const Sensor::Ptr sensor) {
+reading_t MSGStore::get_last_reading_record(const Sensor::Ptr sensor) {
 
     json_object *jreadings = NULL;
 
     try {
-        flush(sensor);
         jreadings = get_json_readings(sensor);
 
-        int i = json_object_array_length(jreadings) - 1;
+        int length = json_object_array_length(jreadings);
+        std::pair<timestamp_t, double> last_reading = std::pair<timestamp_t, double>(0, 0);
 
-        if (i >= 0) {
+        for (int i = 0; i < length; i++) {
+
             json_object *jpair = json_object_array_get_idx(jreadings, i);
             std::pair<timestamp_t, double > reading = create_reading_pair(jpair);
 
-            if (reading.first > 0) {
-                destroy_object(jreadings);
-                return reading;
+            if (reading.first > last_reading.first) {
+                last_reading = reading;
             }
         }
-        std::ostringstream err;
-        err << "No reading found for sensor " << sensor->uuid_short() << ".";
-        throw StoreException(err.str());
+
+        destroy_object(jreadings);
+        return last_reading;
 
     } catch (GenericException const& e) {
         destroy_object(jreadings);
@@ -386,101 +381,18 @@ reading_t MSGStore::get_last_reading(const Sensor::Ptr sensor) {
     }
 }
 
-void MSGStore::set_buffers(const Sensor::Ptr sensor) {
+reading_t MSGStore::get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp) {
 
-    if (_external_ids_buffer.count(sensor->external_id()) > 0) {
+    //FIXME: make this method more efficient
+    readings_t_Ptr readings = get_all_readings(sensor);
 
-        Sensor::uuid_t other_uuid = _external_ids_buffer[sensor->external_id()];
-        _sensors_buffer.erase(other_uuid);
+    std::pair<timestamp_t, double> reading = std::pair<timestamp_t, double>(0, 0);
 
-        if (_readings_buffer[other_uuid]) {
-            _readings_buffer[sensor->uuid()] = _readings_buffer[other_uuid];
-            _readings_buffer.erase(other_uuid);
-        }
+    if (readings->count(timestamp)) {
+        reading.first = timestamp;
+        reading.second = readings->at(timestamp);
     }
-
-    if (!_readings_buffer[sensor->uuid()]) {
-        _readings_buffer[sensor->uuid()] = readings_t_Ptr(new readings_t());
-    }
-
-    _sensors_buffer[sensor->uuid()] = sensor;
-    _external_ids_buffer[sensor->external_id()] = sensor->uuid();
-}
-
-void MSGStore::clear_buffers(const Sensor::Ptr sensor) {
-
-    _sensors_buffer.erase(sensor->uuid());
-    _readings_buffer.erase(sensor->uuid());
-    _external_ids_buffer.erase(sensor->external_id());
-}
-
-void MSGStore::clear_buffers() {
-
-    _sensors_buffer.clear();
-    _readings_buffer.clear();
-    _external_ids_buffer.clear();
-}
-
-void MSGStore::flush(bool force) {
-
-    timestamp_t now = time_converter->get_timestamp();
-
-    //Send measurements every 10 minutes
-    if (force || now - _last_sync > 600) {
-
-        for (std::map<Sensor::uuid_t, Sensor::Ptr>::const_iterator it = _sensors_buffer.begin(); it != _sensors_buffer.end(); ++it) {
-
-            Sensor::Ptr sensor = (*it).second;
-            flush(sensor);
-        }
-        _last_sync = now;
-    }
-}
-
-void MSGStore::flush(Sensor::Ptr sensor) {
-
-    json_object *jmeasurements = NULL;
-
-    try {
-        readings_t_Ptr readings = _readings_buffer[sensor->uuid()];
-
-        if (!readings->empty()) {
-
-            jmeasurements = create_json_array();
-
-            for (readings_cit_t rit = readings->begin(); rit != readings->end(); ++rit) {
-
-                timestamp_t timestamp = (*rit).first;
-                double value = (*rit).second;
-
-                struct json_object *jtuple = create_json_array();
-                json_object_array_add(jmeasurements, jtuple);
-
-                json_object_array_add(jtuple, create_json_int(timestamp));
-                json_object_array_add(jtuple, create_json_double(value));
-            }
-
-            json_object *jobject = create_json_object();
-            json_object_object_add(jobject, "measurements", jmeasurements);
-            jmeasurements = jobject;
-
-            std::string url = compose_sensor_url(sensor);
-
-            json_object *jresponse = perform_http_post(url, _key, jmeasurements);
-            readings->clear();
-
-            destroy_object(jresponse);
-            destroy_object(jmeasurements);
-        }
-
-    } catch (GenericException const& e) {
-        destroy_object(jmeasurements);
-        throw;
-
-    } catch (std::exception const& e) {
-        destroy_object(jmeasurements);
-        throw EnvironmentException(e.what());
-    }
+    return reading;
 }
 
 void MSGStore::heartbeat() {
@@ -565,7 +477,7 @@ void MSGStore::perform_http_delete(const std::string& url, const std::string & k
     destroy_object(jobject);
 }
 
-std::string MSGStore::digest_message(const std::string& data, const std::string& key) {
+const std::string MSGStore::digest_message(const std::string& data, const std::string& key) {
 
     HMAC_CTX context;
     HMAC_CTX_init(&context);
@@ -731,7 +643,7 @@ struct json_object * MSGStore::create_json_object() {
     return jobject;
 }
 
-struct json_object * MSGStore::create_json_string(const std::string & string) {
+struct json_object * MSGStore::create_json_string(const std::string& string) {
 
     json_object *jstring = json_object_new_string(string.c_str());
 
@@ -784,7 +696,7 @@ struct json_object * MSGStore::get_json_readings(const Sensor::Ptr sensor) {
     std::ostringstream query;
     query << "interval=hour&unit=" << sensor->unit();
 
-    std::string url = compose_sensor_url(sensor, query.str());
+    const std::string url = compose_sensor_url(sensor, query.str());
     return perform_http_get(url, _key);
 }
 
@@ -814,10 +726,10 @@ Sensor::Ptr MSGStore::parse_sensor(const std::string& uuid_str, json_object * js
             std::string(timezone));
 }
 
-std::pair<timestamp_t, double > MSGStore::create_reading_pair(json_object * jpair) {
+std::pair<timestamp_t, double> MSGStore::create_reading_pair(json_object * jpair) {
 
     json_object *jvalue = json_object_array_get_idx(jpair, 1);
-    double value = json_object_get_double(jvalue);
+    const double value = json_object_get_double(jvalue);
 
     if (isnan(value)) {
         return std::pair<timestamp_t, double>(0, 0);

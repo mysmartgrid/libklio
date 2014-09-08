@@ -24,9 +24,7 @@
 
 #ifdef ENABLE_ROCKSDB
 
-#include <vector>
 #include <boost/filesystem.hpp>
-#include <boost/shared_ptr.hpp>
 #include <rocksdb/db.h>
 #include <libklio/store.hpp>
 
@@ -40,9 +38,10 @@ namespace klio {
         typedef boost::shared_ptr<RocksDBStore> Ptr;
 
         RocksDBStore(const bfs::path& path,
-                const std::map<std::string, std::string>& db_options,
-                const std::map<std::string, std::string>& read_options,
-                const std::map<std::string, std::string>& write_options) :
+                const std::map<const std::string, const std::string>& db_options,
+                const std::map<const std::string, const std::string>& read_options,
+                const std::map<const std::string, const std::string>& write_options) :
+        Store(true, 600, true),
         _path(path),
         _db_options(db_options),
         _read_options(read_options),
@@ -60,31 +59,31 @@ namespace klio {
         void dispose();
         const std::string str();
 
-        virtual void add_sensor(const Sensor::Ptr sensor);
-        virtual void remove_sensor(const Sensor::Ptr sensor);
-        virtual void update_sensor(const Sensor::Ptr sensor);
-        virtual Sensor::Ptr get_sensor(const Sensor::uuid_t& uuid);
-        virtual std::vector<Sensor::Ptr> get_sensors_by_external_id(const std::string& external_id);
-        virtual std::vector<Sensor::Ptr> get_sensors_by_name(const std::string& name);
-        virtual std::vector<Sensor::uuid_t> get_sensor_uuids();
-        virtual std::vector<Sensor::Ptr> get_sensors();
+    protected:
+        void add_sensor_record(const Sensor::Ptr sensor);
+        void remove_sensor_record(const Sensor::Ptr sensor);
+        void update_sensor_record(const Sensor::Ptr sensor);
+        void add_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors);
+        void update_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors);
 
-        virtual void add_reading(const Sensor::Ptr sensor, timestamp_t timestamp, double value);
-        virtual void add_readings(const Sensor::Ptr sensor, const readings_t& readings);
-        virtual void update_readings(const Sensor::Ptr sensor, const readings_t& readings);
-        virtual readings_t_Ptr get_all_readings(const Sensor::Ptr sensor);
-        virtual readings_t_Ptr get_timeframe_readings(klio::Sensor::Ptr sensor, timestamp_t begin, timestamp_t end);
-        virtual unsigned long int get_num_readings(const Sensor::Ptr sensor);
-        virtual reading_t get_last_reading(const Sensor::Ptr sensor);
+        std::vector<Sensor::Ptr> get_sensor_records();
+        readings_t_Ptr get_all_reading_records(const Sensor::Ptr sensor);
+        readings_t_Ptr get_timeframe_reading_records(const Sensor::Ptr sensor, const timestamp_t begin, const timestamp_t end);
+        unsigned long int get_num_readings_value(const Sensor::Ptr sensor);
+        reading_t get_last_reading_record(const Sensor::Ptr sensor);
+        reading_t get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp);
+
+        void clear_buffers();
 
     private:
         RocksDBStore(const RocksDBStore& original);
         RocksDBStore& operator =(const RocksDBStore& rhs);
+
         bfs::path _path;
-        std::map<std::string, std::string> _db_options;
-        std::map<std::string, std::string> _read_options;
-        std::map<std::string, std::string> _write_options;
-        std::map<std::string, rocksdb::DB*> _buffer;
+        std::map<const std::string, const std::string> _db_options;
+        std::map<const std::string, const std::string> _read_options;
+        std::map<const std::string, const std::string> _write_options;
+        std::map<const std::string, rocksdb::DB*> _db_buffer;
 
         rocksdb::DB* open_db(const bool create_if_missing, const bool error_if_exists, const std::string& db_path);
         void close_db(const std::string& db_path);
@@ -94,6 +93,7 @@ namespace klio {
         void put_value(rocksdb::DB* db, const std::string& key, const std::string& value);
         std::string get_value(rocksdb::DB* db, const std::string& key);
         void delete_value(rocksdb::DB* db, const std::string& key);
+        Sensor::Ptr load_sensor(const Sensor::uuid_t& uuid);
 
         const std::string compose_db_path();
         const std::string compose_sensors_path();

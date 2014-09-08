@@ -61,6 +61,20 @@ BOOST_AUTO_TEST_CASE(check_create_msg_storage) {
             BOOST_CHECK_EQUAL(store->type(), "libklio");
             BOOST_CHECK_EQUAL(store->activation_code(), "d271f4de3e");
 
+            //Recreation
+            store = factory->create_msg_store(url,
+                "d271f4de-3ecd-f3d3-00db-3e96755d8736",
+                "d221f4de-3ecd-f3d3-00db-3e96755d8733",
+                "libklio test",
+                "libklio");
+            
+            BOOST_CHECK_EQUAL(store->url(), url);
+            BOOST_CHECK_EQUAL(store->id(), "d271f4de3ecdf3d300db3e96755d8736");
+            BOOST_CHECK_EQUAL(store->key(), "d221f4de3ecdf3d300db3e96755d8733");
+            BOOST_CHECK_EQUAL(store->description(), "libklio test");
+            BOOST_CHECK_EQUAL(store->type(), "libklio");
+            BOOST_CHECK_EQUAL(store->activation_code(), "d271f4de3e");
+            
             store->dispose();
 
             try {
@@ -72,7 +86,7 @@ BOOST_AUTO_TEST_CASE(check_create_msg_storage) {
 
                 BOOST_FAIL("A DataFormatException must be thrown when an invalid type is informed.");
 
-            } catch (klio::GenericException const& e) {
+            } catch (klio::DataFormatException const& e) {
                 //This exception was expected
             }
             store->dispose();
@@ -105,6 +119,61 @@ BOOST_AUTO_TEST_CASE(check_create_msg_storage) {
             } catch (klio::DataFormatException const& ex) {
                 //This exception was expected
             }
+
+        } catch (klio::CommunicationException const& ce) {
+            std::cout << "The MSGStore tests have been partially disabled. Please make sure that: " << std::endl;
+            std::cout << "1 - the server dev3-api.mysmartgrid.de is reachable from your machine, and " << std::endl;
+            std::cout << "2 - the mSG CA certificate is installed on your environment, as explained here: http://developer.mysmartgrid.de/doku.php?id=webserviceinterface2." << std::endl;
+
+        } catch (klio::GenericException const& ex) {
+            store->dispose();
+            std::cout << "Caught invalid exception: " << ex.what() << std::endl;
+            BOOST_FAIL("Unexpected exception occurred for initialize request");
+        }
+
+    } catch (std::exception const& ex) {
+        BOOST_FAIL("Unexpected exception occurred during MSGStore test");
+    }
+}
+
+BOOST_AUTO_TEST_CASE(check_open_msg_storage) {
+
+    try {
+        std::cout << "Testing storage opening for mSG" << std::endl;
+        klio::StoreFactory::Ptr factory(new klio::StoreFactory());
+        std::string url = "https://dev3-api.mysmartgrid.de:8443";
+
+        klio::MSGStore::Ptr store(factory->create_msg_store(url,
+                "d271f4de-3ecd-f3d3-00db-3e96755d8711",
+                "d221f4de-3ecd-f3d3-00db-3e96755d8712",
+                "libklio mSG Store - test",
+                "raspberrypi"));
+
+        store = factory->open_msg_store(url,
+                "d271f4de-3ecd-f3d3-00db-3e96755d8711",
+                "d221f4de-3ecd-f3d3-00db-3e96755d8712");
+        
+        try {
+            BOOST_CHECK_EQUAL(store->url(), url);
+            BOOST_CHECK_EQUAL(store->id(), "d271f4de3ecdf3d300db3e96755d8711");
+            BOOST_CHECK_EQUAL(store->key(), "d221f4de3ecdf3d300db3e96755d8712");
+            BOOST_CHECK_EQUAL(store->description(), "libklio mSG Store - test");
+            BOOST_CHECK_EQUAL(store->type(), "raspberrypi");
+            BOOST_CHECK_EQUAL(store->activation_code(), "d271f4de3e");
+
+            store->dispose();
+
+            try {
+                store = factory->open_msg_store(url,
+                        "d111f4de-3ecd-f3d3-00db-3e96755d8736",
+                        "d111f4de-3ecd-f3d3-00db-3e96755d8733");
+
+                BOOST_FAIL("A DataFormatException must be thrown when a non-existent store is opened.");
+
+            } catch (klio::DataFormatException const& e) {
+                //This exception was expected
+            }
+            store->dispose();
 
         } catch (klio::CommunicationException const& ce) {
             std::cout << "The MSGStore tests have been partially disabled. Please make sure that: " << std::endl;

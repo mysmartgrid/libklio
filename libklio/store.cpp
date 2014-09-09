@@ -298,6 +298,14 @@ void Store::sync_sensors(const Store::Ptr store) {
     auto_commit_transaction(transaction);
 }
 
+/*---------------------------------------------------------------------*/
+/** 
+ * @brief synchronise a sensor
+  synchronistion sensor of store into local store
+ @param[in] sensor  source sensor
+ @param[in] store   source store
+**/
+/*---------------------------------------------------------------------*/
 void Store::sync_reading_records(const Sensor::Ptr sensor, const Store::Ptr store) {
 
     readings_t_Ptr readings = store->get_all_readings(sensor);
@@ -339,6 +347,23 @@ Sensor::Ptr Store::sync_sensor_record(const Sensor::Ptr sensor) {
         local_sensor = sensor;
     }
     return local_sensor;
+}
+
+void Store::migrate_sensor_records(
+	Sensor::Ptr dest_sensor,
+	const Sensor::Ptr src_sensor
+	) {
+	std::cout<< "migrate from " << src_sensor->external_id() << 
+		" to " << dest_sensor->external_id() << std::endl;
+	
+	const Transaction::Ptr transaction = auto_start_transaction();
+	readings_t_Ptr readings = get_all_readings(src_sensor);
+
+	//Sensor::Ptr local_sensor = sync_sensor_record(src_sensor);
+
+	set_buffers(dest_sensor);
+	add_readings(dest_sensor, *readings, UPDATE_OPERATION);
+	auto_commit_transaction(transaction);
 }
 
 void Store::prepare() {

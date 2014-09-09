@@ -82,6 +82,9 @@ namespace klio {
         void sync(const Store::Ptr store);
         void sync_readings(const Sensor::Ptr sensor, const Store::Ptr store);
         void sync_sensors(const Store::Ptr store);
+			  void migrate_sensor_records(Sensor::Ptr dest_sensor,const Sensor::Ptr src_sensor);
+			
+
 
     protected:
         Store(const bool auto_commit, const bool auto_flush, const timestamp_t flush_timeout) :

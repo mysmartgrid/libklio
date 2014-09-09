@@ -52,7 +52,7 @@ int main(int argc, char** argv) {
         desc.add_options()
                 ("help,h", "produce help message")
                 ("version,v", "print libklio version and exit")
-                ("action,a", po::value<std::string>(), "Valid actions: create, list, info, addreading, change-description, dump, sync")
+                ("action,a", po::value<std::string>(), "Valid actions: create, list, info, addreading, change-description, dump, sync, copy")
                 ("storefile,s", po::value<std::string>(), "the data store to use")
                 ("id,i", po::value<std::string>(), "the external id of the sensor")
                 ("unit,u", po::value<std::string>(), "the unit of the sensor")
@@ -62,6 +62,7 @@ int main(int argc, char** argv) {
                 ("reading,r", po::value<double>(), "the reading to add")
                 ("timestamp,t", po::value<long>(), "a timestamp to use for the reading")
                 ("sourcestorefile,y", po::value<std::string>(), "the data store to use as synchronization source")
+                ("srcid,I", po::value<std::string>(), "the new external_id found in the store to use as synchronization source")
                 ;
         po::positional_options_description p;
         p.add("action", 1);
@@ -175,7 +176,8 @@ int main(int argc, char** argv) {
                 std::string sensor_id(vm["id"].as<std::string>());
                 klio::Store::Ptr store(factory->open_sqlite3_store(db));
                 std::cout << "opened store: " << store->str() << std::endl;
-
+                std::cout << "search for sensor: '"<< sensor_id << "'"<< std::endl;
+								
                 std::vector<klio::Sensor::Ptr> sensors = store->get_sensors_by_external_id(sensor_id);
                 std::vector<klio::Sensor::Ptr>::iterator it;
 
@@ -350,6 +352,43 @@ int main(int argc, char** argv) {
             } catch (klio::StoreException const& ex) {
                 std::cout << "Failed to create: " << ex.what() << std::endl;
             }
+        } else if (boost::iequals(action, std::string("COPY"))) {
+					//MIGRATE - Copy Sensor to new externl,internal ID command
+					// required information: external_id to copy to new_external within store with metadata from source_store 
+					try {
+						if (!vm.count("id") || !vm.count("srcid")) {
+							std::cout << "You must specify the external id of the sensor and the source store file path." << std::endl;
+							return 2;
+						}
+
+						std::string dest_sensor_id(vm["id"].as<std::string>());
+						std::string src_sensor_id(vm["srcid"].as<std::string>());
+						//std::string sourcestorefile(vm["sourcestorefile"].as<std::string>());
+
+						std::cout << "Attempting to open target store " << db << std::endl;
+						klio::Store::Ptr store(factory->open_sqlite3_store(db));
+						std::cout << "opened store: " << store->str() << std::endl;
+
+						std::vector<klio::Sensor::Ptr> src_sensors  = store->get_sensors_by_external_id(src_sensor_id);
+						std::vector<klio::Sensor::Ptr> dest_sensors = store->get_sensors_by_external_id(dest_sensor_id);
+
+						std::cout << "Source sensor found      : " << src_sensor_id  << "," << db << "...: " << src_sensors.size() << std::endl;
+						std::cout << "Destination sensor found : " << dest_sensor_id << "," << db << "...: " << dest_sensors.size() << std::endl;
+						
+						if( (dest_sensors.size() > 0 ) && (src_sensors.size() > 0 ) ){
+							std::cout <<" copying all data from "<< src_sensor_id << " to " << dest_sensor_id << std::endl;
+							const klio::Sensor::Ptr src_sensor  = *(src_sensors.begin());
+							klio::Sensor::Ptr dest_sensor = *(dest_sensors.begin());
+							
+							store->migrate_sensor_records(dest_sensor, src_sensor);
+						}
+						
+						//std::vector<klio::Sensor::Ptr>::iterator it;
+
+					} catch (klio::StoreException const& ex) {
+						std::cout << "Failed to create: " << ex.what() << std::endl;
+					}
+
         } else {
             //UNKNOWN command
             std::cerr << "Unknown command " << action << std::endl;

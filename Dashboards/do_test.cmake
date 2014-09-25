@@ -197,6 +197,8 @@ else()
   set_if_exists (BOOST_ROOT ${EXTERNAL_SOFTWARE}/boost/${BOOST_VERSION})
   set_if_exists (SQLITE3_HOME ${EXTERNAL_SOFTWARE}/sqlite/3.8.5)
 endif()
+set_if_exists (LIBMYSMARTGRID_HOME "${BUILD_TMP_DIR}/libmysmartgrid/${TESTING_MODEL}/install-${CTEST_BUILD_NAME}")
+
 # LIBKLIO_HOME
 # LIBHXB_HOME
 

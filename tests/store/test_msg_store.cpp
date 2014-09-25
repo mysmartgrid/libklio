@@ -175,16 +175,16 @@ BOOST_AUTO_TEST_CASE(check_open_msg_storage) {
             }
             store->dispose();
 
-        } catch (klio::CommunicationException const& ce) {
-            std::cout << "The MSGStore tests have been partially disabled. Please make sure that: " << std::endl;
-            std::cout << "1 - the server dev3-api.mysmartgrid.de is reachable from your machine, and " << std::endl;
-            std::cout << "2 - the mSG CA certificate is installed on your environment, as explained here: http://developer.mysmartgrid.de/doku.php?id=webserviceinterface2." << std::endl;
-
         } catch (klio::GenericException const& ex) {
             store->dispose();
             std::cout << "Caught invalid exception: " << ex.what() << std::endl;
             BOOST_FAIL("Unexpected exception occurred for initialize request");
         }
+
+    } catch (klio::CommunicationException const& ce) {
+        std::cout << "The MSGStore tests have been partially disabled. Please make sure that: " << std::endl;
+        std::cout << "1 - the server dev3-api.mysmartgrid.de is reachable from your machine, and " << std::endl;
+        std::cout << "2 - the mSG CA certificate is installed on your environment, as explained here: http://developer.mysmartgrid.de/doku.php?id=webserviceinterface2." << std::endl;
 
     } catch (std::exception const& ex) {
         BOOST_FAIL("Unexpected exception occurred during MSGStore test");

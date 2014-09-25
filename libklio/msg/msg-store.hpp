@@ -121,12 +121,7 @@ namespace klio {
         void heartbeat();
 
         const std::string format_uuid_string(const std::string& meter);
-        const std::string compose_device_url();
-        const std::string compose_sensor_url(const Sensor::Ptr sensor);
-        const std::string compose_sensor_url(const Sensor::Ptr sensor, const std::string& query);
-        const std::string compose_url(const std::string& object, const std::string& id);
 
-        libmsg::JsonPtr get_json_readings(const Sensor::Ptr& sensor);
         Sensor::Ptr parse_sensor(const std::string& uuid_str, const Json::Value& jsensor);
         std::pair<timestamp_t, double> create_reading_pair(const Json::Value& jpair);
     };

@@ -28,6 +28,8 @@ file(GLOB klio_algorithm_hdrs algorithm/*.h algorithm/*.hpp)
 install(FILES ${klio_algorithm_hdrs} DESTINATION include/libklio/algorithm)
 
 include_directories(${CMAKE_SOURCE_DIR}
+                    ${SQLITE3_INCLUDE_DIR}
+                    ${ROCKSDB_INCLUDE_DIR}
                     ${JSONCPP_INCLUDE}
                     ${LIBMYSMARTGRID_INCLUDE_DIRS}
 )

@@ -47,6 +47,8 @@ info_compiler()
 
 include (UseCodeCoverage)
 
+add_definitions(-std=c++0x)
+
 set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wno-non-virtual-dtor -g -fomit-frame-pointer")
 
 set(CMAKE_CXX_FLAGS_EXPERIMENTAL "-O0 -g -ggdb -Wall  -W -Wshadow")

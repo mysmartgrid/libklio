@@ -34,7 +34,7 @@ void MSGStore::initialize() {
         (*jobject)["type"] = _type;
 
         std::string url = libmsg::Webclient::composeDeviceUrl(_url, _id);
-        libmsg::Webclient::performHttpPost(url, _key, jobject);
+        libmsg::Webclient::performHttpPost(url, libmsg::Secret::fromKey(_key), jobject);
     } catch (libmsg::MemoryException const & e) {
         throw MemoryException(e.what());
     } catch (libmsg::EnvironmentException const & e) {
@@ -54,7 +54,7 @@ void MSGStore::prepare() {
 
     try {
         std::string url = libmsg::Webclient::composeDeviceUrl(_url, _id);
-        libmsg::JsonPtr jobject = libmsg::Webclient::performHttpGet(url, _key);
+        libmsg::JsonPtr jobject = libmsg::Webclient::performHttpGet(url, libmsg::Secret::fromKey(_key));
 
         _description = (*jobject)["description"].asString();
         _type = (*jobject)["type"].asString();
@@ -87,7 +87,7 @@ void MSGStore::dispose() {
     //Tries to delete the remote store
     try {
         std::string url = libmsg::Webclient::composeDeviceUrl(_url, _id);
-        libmsg::Webclient::performHttpDelete(url, _key);
+        libmsg::Webclient::performHttpDelete(url, libmsg::Secret::fromKey(_key));
 
     } catch (libmsg::GenericException const& e) {
         //Ignore failed attempt
@@ -119,7 +119,7 @@ void MSGStore::remove_sensor_record(const Sensor::Ptr sensor) {
 
     try {
         std::string url = libmsg::Webclient::composeSensorUrl(_url, sensor->uuid_short());
-        libmsg::Webclient::performHttpDelete(url, _key);
+        libmsg::Webclient::performHttpDelete(url, libmsg::Secret::fromKey(_key));
 
     } catch (libmsg::MemoryException const & e) {
         throw MemoryException(e.what());
@@ -150,7 +150,7 @@ void MSGStore::update_sensor_record(const Sensor::Ptr sensor) {
         (*jobject)["config"] = jconfig;
 
         std::string url = libmsg::Webclient::composeSensorUrl(_url, sensor->uuid_short());
-        libmsg::Webclient::performHttpPost(url, _key, jobject);
+        libmsg::Webclient::performHttpPost(url, libmsg::Secret::fromKey(_key), jobject);
     } catch (libmsg::MemoryException const & e) {
         throw MemoryException(e.what());
     } catch (libmsg::EnvironmentException const & e) {
@@ -192,7 +192,7 @@ void MSGStore::update_reading_records(const Sensor::Ptr sensor, const readings_t
         (*jobject)["measurements"] = jmeasurements;
 
         std::string url = libmsg::Webclient::composeSensorUrl(_url, sensor->uuid_short());
-        libmsg::Webclient::performHttpPost(url, _key, jobject);
+        libmsg::Webclient::performHttpPost(url, libmsg::Secret::fromKey(_key), jobject);
     } catch (libmsg::GenericException const& e) {
         handle_reading_insertion_error(ignore_errors, sensor);
     } catch (std::exception const& e) {
@@ -204,7 +204,7 @@ std::vector<Sensor::Ptr> MSGStore::get_sensor_records() {
 
     try {
         std::string url = libmsg::Webclient::composeDeviceUrl(_url, _id);
-        libmsg::JsonPtr jobject = libmsg::Webclient::performHttpGet(url, _key);
+        libmsg::JsonPtr jobject = libmsg::Webclient::performHttpGet(url, libmsg::Secret::fromKey(_key));
 
         std::vector<Sensor::Ptr> sensors;
         Json::Value jsensors = (*jobject)["sensors"];
@@ -235,7 +235,7 @@ std::vector<Sensor::Ptr> MSGStore::get_sensor_records() {
 readings_t_Ptr MSGStore::get_all_reading_records(const Sensor::Ptr sensor) {
 
     try {
-        libmsg::Webclient::ReadingList l = libmsg::Webclient::getReadingsKey(_url, sensor->uuid_short(), _key, sensor->unit());
+        libmsg::Webclient::ReadingList l = libmsg::Webclient::getReadings(_url, sensor->uuid_short(), libmsg::Secret::fromKey(_key), sensor->unit());
 
         readings_t_Ptr readings(new readings_t(l.begin(), l.end()));
 
@@ -266,7 +266,7 @@ readings_t_Ptr MSGStore::get_timeframe_reading_records(const Sensor::Ptr sensor,
 unsigned long int MSGStore::get_num_readings_value(const Sensor::Ptr sensor) {
 
     try {
-        libmsg::Webclient::ReadingList l = libmsg::Webclient::getReadingsKey(_url, sensor->uuid_short(), _key, sensor->unit());
+        libmsg::Webclient::ReadingList l = libmsg::Webclient::getReadings(_url, sensor->uuid_short(), libmsg::Secret::fromKey(_key), sensor->unit());
         long int num = l.size();
 
         return num;
@@ -279,7 +279,7 @@ unsigned long int MSGStore::get_num_readings_value(const Sensor::Ptr sensor) {
 reading_t MSGStore::get_last_reading_record(const Sensor::Ptr sensor) {
 
     try {
-        libmsg::Webclient::Reading reading = libmsg::Webclient::getLastReadingKey(_url, sensor->uuid_short(), _key, sensor->unit());
+        libmsg::Webclient::Reading reading = libmsg::Webclient::getLastReading(_url, sensor->uuid_short(), libmsg::Secret::fromKey(_key), sensor->unit());
 
         return reading;
 
@@ -311,7 +311,7 @@ void MSGStore::heartbeat() {
         if (now - _last_heartbeat > 1800) {
 
             std::string url = libmsg::Webclient::composeDeviceUrl(_url, _id);
-            libmsg::Webclient::performHttpPost(url, _key, libmsg::JsonPtr(new Json::Value()));
+            libmsg::Webclient::performHttpPost(url, libmsg::Secret::fromKey(_key), libmsg::JsonPtr(new Json::Value()));
 
             _last_heartbeat = now;
         }

@@ -694,7 +694,7 @@ BOOST_AUTO_TEST_CASE(check_add_retrieve_single_readings_msg) {
 
             // insert first reading
             store->add_reading(sensor, timestamp, counter);
-            
+
             klio::readings_t_Ptr readings = store->get_all_readings(sensor);
             BOOST_CHECK_EQUAL(0, readings->size());
 
@@ -781,18 +781,18 @@ BOOST_AUTO_TEST_CASE(check_add_kwh_readings_msg) {
 
     try {
         std::cout << "Testing - Add readings to MSGStore (kWh)" << std::endl;
-        klio::Store::Ptr store = create_msg_test_store("28c180728bcf890bdb7cc1281038adcb");
+        klio::Store::Ptr store = create_msg_test_store("28c180728bcf890bdb7cc1281038ad01");
 
         try {
             klio::Sensor::Ptr sensor = create_test_sensor("sensor", "sensor", "kwh");
             store->add_sensor(sensor);
 
-            klio::timestamp_t timestamp = time(0);
+            klio::timestamp_t timestamp = time(0) - 3000;
             timestamp -= timestamp % 60;
-            klio::readings_t readings;
 
-            for (int i = 0; i < 72; i++) {
-                klio::reading_t reading(timestamp - (i * 20), 2.113237 - 0.00023 * (1 + i));
+            klio::readings_t readings;
+            for (int i = 0; i < 12; i++) {
+                klio::reading_t reading(timestamp + (i * 60), i * 1000);
                 readings.insert(reading);
             }
             store->add_readings(sensor, readings);
@@ -800,13 +800,13 @@ BOOST_AUTO_TEST_CASE(check_add_kwh_readings_msg) {
             readings = *store->get_all_readings(sensor);
             store->dispose();
 
-            BOOST_CHECK(readings.size() >= 21 && readings.size() <= 24);
+            BOOST_CHECK_EQUAL(11, readings.size());
 
-            int i = 23;
+            int i = 1;
             for (klio::readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
 
-                BOOST_CHECK_EQUAL(timestamp - (i-- * 60), (*it).first);
-                BOOST_CHECK_EQUAL(0.0000115, (*it).second);
+                BOOST_CHECK_EQUAL(timestamp + (i++ * 60), (*it).first);
+                BOOST_CHECK_EQUAL(17, round((*it).second));
             }
 
         } catch (klio::CommunicationException const& ce) {
@@ -826,7 +826,7 @@ BOOST_AUTO_TEST_CASE(check_add_celsius_readings_msg) {
 
     try {
         std::cout << "Testing - Add readings to MSGStore (°C)" << std::endl;
-        klio::Store::Ptr store = create_msg_test_store("21c180742bcf888bdb7cc1221038adcb");
+        klio::Store::Ptr store = create_msg_test_store("21c180742bcf888bdb7cc1221038ad01");
 
         try {
             double value = 26.7938;
@@ -835,24 +835,24 @@ BOOST_AUTO_TEST_CASE(check_add_celsius_readings_msg) {
                 klio::Sensor::Ptr sensor = create_test_sensor("sensor", "sensor", "degC");
                 store->add_sensor(sensor);
 
-                klio::timestamp_t timestamp = time(0);
+                klio::timestamp_t timestamp = time(0) - 3000;
                 timestamp -= timestamp % 60;
-                klio::readings_t readings;
 
-                for (int i = 0; i < 72; i++) {
-                    klio::reading_t reading(timestamp - (i * 20), value);
+                klio::readings_t readings;
+                for (int i = 0; i < 12; i++) {
+                    klio::reading_t reading(timestamp + (i * 60), value);
                     readings.insert(reading);
                 }
                 store->add_readings(sensor, readings);
 
                 readings = *store->get_all_readings(sensor);
 
-                BOOST_CHECK(readings.size() >= 21 && readings.size() <= 24);
+                BOOST_CHECK_EQUAL(11, readings.size());
 
-                int i = 23;
+                int i = 1;
                 for (klio::readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
 
-                    BOOST_CHECK_EQUAL(timestamp - (i-- * 60), (*it).first);
+                    BOOST_CHECK_EQUAL(timestamp + (i++ * 60), (*it).first);
                     BOOST_CHECK_EQUAL(value, (*it).second);
                 }
 

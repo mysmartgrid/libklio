@@ -102,12 +102,10 @@ several libraries:
 3. pkg-config 0.28 or later
 
 Optionally, in case you want to use the mySmartGrid web site as the storage
-backend, the following additional packages needs to be installed. This is your 
+backend, the following additional package needs to be installed. This is your 
 case if you are compiling Hexabus.
 
-1. CURL 7.19 or later
-2. json-c 0.9 or later
-3. OpenSSL 1.0 or later
+1. libmysmartgrid (https://github.com/mysmartgrid/libmysmartgrid)
 
 Optionally, in case you want to use RocksDB as the storage backend, the
 following additional package needs to be installed.

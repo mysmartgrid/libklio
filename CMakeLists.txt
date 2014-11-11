@@ -15,7 +15,7 @@ set(CMAKE_VERBOSE_MAKEFILE true)
 
 set(V_MAJOR 0)
 set(V_MINOR 5)
-set(V_PATCH 4)
+set(V_PATCH 6)
 
 # use ctest
 include(CTest)
@@ -29,6 +29,9 @@ OPTION(ENABLE_ROCKSDB
   ON)
 OPTION(ENABLE_MSG
   "Build the project with mysmartgrid enabled"
+  ON)
+OPTION(ENABLE_REDIS3M
+  "Build the project with redis3m enabled"
   ON)
 
 ################################################################
@@ -134,6 +137,22 @@ if( ENABLE_MSG )
   endif( NOT LIBMYSMARTGRID_FOUND)
 endif()
 
+if( ENABLE_REDIS3M )
+  include(FindRedis3m)
+  if( NOT REDIS3M_FOUND)
+    message(STATUS "redis3m is required.
+            Install redis3m or call cmake -DREDIS3M_HOME=path_to_redis3m_install")
+    set(ENABLE_REDIS3M False)
+  else()
+    include(FindRedis3m)
+    if( NOT REDIS3M_FOUND)
+      message(STATUS "redis3m is required.
+              Install redis3m or call cmake -DREDIS3M_HOME=path_to_redis3m_install")
+      set(ENABLE_REDIS3M False)
+    endif( NOT REDIS3M_FOUND)
+  endif( NOT REDIS3M_FOUND)
+endif()
+
 # this file is installed and contains all necessary information about the installed libseda,
 # it also loads the file with the exported targets
 configure_file(${PROJECT_NAME}Config.cmake.in "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake" @ONLY)
@@ -205,7 +224,9 @@ message("  libmysmartgrid include: ${LIBMYSMARTGRID_INCLUDE_DIR}, lib: ${LIBMYSM
 message("  jsoncpp include: ${JSONCPP_INCLUDE_DIR}, lib: ${JSONCPP_LIBRARY}")
 message("  sqlite3 include: ${SQLITE3_INCLUDE_DIR}, lib: ${SQLITE3_LIBRARIES}")
 message("  rocksdb include: ${ROCKSDB_INCLUDE_DIR}, lib: ${ROCKSDB_STATIC_LIBRARIES}")
+message("  redis3m include: ${REDIS3M_INCLUDE_DIR}, lib: ${REDIS3M_LIBRARY}")
 message("  extended logging: ${ENABLE_LOGGING}")
 message("  rocksdb: ${ENABLE_ROCKSDB}")
+message("  redis3m: ${ENABLE_REDIS3M}")
 message("  mysmartgrid: ${ENABLE_MSG}")
 

@@ -163,3 +163,24 @@ RocksDBStore::Ptr StoreFactory::open_rocksdb_store(const bfs::path& path,
 }
 
 #endif /* ENABLE_ROCKSDB */
+
+
+#ifdef ENABLE_REDIS3M
+
+RedisStore::Ptr StoreFactory::create_redis_store() {
+
+    return create_redis_store(
+            RedisStore::DEFAULT_REDIS_HOST,
+            RedisStore::DEFAULT_REDIS_PORT);
+}
+
+RedisStore::Ptr StoreFactory::create_redis_store(const std::string& host, const unsigned int port) {
+
+    RedisStore::Ptr store = RedisStore::Ptr(new RedisStore(host, port));
+    store->open();
+    store->initialize();
+    store->prepare();
+    return store;
+}
+        
+#endif /* ENABLE_REDIS3M */

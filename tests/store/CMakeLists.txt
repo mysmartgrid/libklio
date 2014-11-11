@@ -14,6 +14,7 @@ endif(ROCKSDB_FOUND)
 # Link the executable 
 link_directories(${SQLITE3_LIBRARY_DIRS})
 link_directories(${ROCKSDB_LIBRARY_DIRS})
+link_directories(${REDIS3M_LIBRARY_DIRS})
 target_link_libraries(storetest klio ${Boost_LIBRARIES} )
 
 ADD_TEST(StoreTest ${CMAKE_CURRENT_BINARY_DIR}/storetest TestStore)

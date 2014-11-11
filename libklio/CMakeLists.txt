@@ -4,6 +4,10 @@ if(ROCKSDB_FOUND)
     set(ENABLE_ROCKSDB 1)
 endif(ROCKSDB_FOUND)
 
+if(REDIS3M_FOUND)
+    set(ENABLE_REDIS3M 1)
+endif(REDIS3M_FOUND)
+
 configure_file(config.h.in ${CMAKE_BINARY_DIR}/libklio/config.h)
 install(FILES ${CMAKE_BINARY_DIR}/libklio/config.h DESTINATION include/libklio)
 
@@ -16,6 +20,9 @@ install(FILES ${klio_sqlite3_hdrs} DESTINATION include/libklio/sqlite3)
 file(GLOB klio_msg_hdrs msg/*.h msg/*.hpp)
 install(FILES ${klio_msg_hdrs} DESTINATION include/libklio/msg)
 
+file(GLOB klio_redis_hdrs redis/*.h redis/*.hpp)
+install(FILES ${klio_redis_hdrs} DESTINATION include/libklio/redis)
+
 if(ROCKSDB_FOUND)
     file(GLOB klio_rocksdb_hdrs rocksdb/*.h rocksdb/*.hpp)
     file(GLOB klio_rocksdb_src rocksdb/*.cpp rocksdb/*.hpp)
@@ -24,12 +31,21 @@ if(ROCKSDB_FOUND)
     set_source_files_properties(store-factory.cpp COMPILE_FLAGS "-std=gnu++11")
 endif(ROCKSDB_FOUND)
 
+if(REDIS3M_FOUND)
+    file(GLOB klio_redis_hdrs redis/*.h redis/*.hpp)
+    file(GLOB klio_redis_src redis/*.cpp redis/*.hpp)
+    install(FILES ${klio_redis_hdrs} DESTINATION include/libklio/redis)
+    set_source_files_properties(${klio_redis_src} COMPILE_FLAGS "-std=gnu++11")
+    set_source_files_properties(store-factory.cpp COMPILE_FLAGS "-std=gnu++11")
+endif(REDIS3M_FOUND)
+
 file(GLOB klio_algorithm_hdrs algorithm/*.h algorithm/*.hpp)
 install(FILES ${klio_algorithm_hdrs} DESTINATION include/libklio/algorithm)
 
 include_directories(${CMAKE_SOURCE_DIR}
                     ${SQLITE3_INCLUDE_DIR}
                     ${ROCKSDB_INCLUDE_DIR}
+                    ${REDIS3M_INCLUDE_DIR}
                     ${JSONCPP_INCLUDE}
                     ${LIBMYSMARTGRID_INCLUDE_DIRS}
 )
@@ -41,9 +57,7 @@ file(GLOB klio_msg_src msg/*.cpp msg/*.hpp)
 
 file(GLOB klio_algorithm_src algorithm/*.cpp algorithm/*.hpp)
 
-ADD_LIBRARY(klio STATIC ${klio_src} ${klio_sqlite3_src} ${klio_msg_src} 
-  ${klio_rocksdb_src} ${klio_algorithm_src}
-  )
+ADD_LIBRARY(klio STATIC ${klio_src} ${klio_sqlite3_src} ${klio_msg_src} ${klio_rocksdb_src} ${klio_redis_src} ${klio_algorithm_src})
 
 target_link_libraries(klio
   ${SQLITE3_LIBRARIES}
@@ -57,6 +71,10 @@ target_link_libraries(klio
 
 if( ENABLE_MSG )
   target_link_libraries(klio ${JSONCPP_LIBRARY} ${LIBMYSMARTGRID_LIBRARIES} ${LIBMYSMARTGRID_LIBRARY})
+endif()
+
+if( ENABLE_REDIS3M )
+  target_link_libraries(klio ${REDIS3M_LIBRARY})
 endif()
 
 #if(BUILD_SHARED_LIBS)

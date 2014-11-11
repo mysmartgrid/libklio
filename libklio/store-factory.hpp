@@ -31,6 +31,9 @@
 #ifdef ENABLE_ROCKSDB
 #include <libklio/rocksdb/rocksdb-store.hpp>
 #endif /* ENABLE_ROCKSDB */
+#ifdef ENABLE_REDIS3M
+#include <libklio/redis/redis-store.hpp>
+#endif /* ENABLE_REDIS3M */
 
 namespace bfs = boost::filesystem;
 
@@ -114,6 +117,14 @@ namespace klio {
                 );
 
 #endif /* ENABLE_ROCKSDB */
+
+#ifdef ENABLE_REDIS3M
+
+        RedisStore::Ptr create_redis_store();
+
+        RedisStore::Ptr create_redis_store(const std::string& host, const unsigned int port);
+
+#endif /* ENABLE_REDIS3M */
 
     private:
         StoreFactory(const StoreFactory& original);

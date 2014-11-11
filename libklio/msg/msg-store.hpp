@@ -43,7 +43,7 @@ namespace klio {
                 const std::string& key,
                 const std::string& description,
                 const std::string& type) :
-        Store(true, 600, true),
+        Store(true, true, 600),
         _url(url),
         _id(id),
         _key(key),

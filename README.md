@@ -112,6 +112,11 @@ following additional package needs to be installed.
 
 1. RocksDB 2.0 or later
 
+Optionally, in case you want to use Redis as the storage backend, the
+following additional package needs to be installed.
+
+1. Redis3m (https://github.com/luca3m/redis3m)
+
 The library uses CMake for compile-time configuration. A Makefile is
 provided which wraps the build infrastructure. A simple
 

@@ -38,4 +38,9 @@
  */
 #cmakedefine ENABLE_ROCKSDB 1
 
+/*
+ *
+ */
+#cmakedefine ENABLE_REDIS3M 1
+
 #endif /* LIBKLIO_CONFIG_H_IN */

@@ -171,12 +171,13 @@ RedisStore::Ptr StoreFactory::create_redis_store() {
 
     return create_redis_store(
             RedisStore::DEFAULT_REDIS_HOST,
-            RedisStore::DEFAULT_REDIS_PORT);
+            RedisStore::DEFAULT_REDIS_PORT,
+            RedisStore::DEFAULT_REDIS_DB);
 }
 
-RedisStore::Ptr StoreFactory::create_redis_store(const std::string& host, const unsigned int port) {
+RedisStore::Ptr StoreFactory::create_redis_store(const std::string& host, const unsigned int port, const unsigned int db) {
 
-    RedisStore::Ptr store = RedisStore::Ptr(new RedisStore(host, port));
+    RedisStore::Ptr store = RedisStore::Ptr(new RedisStore(host, port, db));
     store->open();
     store->initialize();
     store->prepare();

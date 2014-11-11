@@ -122,7 +122,7 @@ namespace klio {
 
         RedisStore::Ptr create_redis_store();
 
-        RedisStore::Ptr create_redis_store(const std::string& host, const unsigned int port);
+        RedisStore::Ptr create_redis_store(const std::string& host, const unsigned int port, const unsigned int db);
 
 #endif /* ENABLE_REDIS3M */
 

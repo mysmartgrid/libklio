@@ -57,6 +57,7 @@ BOOST_AUTO_TEST_CASE(check_create_redis_storage) {
 
         BOOST_CHECK_EQUAL(store->host(), klio::RedisStore::DEFAULT_REDIS_HOST);
         BOOST_CHECK_EQUAL(store->port(), klio::RedisStore::DEFAULT_REDIS_PORT);
+        BOOST_CHECK_EQUAL(store->db(), klio::RedisStore::DEFAULT_REDIS_DB);
 
         store->dispose();
         
@@ -71,7 +72,7 @@ BOOST_AUTO_TEST_CASE(check_add_redis_sensor) {
     klio::RedisStore::Ptr store = create_redis_test_store();
 
     try {
-        klio::Sensor::Ptr sensor = create_test_sensor("Test", "Test libklio", "kwh");
+        klio::Sensor::Ptr sensor = create_test_sensor("aaaa", "Test libklio", "kwh");
         store->add_sensor(sensor);
 
         klio::Sensor::Ptr retrieved = store->get_sensor(sensor->uuid());
@@ -98,7 +99,7 @@ BOOST_AUTO_TEST_CASE(check_update_redis_sensor) {
     klio::RedisStore::Ptr store = create_redis_test_store();
 
     try {
-        klio::Sensor::Ptr sensor = create_test_sensor("Test", "Test libklio", "kwh");
+        klio::Sensor::Ptr sensor = create_test_sensor("Test", "Test update", "kwh");
         store->add_sensor(sensor);
 
         klio::Sensor::Ptr changed(sensor_factory->createSensor(
@@ -131,7 +132,7 @@ BOOST_AUTO_TEST_CASE(check_remove_redis_sensor) {
     klio::RedisStore::Ptr store = create_redis_test_store();
 
     try {
-        klio::Sensor::Ptr sensor = create_test_sensor("Test", "Test libklio", "kwh");
+        klio::Sensor::Ptr sensor = create_test_sensor("cccc", "Test libklio", "kwh");
         store->add_sensor(sensor);
 
         store->remove_sensor(sensor);
@@ -159,7 +160,7 @@ BOOST_AUTO_TEST_CASE(check_get_redis_sensor) {
     klio::RedisStore::Ptr store = create_redis_test_store();
 
     try {
-        klio::Sensor::Ptr sensor = create_test_sensor("Test", "Test libklio", "kwh");
+        klio::Sensor::Ptr sensor = create_test_sensor("dddd", "Test libklio", "kwh");
         store->add_sensor(sensor);
 
         klio::Sensor::Ptr retrieved = store->get_sensor(sensor->uuid());
@@ -355,7 +356,7 @@ BOOST_AUTO_TEST_CASE(check_add_retrieve_redis_reading) {
     klio::RedisStore::Ptr store = create_redis_test_store();
 
     try {
-        klio::Sensor::Ptr sensor = create_test_sensor("Test", "Test libklio", "watt");
+        klio::Sensor::Ptr sensor = create_test_sensor("eeee", "Test libklio", "watt");
         store->add_sensor(sensor);
         std::cout << "added to store: " << sensor->str() << std::endl;
 
@@ -380,7 +381,6 @@ BOOST_AUTO_TEST_CASE(check_add_retrieve_redis_reading) {
             BOOST_CHECK_EQUAL(reading, val);
         }
 
-        // cleanup
         store->dispose();
 
     } catch (std::exception const& ex) {
@@ -396,7 +396,7 @@ BOOST_AUTO_TEST_CASE(check_redis_num_readings) {
     klio::RedisStore::Ptr store = create_redis_test_store();
 
     try {
-        klio::Sensor::Ptr sensor = create_test_sensor("Test", "Test libklio", "watt");
+        klio::Sensor::Ptr sensor = create_test_sensor("ffff", "Test libklio", "watt");
         store->add_sensor(sensor);
         std::cout << "added to store: " << sensor->str() << std::endl;
 

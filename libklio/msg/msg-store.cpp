@@ -35,16 +35,22 @@ void MSGStore::initialize() {
 
         std::string url = libmsg::Webclient::composeDeviceUrl(_url, _id);
         libmsg::Webclient::performHttpPost(url, libmsg::Secret::fromKey(_key), jobject);
+
     } catch (libmsg::MemoryException const & e) {
         throw MemoryException(e.what());
+
     } catch (libmsg::EnvironmentException const & e) {
         throw EnvironmentException(e.what());
+
     } catch (libmsg::DataFormatException const & e) {
         throw DataFormatException(e.what());
+
     } catch (libmsg::CommunicationException const & e) {
         throw CommunicationException(e.what());
+
     } catch (libmsg::GenericException const & e) {
         throw GenericException(e.what());
+
     } catch (std::exception const& e) {
         throw EnvironmentException(e.what());
     }
@@ -69,14 +75,19 @@ void MSGStore::prepare() {
 
     } catch (libmsg::MemoryException const & e) {
         throw MemoryException(e.what());
+
     } catch (libmsg::EnvironmentException const & e) {
         throw EnvironmentException(e.what());
+
     } catch (libmsg::DataFormatException const & e) {
         throw DataFormatException(e.what());
+
     } catch (libmsg::CommunicationException const & e) {
         throw CommunicationException(e.what());
+
     } catch (libmsg::GenericException const & e) {
         throw GenericException(e.what());
+
     } catch (std::exception const& e) {
         throw EnvironmentException(e.what());
     }
@@ -123,14 +134,19 @@ void MSGStore::remove_sensor_record(const Sensor::Ptr sensor) {
 
     } catch (libmsg::MemoryException const & e) {
         throw MemoryException(e.what());
+
     } catch (libmsg::EnvironmentException const & e) {
         throw EnvironmentException(e.what());
+
     } catch (libmsg::DataFormatException const & e) {
         throw DataFormatException(e.what());
+
     } catch (libmsg::CommunicationException const & e) {
         throw CommunicationException(e.what());
+
     } catch (libmsg::GenericException const & e) {
         throw GenericException(e.what());
+
     } catch (std::exception const& e) {
         throw EnvironmentException(e.what());
     }
@@ -151,16 +167,22 @@ void MSGStore::update_sensor_record(const Sensor::Ptr sensor) {
 
         std::string url = libmsg::Webclient::composeSensorUrl(_url, sensor->uuid_short());
         libmsg::Webclient::performHttpPost(url, libmsg::Secret::fromKey(_key), jobject);
+
     } catch (libmsg::MemoryException const & e) {
         throw MemoryException(e.what());
+
     } catch (libmsg::EnvironmentException const & e) {
         throw EnvironmentException(e.what());
+
     } catch (libmsg::DataFormatException const & e) {
         throw DataFormatException(e.what());
+
     } catch (libmsg::CommunicationException const & e) {
         throw CommunicationException(e.what());
+
     } catch (libmsg::GenericException const & e) {
         throw GenericException(e.what());
+
     } catch (std::exception const& e) {
         throw EnvironmentException(e.what());
     }
@@ -193,8 +215,10 @@ void MSGStore::update_reading_records(const Sensor::Ptr sensor, const readings_t
 
         std::string url = libmsg::Webclient::composeSensorUrl(_url, sensor->uuid_short());
         libmsg::Webclient::performHttpPost(url, libmsg::Secret::fromKey(_key), jobject);
+
     } catch (libmsg::GenericException const& e) {
         handle_reading_insertion_error(ignore_errors, sensor);
+
     } catch (std::exception const& e) {
         handle_reading_insertion_error(ignore_errors, sensor);
     }
@@ -219,14 +243,19 @@ std::vector<Sensor::Ptr> MSGStore::get_sensor_records() {
 
     } catch (libmsg::MemoryException const & e) {
         throw MemoryException(e.what());
+
     } catch (libmsg::EnvironmentException const & e) {
         throw EnvironmentException(e.what());
+
     } catch (libmsg::DataFormatException const & e) {
         throw DataFormatException(e.what());
+
     } catch (libmsg::CommunicationException const & e) {
         throw CommunicationException(e.what());
+
     } catch (libmsg::GenericException const & e) {
         throw GenericException(e.what());
+
     } catch (std::exception const& e) {
         throw EnvironmentException(e.what());
     }
@@ -246,8 +275,7 @@ readings_t_Ptr MSGStore::get_all_reading_records(const Sensor::Ptr sensor) {
     }
 }
 
-readings_t_Ptr MSGStore::get_timeframe_reading_records(const Sensor::Ptr sensor,
-        timestamp_t begin, timestamp_t end) {
+readings_t_Ptr MSGStore::get_timeframe_reading_records(const Sensor::Ptr sensor, timestamp_t begin, timestamp_t end) {
 
     //TODO: improve this method
 
@@ -318,14 +346,19 @@ void MSGStore::heartbeat() {
 
     } catch (libmsg::MemoryException const & e) {
         throw MemoryException(e.what());
+
     } catch (libmsg::EnvironmentException const & e) {
         throw EnvironmentException(e.what());
+
     } catch (libmsg::DataFormatException const & e) {
         throw DataFormatException(e.what());
+
     } catch (libmsg::CommunicationException const & e) {
         throw CommunicationException(e.what());
+
     } catch (libmsg::GenericException const & e) {
         throw GenericException(e.what());
+
     } catch (std::exception const& e) {
         throw EnvironmentException(e.what());
     }
@@ -365,14 +398,14 @@ Sensor::Ptr MSGStore::parse_sensor(const std::string& uuid_str, const Json::Valu
 std::pair<timestamp_t, double> MSGStore::create_reading_pair(const Json::Value& jpair) {
 
     if (jpair[1].isConvertibleTo(Json::realValue)) {
-      const double value = jpair[1].asDouble();
+        const double value = jpair[1].asDouble();
 
-      if (!isnan(value)) {
-          Json::Int64 jtimestamp = jpair[0].asInt64();
-          timestamp_t timestamp = time_converter->convert_from_epoch(jtimestamp);
+        if (!isnan(value)) {
+            Json::Int64 jtimestamp = jpair[0].asInt64();
+            timestamp_t timestamp = time_converter->convert_from_epoch(jtimestamp);
 
-          return std::pair<timestamp_t, double>(timestamp, value);
-      }
+            return std::pair<timestamp_t, double>(timestamp, value);
+        }
     }
 
     return std::pair<timestamp_t, double>(0, 0);

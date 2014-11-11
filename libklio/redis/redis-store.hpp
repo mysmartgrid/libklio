@@ -34,22 +34,27 @@ namespace klio {
     public:
         typedef boost::shared_ptr<RedisStore> Ptr;
 
-        RedisStore(const std::string& host, const unsigned int port) :
+        RedisStore(const std::string& host, const unsigned int port, const unsigned int db) :
         Store(true, true, 600),
         _host(host),
-        _port(port) {
+        _port(port),
+        _db(db) {
         };
 
         virtual ~RedisStore() {
             close();
         };
-        
+
         const std::string host() const {
             return _host;
         };
-        
+
         const unsigned int port() const {
             return _port;
+        };
+
+        const unsigned int db() const {
+            return _db;
         };
 
         void open();
@@ -58,13 +63,13 @@ namespace klio {
         void initialize();
         void dispose();
         const std::string str();
-        
+
         static const std::string DEFAULT_REDIS_HOST;
         static const unsigned int DEFAULT_REDIS_PORT;
-        static const std::string SENSORS_KEY;
-        static const std::string NOARG;
+        static const unsigned int DEFAULT_REDIS_DB;
 
     protected:
+
         void add_sensor_record(const Sensor::Ptr sensor);
         void remove_sensor_record(const Sensor::Ptr sensor);
         void update_sensor_record(const Sensor::Ptr sensor);
@@ -84,8 +89,13 @@ namespace klio {
         RedisStore(const RedisStore& original);
         RedisStore& operator =(const RedisStore& rhs);
 
+        const std::string check_sensor_existence(const Sensor::Ptr sensor, const bool should_exist);
+        const double get_double_value(const std::string& key);
+        const std::vector<timestamp_t> get_timestamps(const Sensor::Ptr sensor);
+
         void set(const std::string& key, const std::string& value);
         const std::string get(const std::string& key);
+        const bool exists(const std::string& key);
         void del(const std::string& key);
 
         void hset(const std::string& key, const std::string& field, const std::string& value);
@@ -94,9 +104,12 @@ namespace klio {
 
         void sadd(const std::string& key, const std::string& value);
         const std::vector<std::string> smembers(const std::string& key);
-        bool sismember(const std::string& key, const std::string& value);
+        const bool sismember(const std::string& key, const std::string& value);
         void srem(const std::string& key, const std::string& value);
 
+        void select(const unsigned int index);
+        void flushdb();
+        
         redis3m::reply run(const std::string& command, const std::string& arg1, const std::string& arg2, const std::string& arg3);
 
         const std::string compose_sensor_key(const Sensor::Ptr sensor);
@@ -105,7 +118,28 @@ namespace klio {
 
         std::string _host;
         unsigned int _port;
+        unsigned int _db;
         redis3m::connection::ptr_t _connection;
+
+        static const std::string SENSORS_KEY;
+        static const std::string NOARG;
+
+        static const std::string SET;
+        static const std::string GET;
+        static const std::string EXISTS;
+        static const std::string DEL;
+
+        static const std::string HSET;
+        static const std::string HGET;
+        static const std::string HDEL;
+
+        static const std::string SADD;
+        static const std::string SMEMBERS;
+        static const std::string SISMEMBER;
+        static const std::string SREM;
+
+        static const std::string SELECT;
+        static const std::string FLUSHDB;
     };
 };
 

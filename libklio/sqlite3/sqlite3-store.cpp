@@ -157,7 +157,7 @@ void SQLite3Store::check_integrity() {
         }
     } catch (std::exception const& e) {
         finalize(&stmt);
-        result == e.what();
+        result = e.what();
     }
 
     finalize(&stmt);

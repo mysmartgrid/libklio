@@ -31,16 +31,20 @@ const std::string RedisStore::SREM = "SREM";
 
 const std::string RedisStore::SELECT = "SELECT";
 const std::string RedisStore::FLUSHDB = "FLUSHDB";
+const std::string RedisStore::SAVE = "SAVE";
 
 void RedisStore::open() {
-    _connection = redis3m::connection::create(_host, _port);
-    select(_db);
+
+    if (!_connection) {
+        _connection = redis3m::connection::create(_host, _port);
+        select(_db);
+    }
 }
 
 void RedisStore::close() {
+
+    save();
     clear_buffers();
-    //FIXME: run SAVE
-    //FIXME: connection must be closed
 }
 
 void RedisStore::check_integrity() {
@@ -56,8 +60,8 @@ void RedisStore::initialize() {
 }
 
 void RedisStore::dispose() {
-    close();
     flushdb();
+    close();
 }
 
 const std::string RedisStore::str() {
@@ -348,6 +352,11 @@ void RedisStore::select(const unsigned int index) {
 void RedisStore::flushdb() {
 
     run(FLUSHDB, NOARG, NOARG, NOARG);
+}
+
+void RedisStore::save() {
+
+    run(SAVE, NOARG, NOARG, NOARG);
 }
 
 redis3m::reply RedisStore::run(const std::string& command, const std::string& arg1, const std::string& arg2, const std::string& arg3) {

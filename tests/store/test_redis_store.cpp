@@ -60,7 +60,7 @@ BOOST_AUTO_TEST_CASE(check_create_redis_storage) {
         BOOST_CHECK_EQUAL(store->db(), klio::RedisStore::DEFAULT_REDIS_DB);
 
         store->dispose();
-        
+
     } catch (std::exception const& ex) {
         BOOST_FAIL("Unexpected exception occurred during RedisStore test");
     }
@@ -369,7 +369,7 @@ BOOST_AUTO_TEST_CASE(check_add_retrieve_redis_reading) {
         klio::readings_t_Ptr readings = store->get_all_readings(sensor);
 
         BOOST_CHECK_EQUAL(1, readings->size());
-   
+
         std::map<klio::timestamp_t, double>::iterator it;
         for (it = readings->begin(); it != readings->end(); it++) {
 
@@ -427,6 +427,252 @@ BOOST_AUTO_TEST_CASE(check_redis_num_readings) {
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected store exception occurred during sensor test");
     }
+}
+
+BOOST_AUTO_TEST_CASE(check_redis_store_creation_performance) {
+
+    try {
+        klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+        klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "sensor1", "Watt", "Europe/Berlin"));
+        klio::Sensor::Ptr sensor2(sensor_factory->createSensor("sensor2", "sensor2", "Watt", "Europe/Berlin"));
+        klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
+        klio::Store::Ptr store;
+
+        boost::posix_time::time_duration elapsed_time;
+        double seconds = 0;
+        boost::posix_time::ptime time_before;
+        boost::posix_time::ptime time_after;
+
+        std::cout.precision(7);
+        std::cout << std::fixed;
+
+        try {
+            std::cout << std::endl << "Performance Test" << std::endl;
+            std::cout << "Performance Test - RedisStore - " <<
+                    "no prepared statements" << std::endl;
+
+            time_before = boost::posix_time::microsec_clock::local_time();
+
+            store = store_factory->create_redis_store(
+                    klio::RedisStore::DEFAULT_REDIS_HOST,
+                    klio::RedisStore::DEFAULT_REDIS_PORT,
+                    klio::RedisStore::DEFAULT_REDIS_DB,
+                    false,
+                    false,
+                    false,
+                    0);
+
+            time_after = boost::posix_time::microsec_clock::local_time();
+
+            elapsed_time = time_after - time_before;
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - RedisStore - " <<
+                    "Create store :                              "
+                    << seconds << " s" << std::endl;
+
+            store->dispose();
+
+            std::cout << std::endl << "Performance Test" << std::endl;
+            std::cout << std::endl << "Performance Test - RedisStore - " <<
+                    "prepared statements" << std::endl;
+
+            time_before = boost::posix_time::microsec_clock::local_time();
+
+            store = store_factory->create_redis_store(
+                    klio::RedisStore::DEFAULT_REDIS_HOST,
+                    klio::RedisStore::DEFAULT_REDIS_PORT,
+                    klio::RedisStore::DEFAULT_REDIS_DB,
+                    true,
+                    false,
+                    false,
+                    0);
+
+            time_after = boost::posix_time::microsec_clock::local_time();
+
+            elapsed_time = time_after - time_before;
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - RedisStore - " <<
+                    "Create store:                               "
+                    << seconds << " s" << std::endl;
+
+            store->dispose();
+
+        } catch (klio::StoreException const& ex) {
+            std::cout << "Caught invalid exception: " << ex.what() << std::endl;
+            BOOST_FAIL("Unexpected store exception occurred during sensor test");
+            store->dispose();
+        }
+
+    } catch (std::exception const& ex) {
+        BOOST_FAIL("Unexpected exception occurred during sensor test");
+    }
+}
+
+void run_redis_store_performance_tests(const bool auto_commit, const bool auto_flush, const long flush_timeout) {
+
+    try {
+        klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+        klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "sensor1", "Watt", "Europe/Berlin"));
+        klio::Sensor::Ptr sensor2(sensor_factory->createSensor("sensor2", "sensor2", "Watt", "Europe/Berlin"));
+        klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
+        klio::Store::Ptr store;
+
+        boost::posix_time::time_duration elapsed_time;
+        double seconds = 0;
+        boost::posix_time::ptime time_before;
+        boost::posix_time::ptime time_after;
+
+        std::cout.precision(7);
+        std::cout << std::fixed;
+
+        try {
+            std::cout << std::endl << "Performance Test" << std::endl;
+            std::cout << std::endl << "Performance Test - RedisStore - " <<
+                    "prepared statements" <<
+                    ", auto commit: " << (auto_commit ? "true" : "false") <<
+                    ", auto flushing: " << (auto_flush ? "true" : "false") << std::endl;
+
+            store = store_factory->create_redis_store(
+                    klio::RedisStore::DEFAULT_REDIS_HOST,
+                    klio::RedisStore::DEFAULT_REDIS_PORT,
+                    klio::RedisStore::DEFAULT_REDIS_DB,
+                    true,
+                    auto_commit,
+                    auto_flush,
+                    flush_timeout);
+
+            if (!auto_commit) {
+                store->start_transaction();
+            }
+
+            time_before = boost::posix_time::microsec_clock::local_time();
+            store->add_sensor(sensor1);
+            time_after = boost::posix_time::microsec_clock::local_time();
+
+            elapsed_time = time_after - time_before;
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - RedisStore - " <<
+                    "Add 1st sensor:                             "
+                    << seconds << " s" << std::endl;
+
+            time_before = boost::posix_time::microsec_clock::local_time();
+            store->add_sensor(sensor2);
+            time_after = boost::posix_time::microsec_clock::local_time();
+
+            elapsed_time = time_after - time_before;
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - RedisStore - " <<
+                    "Add 2nd sensor:                             "
+                    << seconds << " s" << std::endl;
+
+            klio::TimeConverter::Ptr tc(new klio::TimeConverter());
+            klio::timestamp_t timestamp = tc->get_timestamp() - 1000;
+            double reading = 23;
+
+            time_before = boost::posix_time::microsec_clock::local_time();
+            store->add_reading(sensor1, timestamp, reading);
+            time_after = boost::posix_time::microsec_clock::local_time();
+
+            elapsed_time = time_after - time_before;
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - RedisStore - " <<
+                    "Add 1st reading:                            "
+                    << seconds << " s" << std::endl;
+
+            timestamp -= 3000;
+
+            time_before = boost::posix_time::microsec_clock::local_time();
+            store->add_reading(sensor1, timestamp, reading);
+            time_after = boost::posix_time::microsec_clock::local_time();
+
+            elapsed_time = time_after - time_before;
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - RedisStore - " <<
+                    "Add 2nd reading:                            "
+                    << seconds << " s" << std::endl;
+
+            klio::readings_t readings;
+            size_t num_readings = 1000;
+            for (size_t i = 0; i < num_readings; i++) {
+                timestamp = tc->get_timestamp() - i;
+                reading = 23;
+                klio::reading_t foo(timestamp, reading);
+                readings.insert(foo);
+            }
+
+            time_before = boost::posix_time::microsec_clock::local_time();
+            store->add_readings(sensor1, readings);
+            time_after = boost::posix_time::microsec_clock::local_time();
+
+            elapsed_time = time_after - time_before;
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - RedisStore - " <<
+                    "Add " << num_readings << " readings:                          "
+                    << seconds << " s" << std::endl;
+
+            if (!auto_flush) {
+                time_before = boost::posix_time::microsec_clock::local_time();
+                store->flush();
+                time_after = boost::posix_time::microsec_clock::local_time();
+
+                elapsed_time = time_after - time_before;
+                seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+                std::cout << "Performance Test - RedisStore - " <<
+                        "Flushing " << num_readings << " readings:                     "
+                        << seconds << " s" << std::endl;
+            }
+
+            if (!auto_commit) {
+                time_before = boost::posix_time::microsec_clock::local_time();
+                store->commit_transaction();
+                time_after = boost::posix_time::microsec_clock::local_time();
+
+                elapsed_time = time_after - time_before;
+                seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+                std::cout << "Performance Test - RedisStore - " <<
+                        "Committing " << num_readings << " readings:                   "
+                        << seconds << " s" << std::endl;
+            }
+
+            time_before = boost::posix_time::microsec_clock::local_time();
+            store->get_sensors_by_external_id(sensor1->external_id());
+            time_after = boost::posix_time::microsec_clock::local_time();
+
+            elapsed_time = time_after - time_before;
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - RedisStore - " <<
+                    "Get sensors by external id:                 "
+                    << seconds << " s" << std::endl;
+
+            time_before = boost::posix_time::microsec_clock::local_time();
+            store->get_all_readings(sensor1);
+            time_after = boost::posix_time::microsec_clock::local_time();
+
+            elapsed_time = time_after - time_before;
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - RedisStore - " <<
+                    "Get " << num_readings << " readings:                          "
+                    << seconds << " s" << std::endl;
+
+            store->dispose();
+
+        } catch (klio::StoreException const& ex) {
+            std::cout << "Caught invalid exception: " << ex.what() << std::endl;
+            BOOST_FAIL("Unexpected store exception occurred during sensor test");
+            store->dispose();
+        }
+
+    } catch (std::exception const& ex) {
+        BOOST_FAIL("Unexpected exception occurred during sensor test");
+    }
+}
+
+BOOST_AUTO_TEST_CASE(check_redis_store_performance) {
+
+    run_redis_store_performance_tests( true, true,  0);
+    run_redis_store_performance_tests( true, false, 0);
+    run_redis_store_performance_tests(false, true,  0);
+    run_redis_store_performance_tests(false, false, 0);
 }
 
 #endif /* ENABLE_REDIS3M */

@@ -177,10 +177,24 @@ RedisStore::Ptr StoreFactory::create_redis_store() {
 
 RedisStore::Ptr StoreFactory::create_redis_store(const std::string& host, const unsigned int port, const unsigned int db) {
 
-    RedisStore::Ptr store = RedisStore::Ptr(new RedisStore(host, port, db));
+    return create_redis_store(host, port, db, true, true, true, 0);
+}
+
+RedisStore::Ptr StoreFactory::create_redis_store(
+        const std::string& host,
+        const unsigned int port,
+        const unsigned int db,
+        const bool prepare,
+        const bool auto_commit,
+        const bool auto_flush,
+        const timestamp_t flush_timeout) {
+
+    RedisStore::Ptr store = RedisStore::Ptr(new RedisStore(host, port, db, auto_commit, auto_flush, flush_timeout));
     store->open();
     store->initialize();
-    store->prepare();
+    if (prepare) {
+        store->prepare();
+    }
     return store;
 }
         

@@ -27,6 +27,7 @@
 #include <iostream>
 #include <redis3m/redis3m.hpp>
 #include <libklio/store.hpp>
+#include "redis-transaction.hpp"
 
 namespace klio {
 
@@ -34,8 +35,8 @@ namespace klio {
     public:
         typedef boost::shared_ptr<RedisStore> Ptr;
 
-        RedisStore(const std::string& host, const unsigned int port, const unsigned int db) :
-        Store(true, true, 600),
+        RedisStore(const std::string& host, const unsigned int port, const unsigned int db, const bool auto_commit, const bool auto_flush, const timestamp_t flush_timeout) :
+        Store(auto_commit, auto_flush, flush_timeout),
         _host(host),
         _port(port),
         _db(db) {
@@ -69,6 +70,7 @@ namespace klio {
         static const unsigned int DEFAULT_REDIS_DB;
 
     protected:
+        Transaction::Ptr get_transaction_handler();
 
         void add_sensor_record(const Sensor::Ptr sensor);
         void remove_sensor_record(const Sensor::Ptr sensor);
@@ -89,28 +91,33 @@ namespace klio {
         RedisStore(const RedisStore& original);
         RedisStore& operator =(const RedisStore& rhs);
 
+        RedisTransaction::Ptr create_transaction_handler();
+        
         const std::string check_sensor_existence(const Sensor::Ptr sensor, const bool should_exist);
         const double get_double_value(const std::string& key);
         const std::vector<timestamp_t> get_timestamps(const Sensor::Ptr sensor);
 
-        void set(const std::string& key, const std::string& value);
-        const std::string get(const std::string& key);
-        const bool exists(const std::string& key);
-        void del(const std::string& key);
+        void run_set(const std::string& key, const std::string& value);
+        const std::string run_get(const std::string& key);
+        const bool run_exists(const std::string& key);
+        void run_del(const std::string& key);
 
-        void hset(const std::string& key, const std::string& field, const std::string& value);
-        const std::string hget(const std::string& key, const std::string& field);
-        void hdel(const std::string& key, const std::string& field);
+        void run_hset(const std::string& key, const std::string& field, const std::string& value);
+        const std::string run_hget(const std::string& key, const std::string& field);
+        void run_hdel(const std::string& key, const std::string& field);
 
-        void sadd(const std::string& key, const std::string& value);
-        const std::vector<std::string> smembers(const std::string& key);
-        const bool sismember(const std::string& key, const std::string& value);
-        void srem(const std::string& key, const std::string& value);
+        void run_sadd(const std::string& key, const std::string& value);
+        const std::vector<std::string> run_smembers(const std::string& key);
+        const bool run_sismember(const std::string& key, const std::string& value);
+        void run_srem(const std::string& key, const std::string& value);
 
-        void select(const unsigned int index);
-        void flushdb();
-        void save();
+        void run_select(const unsigned int index);
+        void run_flushdb();
+        void run_save();
         
+        redis3m::reply run(const std::string& command);
+        redis3m::reply run(const std::string& command, const std::string& arg1);
+        redis3m::reply run(const std::string& command, const std::string& arg1, const std::string& arg2);
         redis3m::reply run(const std::string& command, const std::string& arg1, const std::string& arg2, const std::string& arg3);
 
         const std::string compose_sensor_key(const Sensor::Ptr sensor);
@@ -121,9 +128,12 @@ namespace klio {
         unsigned int _port;
         unsigned int _db;
         redis3m::connection::ptr_t _connection;
+        RedisTransaction::Ptr _transaction;
 
         static const std::string SENSORS_KEY;
-        static const std::string NOARG;
+        static const std::string SENSOR_KEY;
+        static const std::string READINGS_KEY;
+        static const std::string READING_KEY;
 
         static const std::string SET;
         static const std::string GET;

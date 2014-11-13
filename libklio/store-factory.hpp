@@ -87,7 +87,7 @@ namespace klio {
                 const std::string& description,
                 const std::string& type
                 );
-        
+
         MSGStore::Ptr open_msg_store(const std::string& id, const std::string& key);
 
         MSGStore::Ptr open_msg_store(
@@ -122,7 +122,21 @@ namespace klio {
 
         RedisStore::Ptr create_redis_store();
 
-        RedisStore::Ptr create_redis_store(const std::string& host, const unsigned int port, const unsigned int db);
+        RedisStore::Ptr create_redis_store(
+                const std::string& host,
+                const unsigned int port,
+                const unsigned int db
+                );
+
+        RedisStore::Ptr create_redis_store(
+                const std::string& host,
+                const unsigned int port,
+                const unsigned int db,
+                const bool prepare,
+                const bool auto_commit,
+                const bool auto_flush,
+                const timestamp_t flush_timeout
+                );
 
 #endif /* ENABLE_REDIS3M */
 

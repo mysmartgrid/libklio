@@ -85,8 +85,6 @@ namespace klio {
         reading_t get_last_reading_record(const Sensor::Ptr sensor);
         reading_t get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp);
 
-        void clear_buffers();
-
     private:
         RedisStore(const RedisStore& original);
         RedisStore& operator =(const RedisStore& rhs);
@@ -97,6 +95,7 @@ namespace klio {
         const double get_double_value(const std::string& key);
         const std::vector<timestamp_t> get_timestamps(const Sensor::Ptr sensor);
 
+        void run_set(const std::string& key, const double& value);
         void run_set(const std::string& key, const std::string& value);
         const std::string run_get(const std::string& key);
         const bool run_exists(const std::string& key);
@@ -106,9 +105,9 @@ namespace klio {
         const std::string run_hget(const std::string& key, const std::string& field);
         void run_hdel(const std::string& key, const std::string& field);
 
+        void run_sadd(const std::string& key, const timestamp_t& timestamp);
         void run_sadd(const std::string& key, const std::string& value);
         const std::vector<std::string> run_smembers(const std::string& key);
-        const bool run_sismember(const std::string& key, const std::string& value);
         void run_srem(const std::string& key, const std::string& value);
 
         void run_select(const unsigned int index);

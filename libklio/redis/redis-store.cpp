@@ -28,7 +28,6 @@ const std::string RedisStore::HDEL = "HDEL";
 
 const std::string RedisStore::SADD = "SADD";
 const std::string RedisStore::SMEMBERS = "SMEMBERS";
-const std::string RedisStore::SISMEMBER = "SISMEMBER";
 const std::string RedisStore::SREM = "SREM";
 
 const std::string RedisStore::SELECT = "SELECT";
@@ -240,9 +239,12 @@ void RedisStore::add_reading_records(const Sensor::Ptr sensor, const readings_t&
         const double value = (*it).second;
 
         try {
-            std::string reading_key = compose_reading_key(sensor, timestamp);
-            run_set(reading_key, std::to_string(value));
-            run_sadd(timestamps_key, std::to_string(timestamp));
+            run_set(
+                    compose_reading_key(sensor, timestamp),
+                    value
+                    );
+
+            run_sadd(timestamps_key, timestamp);
 
         } catch (std::exception const& e) {
             handle_reading_insertion_error(ignore_errors, timestamp, value);
@@ -253,10 +255,6 @@ void RedisStore::add_reading_records(const Sensor::Ptr sensor, const readings_t&
 void RedisStore::update_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
 
     add_reading_records(sensor, readings, ignore_errors);
-}
-
-void RedisStore::clear_buffers() {
-    Store::clear_buffers();
 }
 
 const std::string RedisStore::check_sensor_existence(const Sensor::Ptr sensor, const bool should_exist) {
@@ -294,6 +292,11 @@ const std::vector<timestamp_t> RedisStore::get_timestamps(const Sensor::Ptr sens
     return timestamps;
 }
 
+void RedisStore::run_set(const std::string& key, const double& value) {
+
+    run_set(key, std::to_string(value));
+}
+
 void RedisStore::run_set(const std::string& key, const std::string& value) {
 
     run(SET, key, value);
@@ -329,6 +332,11 @@ void RedisStore::run_hdel(const std::string& key, const std::string& field) {
     run(HDEL, key, field);
 }
 
+void RedisStore::run_sadd(const std::string& key, const timestamp_t& timestamp) {
+
+    run_sadd(key, std::to_string(timestamp));
+}
+
 void RedisStore::run_sadd(const std::string& key, const std::string& value) {
 
     run(SADD, key, value);
@@ -345,11 +353,6 @@ const std::vector<std::string> RedisStore::run_smembers(const std::string& key) 
     return values;
 }
 
-const bool RedisStore::run_sismember(const std::string& key, const std::string& value) {
-
-    return (run(SISMEMBER, key, value).integer() == 1);
-}
-
 void RedisStore::run_srem(const std::string& key, const std::string& value) {
 
     run(SREM, key, value);
@@ -357,9 +360,7 @@ void RedisStore::run_srem(const std::string& key, const std::string& value) {
 
 void RedisStore::run_select(const unsigned int index) {
 
-    std::ostringstream oss;
-    oss << index;
-    run(SELECT, oss.str());
+    run(SELECT, std::to_string(index));
 }
 
 void RedisStore::run_flushdb() {
@@ -375,17 +376,16 @@ redis3m::reply RedisStore::run(const std::string& command) {
 redis3m::reply RedisStore::run(const std::string& command, const std::string& arg1) {
 
     return _connection->run(redis3m::command(command)(arg1));
-
 }
 
 redis3m::reply RedisStore::run(const std::string& command, const std::string& arg1, const std::string& arg2) {
 
-    return _connection->run(redis3m::command(command)(arg1)(arg2));
+    return _connection->run(redis3m::command(command)(arg1) (arg2));
 }
 
 redis3m::reply RedisStore::run(const std::string& command, const std::string& arg1, const std::string& arg2, const std::string& arg3) {
 
-    return _connection->run(redis3m::command(command)(arg1)(arg2)(arg3));
+    return _connection->run(redis3m::command(command)(arg1) (arg2) (arg3));
 }
 
 const std::string RedisStore::compose_sensor_key(const Sensor::Ptr sensor) {

@@ -177,7 +177,7 @@ RedisStore::Ptr StoreFactory::create_redis_store() {
 
 RedisStore::Ptr StoreFactory::create_redis_store(const std::string& host, const unsigned int port, const unsigned int db) {
 
-    return create_redis_store(host, port, db, true, true, true, 0);
+    return create_redis_store(host, port, db, true, true, true, 600);
 }
 
 RedisStore::Ptr StoreFactory::create_redis_store(

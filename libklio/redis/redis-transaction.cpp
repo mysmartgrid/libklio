@@ -1,4 +1,5 @@
 #include <sstream>
+#include <vector>
 #include "redis-transaction.hpp"
 
 
@@ -69,8 +70,15 @@ void RedisTransaction::rollback() {
 
 const bool RedisTransaction::run(const std::string& command) {
 
-    //FIXME: execute command
-    //_connection->run(redis3m::command(command));
-    
+    redis3m::reply reply = _connection->run(redis3m::command(command));
+
+    const std::vector<redis3m::reply> replies = reply.elements();
+
+    for (std::vector<redis3m::reply>::const_iterator it = replies.begin(); it != replies.end(); ++it) {
+        if ((*it).integer() == 0 && (*it).str() != "OK") {
+            return false;
+        }
+    }
+    //FIXME: check other possibilities
     return true;
 }

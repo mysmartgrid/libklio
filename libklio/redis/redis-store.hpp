@@ -113,7 +113,6 @@ namespace klio {
 
         void run_select(const unsigned int index);
         void run_flushdb();
-        void run_save();
         
         redis3m::reply run(const std::string& command);
         redis3m::reply run(const std::string& command, const std::string& arg1);

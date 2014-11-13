@@ -260,10 +260,8 @@ void RedisStore::clear_buffers() {
 
 const std::string RedisStore::check_sensor_existence(const Sensor::Ptr sensor, const bool should_exist) {
 
-    const std::string sensor_key = compose_sensor_key(sensor);
-
     //sensor exists
-    if (run_sismember(SENSORS_KEY, sensor_key)) {
+    if (_sensors_buffer.count(sensor->uuid()) > 0) {
 
         //it should not exist
         if (!should_exist) {
@@ -274,7 +272,7 @@ const std::string RedisStore::check_sensor_existence(const Sensor::Ptr sensor, c
     } else if (should_exist) {
         throw StoreException("Sensor not found.");
     }
-    return sensor_key;
+    return compose_sensor_key(sensor);
 }
 
 const double RedisStore::get_double_value(const std::string& key) {
@@ -307,7 +305,7 @@ const std::string RedisStore::run_get(const std::string& key) {
 
 const bool RedisStore::run_exists(const std::string& key) {
 
-    return run(EXISTS, key).integer() == 1;
+    return run(EXISTS, key).integer() > 0;
 }
 
 void RedisStore::run_del(const std::string& key) {
@@ -366,11 +364,6 @@ void RedisStore::run_select(const unsigned int index) {
 void RedisStore::run_flushdb() {
 
     run(FLUSHDB);
-}
-
-void RedisStore::run_save() {
-
-    run(SAVE);
 }
 
 redis3m::reply RedisStore::run(const std::string& command) {

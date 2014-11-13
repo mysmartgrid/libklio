@@ -46,6 +46,7 @@ void RedisStore::open() {
 
 void RedisStore::close() {
 
+    //FIXME: close connection
     if (_connection && _transaction) {
         _transaction->rollback();
     }

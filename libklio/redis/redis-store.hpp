@@ -68,6 +68,7 @@ namespace klio {
         static const std::string DEFAULT_REDIS_HOST;
         static const unsigned int DEFAULT_REDIS_PORT;
         static const unsigned int DEFAULT_REDIS_DB;
+        static const std::string OK;
 
     protected:
         Transaction::Ptr get_transaction_handler();
@@ -96,11 +97,11 @@ namespace klio {
         const std::vector<timestamp_t> get_timestamps(const Sensor::Ptr sensor);
 
         void run_set(const std::string& key, const double& value);
-        void run_set(const std::string& key, const std::string& value);
         const std::string run_get(const std::string& key);
         const bool run_exists(const std::string& key);
         void run_del(const std::string& key);
 
+        void run_hset(const std::string& key, const Sensor::Ptr sensor);
         void run_hset(const std::string& key, const std::string& field, const std::string& value);
         const std::string run_hget(const std::string& key, const std::string& field);
         void run_hdel(const std::string& key, const std::string& field);

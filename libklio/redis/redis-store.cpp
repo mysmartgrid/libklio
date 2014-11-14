@@ -11,6 +11,7 @@ using namespace klio;
 const std::string RedisStore::DEFAULT_REDIS_HOST = "redis-server1";
 const unsigned int RedisStore::DEFAULT_REDIS_PORT = 6379;
 const unsigned int RedisStore::DEFAULT_REDIS_DB = 0;
+const std::string RedisStore::OK = "OK";
 
 const std::string RedisStore::SENSORS_KEY = "libklio:sensors";
 const std::string RedisStore::SENSOR_KEY = "libklio:sensor:";
@@ -91,15 +92,10 @@ const std::string RedisStore::str() {
 
 void RedisStore::add_sensor_record(const Sensor::Ptr sensor) {
 
-    const std::string sensor_key = check_sensor_existence(sensor, false);
+    const std::string key = check_sensor_existence(sensor, false);
 
-    run_sadd(SENSORS_KEY, sensor_key);
-    run_hset(sensor_key, "uuid", sensor->uuid_string());
-    run_hset(sensor_key, "external_id", sensor->external_id());
-    run_hset(sensor_key, "name", sensor->name());
-    run_hset(sensor_key, "description", sensor->description());
-    run_hset(sensor_key, "unit", sensor->unit());
-    run_hset(sensor_key, "timezone", sensor->timezone());
+    run_hset(key, sensor);
+    run_sadd(SENSORS_KEY, key);
 }
 
 void RedisStore::remove_sensor_record(const Sensor::Ptr sensor) {
@@ -125,19 +121,15 @@ void RedisStore::remove_sensor_record(const Sensor::Ptr sensor) {
 
 void RedisStore::update_sensor_record(const Sensor::Ptr sensor) {
 
-    const std::string sensor_key = check_sensor_existence(sensor, true);
-
-    run_hset(sensor_key, "external_id", sensor->external_id());
-    run_hset(sensor_key, "name", sensor->name());
-    run_hset(sensor_key, "description", sensor->description());
-    run_hset(sensor_key, "unit", sensor->unit());
-    run_hset(sensor_key, "timezone", sensor->timezone());
+    run_hset(
+            check_sensor_existence(sensor, true),
+            sensor
+            );
 }
 
 std::vector<Sensor::Ptr> RedisStore::get_sensor_records() {
 
     std::vector<Sensor::Ptr> sensors;
-
     const std::vector<std::string> sensor_keys = run_smembers(SENSORS_KEY);
 
     for (std::vector<std::string>::const_iterator sensor_key = sensor_keys.begin(); sensor_key != sensor_keys.end(); sensor_key++) {
@@ -148,7 +140,8 @@ std::vector<Sensor::Ptr> RedisStore::get_sensor_records() {
                 run_hget(*sensor_key, "name"),
                 run_hget(*sensor_key, "description"),
                 run_hget(*sensor_key, "unit"),
-                run_hget(*sensor_key, "timezone")));
+                run_hget(*sensor_key, "timezone")
+        ));
     }
     return sensors;
 }
@@ -168,7 +161,8 @@ readings_t_Ptr RedisStore::get_all_reading_records(const Sensor::Ptr sensor) {
         readings->insert(
                 std::pair<timestamp_t, double>(
                 *timestamp,
-                get_double_value(reading_key)));
+                get_double_value(reading_key)
+        ));
     }
     return readings;
 }
@@ -294,12 +288,7 @@ const std::vector<timestamp_t> RedisStore::get_timestamps(const Sensor::Ptr sens
 
 void RedisStore::run_set(const std::string& key, const double& value) {
 
-    run_set(key, std::to_string(value));
-}
-
-void RedisStore::run_set(const std::string& key, const std::string& value) {
-
-    run(SET, key, value);
+    run(SET, key, std::to_string(value));
 }
 
 const std::string RedisStore::run_get(const std::string& key) {
@@ -315,6 +304,16 @@ const bool RedisStore::run_exists(const std::string& key) {
 void RedisStore::run_del(const std::string& key) {
 
     run(DEL, key);
+}
+
+void RedisStore::run_hset(const std::string& key, const Sensor::Ptr sensor) {
+    
+    run_hset(key, "uuid", sensor->uuid_string());
+    run_hset(key, "external_id", sensor->external_id());
+    run_hset(key, "name", sensor->name());
+    run_hset(key, "description", sensor->description());
+    run_hset(key, "unit", sensor->unit());
+    run_hset(key, "timezone", sensor->timezone());
 }
 
 void RedisStore::run_hset(const std::string& key, const std::string& field, const std::string& value) {
@@ -360,7 +359,10 @@ void RedisStore::run_srem(const std::string& key, const std::string& value) {
 
 void RedisStore::run_select(const unsigned int index) {
 
-    run(SELECT, std::to_string(index));
+    redis3m::reply reply = run(SELECT, std::to_string(index));
+    if (reply.str() != OK) {
+        throw StoreException("DB cannot be selected.");
+    }
 }
 
 void RedisStore::run_flushdb() {

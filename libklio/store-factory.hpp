@@ -101,19 +101,37 @@ namespace klio {
 #ifdef ENABLE_ROCKSDB
 
         RocksDBStore::Ptr create_rocksdb_store(const bfs::path& path);
+        
+        RocksDBStore::Ptr create_rocksdb_store(const bfs::path& path,
+                const bool auto_commit,
+                const bool auto_flush,
+                const timestamp_t flush_timeout
+                );
 
         RocksDBStore::Ptr create_rocksdb_store(const bfs::path& path,
                 const std::map<const std::string, const std::string>& db_options,
                 const std::map<const std::string, const std::string>& read_options,
-                const std::map<const std::string, const std::string>& write_options
+                const std::map<const std::string, const std::string>& write_options,
+                const bool auto_commit,
+                const bool auto_flush,
+                const timestamp_t flush_timeout
                 );
 
         RocksDBStore::Ptr open_rocksdb_store(const bfs::path& path);
+        
+        RocksDBStore::Ptr open_rocksdb_store(const bfs::path& path,
+                const bool auto_commit,
+                const bool auto_flush,
+                const timestamp_t flush_timeout
+                );
 
         RocksDBStore::Ptr open_rocksdb_store(const bfs::path& path,
                 const std::map<const std::string, const std::string>& db_options,
                 const std::map<const std::string, const std::string>& read_options,
-                const std::map<const std::string, const std::string>& write_options
+                const std::map<const std::string, const std::string>& write_options,
+                const bool auto_commit,
+                const bool auto_flush,
+                const timestamp_t flush_timeout
                 );
 
 #endif /* ENABLE_ROCKSDB */
@@ -132,7 +150,6 @@ namespace klio {
                 const std::string& host,
                 const unsigned int port,
                 const unsigned int db,
-                const bool prepare,
                 const bool auto_commit,
                 const bool auto_flush,
                 const timestamp_t flush_timeout

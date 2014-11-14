@@ -123,39 +123,62 @@ MSGStore::Ptr StoreFactory::open_msg_store(
 
 RocksDBStore::Ptr StoreFactory::create_rocksdb_store(const bfs::path& path) {
 
+    return create_rocksdb_store(path, true, 600, true);
+}
+
+RocksDBStore::Ptr StoreFactory::create_rocksdb_store(const bfs::path& path,
+        const bool auto_commit,
+        const bool auto_flush,
+        const timestamp_t flush_timeout) {
+
     std::map<const std::string, const std::string> db_options;
     std::map<const std::string, const std::string> read_options;
     std::map<const std::string, const std::string> write_options;
 
-    return create_rocksdb_store(path, db_options, read_options, write_options);
+    return create_rocksdb_store(path, db_options, read_options, write_options, auto_commit, auto_flush, flush_timeout);
 }
 
 RocksDBStore::Ptr StoreFactory::create_rocksdb_store(const bfs::path& path,
         const std::map<const std::string, const std::string>& db_options,
         const std::map<const std::string, const std::string>& read_options,
-        const std::map<const std::string, const std::string>& write_options) {
+        const std::map<const std::string, const std::string>& write_options,
+        const bool auto_commit,
+        const bool auto_flush,
+        const timestamp_t flush_timeout) {
 
-    RocksDBStore::Ptr store = RocksDBStore::Ptr(new RocksDBStore(path, db_options, read_options, write_options));
+    RocksDBStore::Ptr store = RocksDBStore::Ptr(new RocksDBStore(path, db_options, read_options, write_options, auto_commit, auto_flush, flush_timeout));
     store->open();
     store->initialize();
+    store->prepare();
     return store;
 }
 
 RocksDBStore::Ptr StoreFactory::open_rocksdb_store(const bfs::path& path) {
 
+    return open_rocksdb_store(path, true, 600, true);
+}
+
+RocksDBStore::Ptr StoreFactory::open_rocksdb_store(const bfs::path& path,
+        const bool auto_commit,
+        const bool auto_flush,
+        const timestamp_t flush_timeout) {
+
     std::map<const std::string, const std::string> db_options;
     std::map<const std::string, const std::string> read_options;
     std::map<const std::string, const std::string> write_options;
-
-    return open_rocksdb_store(path, db_options, read_options, write_options);
+    
+    return open_rocksdb_store(path, db_options, read_options, write_options, auto_commit, auto_flush, flush_timeout);
 }
 
 RocksDBStore::Ptr StoreFactory::open_rocksdb_store(const bfs::path& path,
         const std::map<const std::string, const std::string>& db_options,
         const std::map<const std::string, const std::string>& read_options,
-        const std::map<const std::string, const std::string>& write_options) {
+        const std::map<const std::string, const std::string>& write_options,
+        const bool auto_commit,
+        const bool auto_flush,
+        const timestamp_t flush_timeout) {
 
-    RocksDBStore::Ptr store = RocksDBStore::Ptr(new RocksDBStore(path, db_options, read_options, write_options));
+    RocksDBStore::Ptr store = RocksDBStore::Ptr(new RocksDBStore(path, db_options, read_options, write_options, auto_commit, auto_flush, flush_timeout));
     store->open();
     store->check_integrity();
     store->prepare();
@@ -177,14 +200,13 @@ RedisStore::Ptr StoreFactory::create_redis_store() {
 
 RedisStore::Ptr StoreFactory::create_redis_store(const std::string& host, const unsigned int port, const unsigned int db) {
 
-    return create_redis_store(host, port, db, true, true, true, 600);
+    return create_redis_store(host, port, db, true, true, 600);
 }
 
 RedisStore::Ptr StoreFactory::create_redis_store(
         const std::string& host,
         const unsigned int port,
         const unsigned int db,
-        const bool prepare,
         const bool auto_commit,
         const bool auto_flush,
         const timestamp_t flush_timeout) {
@@ -192,10 +214,8 @@ RedisStore::Ptr StoreFactory::create_redis_store(
     RedisStore::Ptr store = RedisStore::Ptr(new RedisStore(host, port, db, auto_commit, auto_flush, flush_timeout));
     store->open();
     store->initialize();
-    if (prepare) {
-        store->prepare();
-    }
+    store->prepare();
     return store;
 }
-        
+
 #endif /* ENABLE_REDIS3M */

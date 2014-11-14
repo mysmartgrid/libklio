@@ -35,7 +35,12 @@ namespace klio {
     public:
         typedef boost::shared_ptr<RedisStore> Ptr;
 
-        RedisStore(const std::string& host, const unsigned int port, const unsigned int db, const bool auto_commit, const bool auto_flush, const timestamp_t flush_timeout) :
+        RedisStore(const std::string& host,
+                const unsigned int port,
+                const unsigned int db,
+                const bool auto_commit,
+                const bool auto_flush,
+                const timestamp_t flush_timeout) :
         Store(auto_commit, auto_flush, flush_timeout),
         _host(host),
         _port(port),
@@ -91,7 +96,7 @@ namespace klio {
         RedisStore& operator =(const RedisStore& rhs);
 
         RedisTransaction::Ptr create_transaction_handler();
-        
+
         const std::string check_sensor_existence(const Sensor::Ptr sensor, const bool should_exist);
         const double get_double_value(const std::string& key);
         const std::vector<timestamp_t> get_timestamps(const Sensor::Ptr sensor);
@@ -113,7 +118,7 @@ namespace klio {
 
         void run_select(const unsigned int index);
         void run_flushdb();
-        
+
         redis3m::reply run(const std::string& command);
         redis3m::reply run(const std::string& command, const std::string& arg1);
         redis3m::reply run(const std::string& command, const std::string& arg1, const std::string& arg2);

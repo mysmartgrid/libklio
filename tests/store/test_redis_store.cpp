@@ -448,8 +448,7 @@ BOOST_AUTO_TEST_CASE(check_redis_store_creation_performance) {
 
         try {
             std::cout << std::endl << "Performance Test" << std::endl;
-            std::cout << "Performance Test - RedisStore - " <<
-                    "no prepared statements" << std::endl;
+            std::cout << "Performance Test - RedisStore" << std::endl;
 
             time_before = boost::posix_time::microsec_clock::local_time();
 
@@ -457,7 +456,6 @@ BOOST_AUTO_TEST_CASE(check_redis_store_creation_performance) {
                     klio::RedisStore::DEFAULT_REDIS_HOST,
                     klio::RedisStore::DEFAULT_REDIS_PORT,
                     klio::RedisStore::DEFAULT_REDIS_DB,
-                    false,
                     false,
                     false,
                     0);
@@ -468,31 +466,6 @@ BOOST_AUTO_TEST_CASE(check_redis_store_creation_performance) {
             seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
             std::cout << "Performance Test - RedisStore - " <<
                     "Create store :                              "
-                    << seconds << " s" << std::endl;
-
-            store->dispose();
-
-            std::cout << std::endl << "Performance Test" << std::endl;
-            std::cout << std::endl << "Performance Test - RedisStore - " <<
-                    "prepared statements" << std::endl;
-
-            time_before = boost::posix_time::microsec_clock::local_time();
-
-            store = store_factory->create_redis_store(
-                    klio::RedisStore::DEFAULT_REDIS_HOST,
-                    klio::RedisStore::DEFAULT_REDIS_PORT,
-                    klio::RedisStore::DEFAULT_REDIS_DB,
-                    true,
-                    false,
-                    false,
-                    0);
-
-            time_after = boost::posix_time::microsec_clock::local_time();
-
-            elapsed_time = time_after - time_before;
-            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
-            std::cout << "Performance Test - RedisStore - " <<
-                    "Create store:                               "
                     << seconds << " s" << std::endl;
 
             store->dispose();
@@ -528,15 +501,13 @@ void run_redis_store_performance_tests(const bool auto_commit, const bool auto_f
         try {
             std::cout << std::endl << "Performance Test" << std::endl;
             std::cout << std::endl << "Performance Test - RedisStore - " <<
-                    "prepared statements" <<
-                    ", auto commit: " << (auto_commit ? "true" : "false") <<
+                    " auto commit: " << (auto_commit ? "true" : "false") <<
                     ", auto flushing: " << (auto_flush ? "true" : "false") << std::endl;
 
             store = store_factory->create_redis_store(
                     klio::RedisStore::DEFAULT_REDIS_HOST,
                     klio::RedisStore::DEFAULT_REDIS_PORT,
                     klio::RedisStore::DEFAULT_REDIS_DB,
-                    true,
                     auto_commit,
                     auto_flush,
                     flush_timeout);

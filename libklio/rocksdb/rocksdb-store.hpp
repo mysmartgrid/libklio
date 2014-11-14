@@ -40,8 +40,11 @@ namespace klio {
         RocksDBStore(const bfs::path& path,
                 const std::map<const std::string, const std::string>& db_options,
                 const std::map<const std::string, const std::string>& read_options,
-                const std::map<const std::string, const std::string>& write_options) :
-        Store(true, 600, true),
+                const std::map<const std::string, const std::string>& write_options,
+                const bool auto_commit,
+                const bool auto_flush,
+                const timestamp_t flush_timeout) :
+        Store(auto_commit, auto_flush, flush_timeout),
         _path(path),
         _db_options(db_options),
         _read_options(read_options),

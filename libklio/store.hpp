@@ -117,6 +117,7 @@ namespace klio {
         void handle_reading_insertion_error(const bool ignore_errors, const Sensor::Ptr sensor);
 
         bool _auto_commit;
+        bool _auto_flush;
         boost::unordered_map<const Sensor::uuid_t, Sensor::Ptr> _sensors_buffer;
 
     private:
@@ -133,7 +134,6 @@ namespace klio {
         static const cached_operation_type_t UPDATE_OPERATION;
         static const cached_operation_type_t DELETE_OPERATION;
 
-        bool _auto_flush;
         timestamp_t _flush_timeout;
         timestamp_t _last_flush;
 

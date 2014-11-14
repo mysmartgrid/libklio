@@ -1,8 +1,7 @@
 /**
  * This file is part of libklio.
  *
- * (c) Fraunhofer ITWM - Mathias Dalheimer <dalheimer@itwm.fhg.de>,    2010
- *                       Ely de Oliveira   <ely.oliveira@itwm.fhg.de>, 2013
+ * (c) Fraunhofer ITWM - Ely de Oliveira   <ely.oliveira@itwm.fhg.de>, 2014
  *
  * libklio is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

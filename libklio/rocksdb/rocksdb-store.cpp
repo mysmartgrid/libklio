@@ -309,11 +309,7 @@ void RocksDBStore::put_sensor(const bool create, const Sensor::Ptr sensor) {
 
 void RocksDBStore::put_value(rocksdb::DB* db, const std::string& key, const std::string& value) {
 
-    rocksdb::WriteOptions options;
-    options.sync = _write_options["sync"] == "true";
-    options.disableWAL = _write_options["disableWAL"] == "true";
-
-    const rocksdb::Status status = db->Put(options, key, value);
+    const rocksdb::Status status = db->Put(_write_options, key, value);
 
     if (!status.ok()) {
         throw StoreException(status.ToString());

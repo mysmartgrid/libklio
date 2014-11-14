@@ -571,10 +571,8 @@ BOOST_AUTO_TEST_CASE(check_rocksdb_store_creation_performance) {
     }
 }
 
-void run_rocksdb_store_performance_tests(const bool auto_commit, const bool auto_flush, const long flush_timeout) {
+void run_rocksdb_store_performance_tests(const bool auto_flush, const long flush_timeout, const bool disable_wal) {
 
-    //FIXME: transaction and flushing tests missing
-    
     try {
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
         klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "sensor1", "Watt", "Europe/Berlin"));
@@ -594,14 +592,10 @@ void run_rocksdb_store_performance_tests(const bool auto_commit, const bool auto
         try {
             std::cout << std::endl << "Performance Test" << std::endl;
             std::cout << std::endl << "Performance Test - RocksDBStore - " <<
-                    " auto commit: " << (auto_commit ? "true" : "false") <<
-                    ", auto flushing: " << (auto_flush ? "true" : "false") << std::endl;
+                    "auto flushing: " << (auto_flush ? "true" : "false") <<
+                    ", disable WAL: " << (disable_wal ? "true" : "false") << std::endl;
 
-            store = store_factory->create_rocksdb_store(db, auto_commit, auto_flush, flush_timeout);
-
-            if (!auto_commit) {
-                store->start_transaction();
-            }
+            store = store_factory->create_rocksdb_store(db, auto_flush, flush_timeout, disable_wal);
 
             time_before = boost::posix_time::microsec_clock::local_time();
             store->add_sensor(sensor1);
@@ -680,18 +674,6 @@ void run_rocksdb_store_performance_tests(const bool auto_commit, const bool auto
                         << seconds << " s" << std::endl;
             }
 
-            if (!auto_commit) {
-                time_before = boost::posix_time::microsec_clock::local_time();
-                store->commit_transaction();
-                time_after = boost::posix_time::microsec_clock::local_time();
-
-                elapsed_time = time_after - time_before;
-                seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
-                std::cout << "Performance Test - RocksDBStore - " <<
-                        "Committing " << num_readings << " readings:                   "
-                        << seconds << " s" << std::endl;
-            }
-
             time_before = boost::posix_time::microsec_clock::local_time();
             store->get_sensors_by_external_id(sensor1->external_id());
             time_after = boost::posix_time::microsec_clock::local_time();
@@ -727,10 +709,9 @@ void run_rocksdb_store_performance_tests(const bool auto_commit, const bool auto
 
 BOOST_AUTO_TEST_CASE(check_rocksdb_store_performance) {
 
-    run_rocksdb_store_performance_tests( true, true,  0);
-    run_rocksdb_store_performance_tests( true, false, 0);
-    //run_rocksdb_store_performance_tests(false, true,  0);
-    //run_rocksdb_store_performance_tests(false, false, 0);
+    run_rocksdb_store_performance_tests( true, 0, false);
+    run_rocksdb_store_performance_tests(false, 0, false);
+    run_rocksdb_store_performance_tests(false, 0, true);
 }
 
 #endif /* ENABLE_ROCKSDB */

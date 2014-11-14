@@ -40,15 +40,17 @@ namespace klio {
         RocksDBStore(const bfs::path& path,
                 const std::map<const std::string, const std::string>& db_options,
                 const std::map<const std::string, const std::string>& read_options,
-                const std::map<const std::string, const std::string>& write_options,
-                const bool auto_commit,
                 const bool auto_flush,
-                const timestamp_t flush_timeout) :
-        Store(auto_commit, auto_flush, flush_timeout),
+                const timestamp_t flush_timeout,
+                const bool disable_wal) :
+        Store(true, auto_flush, flush_timeout),
         _path(path),
         _db_options(db_options),
         _read_options(read_options),
-        _write_options(write_options) {
+        _disable_wal(disable_wal) {
+
+            _write_options.sync = _auto_flush ? "true" : "false";
+            _write_options.disableWAL = _disable_wal ? "true" : "false";
         };
 
         virtual ~RocksDBStore() {
@@ -85,7 +87,8 @@ namespace klio {
         bfs::path _path;
         std::map<const std::string, const std::string> _db_options;
         std::map<const std::string, const std::string> _read_options;
-        std::map<const std::string, const std::string> _write_options;
+        rocksdb::WriteOptions _write_options;
+        bool _disable_wal;
         std::map<const std::string, rocksdb::DB*> _db_buffer;
 
         rocksdb::DB* open_db(const bool create_if_missing, const bool error_if_exists, const std::string& db_path);

@@ -7,6 +7,7 @@
 
 
 using namespace klio;
+using namespace redis3m;
 
 const std::string RedisStore::DEFAULT_REDIS_HOST = "redis-server1";
 const unsigned int RedisStore::DEFAULT_REDIS_PORT = 6379;
@@ -38,7 +39,7 @@ const std::string RedisStore::SAVE = "SAVE";
 void RedisStore::open() {
 
     if (!_connection) {
-        _connection = redis3m::connection::create(_host, _port);
+        _connection = connection::create(_host, _port);
         run_select(_db);
         _transaction = create_transaction_handler();
     }
@@ -238,7 +239,7 @@ void RedisStore::add_reading_records(const Sensor::Ptr sensor, const readings_t&
                     value
                     );
 
-            run_sadd(timestamps_key, timestamp);
+            run_sadd(timestamps_key, std::to_string(timestamp));
 
         } catch (std::exception const& e) {
             handle_reading_insertion_error(ignore_errors, timestamp, value);
@@ -288,22 +289,22 @@ const std::vector<timestamp_t> RedisStore::get_timestamps(const Sensor::Ptr sens
 
 void RedisStore::run_set(const std::string& key, const double& value) {
 
-    run(SET, key, std::to_string(value));
+    _connection->run(command(SET)(key) (std::to_string(value)));
 }
 
 const std::string RedisStore::run_get(const std::string& key) {
 
-    return run(GET, key).str();
+    return _connection->run(command(GET)(key)).str();
 }
 
 const bool RedisStore::run_exists(const std::string& key) {
 
-    return run(EXISTS, key).integer() > 0;
+    return _connection->run(command(EXISTS)(key)).integer() > 0;
 }
 
 void RedisStore::run_del(const std::string& key) {
 
-    run(DEL, key);
+    _connection->run(command(DEL)(key));
 }
 
 void RedisStore::run_hset(const std::string& key, const Sensor::Ptr sensor) {
@@ -318,76 +319,51 @@ void RedisStore::run_hset(const std::string& key, const Sensor::Ptr sensor) {
 
 void RedisStore::run_hset(const std::string& key, const std::string& field, const std::string& value) {
 
-    run(HSET, key, field, value);
+    _connection->run(command(HSET)(key) (field) (value));
 }
 
 const std::string RedisStore::run_hget(const std::string& key, const std::string& field) {
 
-    return run(HGET, key, field).str();
+    return _connection->run(command(HGET)(key) (field)).str();
 }
 
 void RedisStore::run_hdel(const std::string& key, const std::string& field) {
 
-    run(HDEL, key, field);
-}
-
-void RedisStore::run_sadd(const std::string& key, const timestamp_t& timestamp) {
-
-    run_sadd(key, std::to_string(timestamp));
+    _connection->run(command(HDEL)(key) (field));
 }
 
 void RedisStore::run_sadd(const std::string& key, const std::string& value) {
 
-    run(SADD, key, value);
+    _connection->run(command(SADD)(key) (value));
 }
 
 const std::vector<std::string> RedisStore::run_smembers(const std::string& key) {
 
-    const std::vector<redis3m::reply> replies = run(SMEMBERS, key).elements();
+    const std::vector<reply> replies = _connection->run(command(SMEMBERS)(key)).elements(); 
 
     std::vector<std::string> values;
-    for (std::vector<redis3m::reply>::const_iterator reply = replies.begin(); reply != replies.end(); reply++) {
-        values.push_back((*reply).str());
+    for (std::vector<reply>::const_iterator value = replies.begin(); value != replies.end(); value++) {
+        values.push_back((*value).str());
     }
     return values;
 }
 
 void RedisStore::run_srem(const std::string& key, const std::string& value) {
 
-    run(SREM, key, value);
+    _connection->run(command(SREM)(key) (value));
 }
 
 void RedisStore::run_select(const unsigned int index) {
 
-    redis3m::reply reply = run(SELECT, std::to_string(index));
-    if (reply.str() != OK) {
+    reply status = _connection->run(command(SELECT)(std::to_string(index)));
+    if (status.str() != OK) {
         throw StoreException("DB cannot be selected.");
     }
 }
 
 void RedisStore::run_flushdb() {
 
-    run(FLUSHDB);
-}
-
-redis3m::reply RedisStore::run(const std::string& command) {
-
-    return _connection->run(redis3m::command(command));
-}
-
-redis3m::reply RedisStore::run(const std::string& command, const std::string& arg1) {
-
-    return _connection->run(redis3m::command(command)(arg1));
-}
-
-redis3m::reply RedisStore::run(const std::string& command, const std::string& arg1, const std::string& arg2) {
-
-    return _connection->run(redis3m::command(command)(arg1) (arg2));
-}
-
-redis3m::reply RedisStore::run(const std::string& command, const std::string& arg1, const std::string& arg2, const std::string& arg3) {
-
-    return _connection->run(redis3m::command(command)(arg1) (arg2) (arg3));
+    _connection->run(command(FLUSHDB));
 }
 
 const std::string RedisStore::compose_sensor_key(const Sensor::Ptr sensor) {

@@ -710,6 +710,7 @@ void run_rocksdb_store_performance_tests(const bool auto_flush, const long flush
 BOOST_AUTO_TEST_CASE(check_rocksdb_store_performance) {
 
     run_rocksdb_store_performance_tests( true, 0, false);
+    run_rocksdb_store_performance_tests( true, 0, true);
     run_rocksdb_store_performance_tests(false, 0, false);
     run_rocksdb_store_performance_tests(false, 0, true);
 }

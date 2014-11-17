@@ -111,18 +111,12 @@ namespace klio {
         const std::string run_hget(const std::string& key, const std::string& field);
         void run_hdel(const std::string& key, const std::string& field);
 
-        void run_sadd(const std::string& key, const timestamp_t& timestamp);
         void run_sadd(const std::string& key, const std::string& value);
         const std::vector<std::string> run_smembers(const std::string& key);
         void run_srem(const std::string& key, const std::string& value);
 
         void run_select(const unsigned int index);
         void run_flushdb();
-
-        redis3m::reply run(const std::string& command);
-        redis3m::reply run(const std::string& command, const std::string& arg1);
-        redis3m::reply run(const std::string& command, const std::string& arg1, const std::string& arg2);
-        redis3m::reply run(const std::string& command, const std::string& arg1, const std::string& arg2, const std::string& arg3);
 
         const std::string compose_sensor_key(const Sensor::Ptr sensor);
         const std::string compose_timestamps_key(const Sensor::Ptr sensor);

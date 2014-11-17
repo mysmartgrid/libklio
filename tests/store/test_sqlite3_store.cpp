@@ -1236,6 +1236,7 @@ void run_store_new_rotation_tests(const bool auto_commit, const bool auto_flush,
 
 BOOST_AUTO_TEST_CASE(check_store_rotation_tests) {
 
+    std::cout << std::endl << "Performance Test" << std::endl;
     std::cout << "Testing sensors synchronization for SQLite3" <<
             "Performance Test" << std::endl;
 

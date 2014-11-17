@@ -226,7 +226,9 @@ reading_t RedisStore::get_reading_record(const Sensor::Ptr sensor, const timesta
 void RedisStore::add_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
 
     check_sensor_existence(sensor, true);
-    const std::string timestamps_key = compose_timestamps_key(sensor);
+
+    command sadd = command(SADD);
+    sadd << compose_timestamps_key(sensor);
 
     for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
 
@@ -234,17 +236,15 @@ void RedisStore::add_reading_records(const Sensor::Ptr sensor, const readings_t&
         const double value = (*it).second;
 
         try {
-            run_set(
-                    compose_reading_key(sensor, timestamp),
-                    value
-                    );
+            run_set(compose_reading_key(sensor, timestamp), value);
 
-            run_sadd(timestamps_key, std::to_string(timestamp));
+            sadd << std::to_string(timestamp);
 
         } catch (std::exception const& e) {
             handle_reading_insertion_error(ignore_errors, timestamp, value);
         }
     }
+    _connection->run(sadd);
 }
 
 void RedisStore::update_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {

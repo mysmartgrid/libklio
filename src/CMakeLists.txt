@@ -33,10 +33,10 @@ endif(ROCKSDB_FOUND)
 
 #sensor_executable(foobar sourcetest.cpp)
 # Link the executable
-target_link_libraries(klio-sensor klio ${Boost_LIBRARIES})
-target_link_libraries(klio-store klio ${Boost_LIBRARIES})
-target_link_libraries(klio-export klio ${Boost_LIBRARIES})
-target_link_libraries(klio-import klio ${Boost_LIBRARIES})
+target_link_libraries(klio-sensor klio ${Boost_LIBRARIES} pthread)
+target_link_libraries(klio-store klio ${Boost_LIBRARIES} pthread)
+target_link_libraries(klio-export klio ${Boost_LIBRARIES} pthread)
+target_link_libraries(klio-import klio ${Boost_LIBRARIES} pthread)
 
 # sensor programs to the install target
 INSTALL(PROGRAMS 

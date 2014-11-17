@@ -14,4 +14,4 @@ add_executable(timetest ${timetest_src})
 ADD_TEST(TimeTest ${CMAKE_CURRENT_BINARY_DIR}/timetest TestTime)
 
 # Link the executable 
-target_link_libraries(timetest klio ${Boost_LIBRARIES} )
+target_link_libraries(timetest klio ${Boost_LIBRARIES} pthread)

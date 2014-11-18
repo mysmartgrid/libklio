@@ -24,13 +24,15 @@
 #include <libklio/transaction.hpp>
 
 
+using namespace redis3m;
+
 namespace klio {
 
     class RedisTransaction : public Transaction {
     public:
         typedef boost::shared_ptr<RedisTransaction> Ptr;
 
-        RedisTransaction(redis3m::connection::ptr_t connection) :
+        RedisTransaction(connection::ptr_t connection) :
         Transaction(),
         _connection(connection) {
         }
@@ -49,7 +51,7 @@ namespace klio {
 
         const bool run(const std::string& command);
 
-        redis3m::connection::ptr_t _connection;
+        connection::ptr_t _connection;
         
         static const std::string MULTI;
         static const std::string EXEC;

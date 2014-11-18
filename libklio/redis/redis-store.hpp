@@ -29,6 +29,8 @@
 #include <libklio/store.hpp>
 #include "redis-transaction.hpp"
 
+using namespace redis3m;
+
 namespace klio {
 
     class RedisStore : public Store {
@@ -105,14 +107,14 @@ namespace klio {
         const std::string run_get(const std::string& key);
         const bool run_exists(const std::string& key);
         void run_del(const std::string& key);
+        void run_del_readings(const Sensor::Ptr sensor);
 
-        void run_hset(const std::string& key, const Sensor::Ptr sensor);
-        void run_hset(const std::string& key, const std::string& field, const std::string& value);
-        const std::string run_hget(const std::string& key, const std::string& field);
-        void run_hdel(const std::string& key, const std::string& field);
+        void run_hmset_sensor(const std::string& key, const Sensor::Ptr sensor);
+        const Sensor::Ptr run_hmget_sensor(const std::string& key);
+        void run_hdel_sensor(const std::string& key);
 
         void run_sadd(const std::string& key, const std::string& value);
-        const std::vector<std::string> run_smembers(const std::string& key);
+        const std::vector<reply> run_smembers(const std::string& key);
         void run_srem(const std::string& key, const std::string& value);
 
         void run_select(const unsigned int index);
@@ -138,14 +140,14 @@ namespace klio {
         static const std::string EXISTS;
         static const std::string DEL;
 
-        static const std::string HSET;
-        static const std::string HGET;
-        static const std::string HDEL;
-
         static const std::string SADD;
         static const std::string SMEMBERS;
         static const std::string SISMEMBER;
         static const std::string SREM;
+        
+        static const std::string HMSET;
+        static const std::string HMGET;
+        static const std::string HDEL;
 
         static const std::string SELECT;
         static const std::string FLUSHDB;

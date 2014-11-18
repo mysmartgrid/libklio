@@ -142,14 +142,7 @@ if( ENABLE_REDIS3M )
   if( NOT REDIS3M_FOUND)
     message(STATUS "redis3m is required.
             Install redis3m or call cmake -DREDIS3M_HOME=path_to_redis3m_install")
-    set(ENABLE_REDIS3M False)
-  else()
-    include(FindRedis3m)
-    if( NOT REDIS3M_FOUND)
-      message(STATUS "redis3m is required.
-              Install redis3m or call cmake -DREDIS3M_HOME=path_to_redis3m_install")
-      set(ENABLE_REDIS3M False)
-    endif( NOT REDIS3M_FOUND)
+    set(ENABLE_REDIS3M Off)
   endif( NOT REDIS3M_FOUND)
 endif()
 

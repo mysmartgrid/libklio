@@ -117,6 +117,11 @@ following additional package needs to be installed.
 
 1. Redis3m (https://github.com/luca3m/redis3m)
 
+requirements for redis3m:
+   * libhiredis-dev
+   * libmsgpack-dev
+   * boost
+
 The library uses CMake for compile-time configuration. A Makefile is
 provided which wraps the build infrastructure. A simple
 

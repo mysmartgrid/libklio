@@ -14,6 +14,9 @@ add_executable(algorithmstest ${algorithmstest_src})
 if(ROCKSDB_FOUND)
   set_source_files_properties(${algorithmstest_src} COMPILE_FLAGS "-std=gnu++11")
 endif(ROCKSDB_FOUND)
+if(REDIS3M_FOUND)
+target_link_libraries(algorithmstest ${REDIS3M_LIBRARY})
+endif(REDIS3M_FOUND)
 
 ADD_TEST(AlgorithmTest ${CMAKE_CURRENT_BINARY_DIR}/algorithmstest TestAlgorithms)
 

@@ -106,6 +106,9 @@ else( NOT redis3m_IN_CACHE )
   message(STATUS "    package ${NAME} was allready in loaded. Do not perform dependencies.")
 endif( NOT redis3m_IN_CACHE )
 
+list(APPEND REDIS3M_LIBRARY "hiredis")
+list(APPEND REDIS3M_LIBRARY "rt")
+
 message(STATUS "    REDIS3M 2: '-I${REDIS3M_INCLUDE_DIR}' '-L${REDIS3M_LIBRARY_DIR}' ")
 message(STATUS "             '${REDIS3M_LIBRARIES}' '${REDIS3M_LIBRARY}'")
 

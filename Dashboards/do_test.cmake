@@ -196,6 +196,7 @@ else()
   set_if_exists (EXTERNAL_SOFTWARE "${_baseDir}/opt")
   set_if_exists (BOOST_ROOT ${EXTERNAL_SOFTWARE}/boost/${BOOST_VERSION})
   set_if_exists (SQLITE3_HOME ${EXTERNAL_SOFTWARE}/sqlite/3.8.5)
+  set_if_exists (REDIS3M_HOME ${EXTERNAL_SOFTWARE}/redis3m)
 endif()
 set_if_exists (LIBMYSMARTGRID_HOME "${BUILD_TMP_DIR}/libmysmartgrid/${TESTING_MODEL}/install-${CTEST_BUILD_NAME}")
 
@@ -244,7 +245,7 @@ foreach (VARIABLE_NAME
     GRAPHVIZ_HOME
     ROCKSDB_HOME
     SQLITE3_HOME
-
+    REDIS3M_HOME
     )
   if (DEFINED ${VARIABLE_NAME})
     file (APPEND "${CTEST_BINARY_DIRECTORY}/CMakeCache.txt" "${VARIABLE_NAME}:STRING=${${VARIABLE_NAME}}\n")

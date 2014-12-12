@@ -33,6 +33,9 @@ OPTION(ENABLE_MSG
 OPTION(ENABLE_REDIS3M
   "Build the project with redis3m enabled"
   ON)
+OPTION(ENABLE_POSTGRESQL
+  "Build the project with PostgreSQL enabled"
+  ON)
 
 ################################################################
   ###################################
@@ -146,6 +149,15 @@ if( ENABLE_REDIS3M )
   endif( NOT REDIS3M_FOUND)
 endif()
 
+if( ENABLE_POSTGRESQL )
+  include(FindPostgreSQL)
+  if( NOT POSTGRESQL_FOUND)
+    message(STATUS "PostgreSQL is required.
+                    Install PostgreSQL or call cmake -DPOSTGRESQL_HOME=path_to_postgresql_install")
+    set(ENABLE_POSTGRESQL Off)
+  endif( NOT POSTGRESQL_FOUND)
+endif()
+
 # this file is installed and contains all necessary information about the installed libseda,
 # it also loads the file with the exported targets
 configure_file(${PROJECT_NAME}Config.cmake.in "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake" @ONLY)
@@ -218,8 +230,10 @@ message("  jsoncpp include: ${JSONCPP_INCLUDE_DIR}, lib: ${JSONCPP_LIBRARY}")
 message("  sqlite3 include: ${SQLITE3_INCLUDE_DIR}, lib: ${SQLITE3_LIBRARIES}")
 message("  rocksdb include: ${ROCKSDB_INCLUDE_DIR}, lib: ${ROCKSDB_STATIC_LIBRARIES}")
 message("  redis3m include: ${REDIS3M_INCLUDE_DIR}, lib: ${REDIS3M_LIBRARY}")
+message("  PostgreSQL include: ${POSTGRESQL_INCLUDE_DIR}, lib: ${POSTGRESQL_LIBRARY}")
 message("  extended logging: ${ENABLE_LOGGING}")
 message("  rocksdb: ${ENABLE_ROCKSDB}")
 message("  redis3m: ${ENABLE_REDIS3M}")
+message("  PostgreSQL: ${ENABLE_POSTGRESQL}")
 message("  mysmartgrid: ${ENABLE_MSG}")
 

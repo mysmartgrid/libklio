@@ -34,6 +34,9 @@
 #ifdef ENABLE_REDIS3M
 #include <libklio/redis/redis-store.hpp>
 #endif /* ENABLE_REDIS3M */
+#ifdef ENABLE_POSTGRESQL
+#include <libklio/postgresql/postgresql-store.hpp>
+#endif /* ENABLE_POSTGRESQL */
 
 namespace bfs = boost::filesystem;
 
@@ -155,6 +158,22 @@ namespace klio {
 
 #endif /* ENABLE_REDIS3M */
 
+#ifdef ENABLE_POSTGRESQL
+
+        PostgreSQLStore::Ptr create_postgresql_store(const std::string& info);
+
+        PostgreSQLStore::Ptr create_postgresql_store(const std::string& info, const bool prepare);
+
+        PostgreSQLStore::Ptr create_postgresql_store(
+                const std::string& info,
+                const bool prepare,
+                const bool auto_commit,
+                const bool auto_flush,
+                const timestamp_t flush_timeout
+                );
+
+#endif /* ENABLE_POSTGRESQL */
+        
     private:
         StoreFactory(const StoreFactory& original);
         StoreFactory& operator =(const StoreFactory& rhs);

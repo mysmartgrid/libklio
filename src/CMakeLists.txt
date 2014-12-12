@@ -11,6 +11,7 @@ include_directories(${CMAKE_SOURCE_DIR}
                     ${SQLITE3_INCLUDE_DIR}
                     ${ROCKSDB_INCLUDE_DIR}
                     ${REDIS3M_INCLUDE_DIR}
+                    ${POSTGRESQL_INCLUDE_DIR}
                     ${LIBMYSMARTGRID_INCLUDE_DIRS}
                     ${CURL_INCLUDE_DIR}
 )
@@ -39,6 +40,13 @@ target_link_libraries(klio-store klio ${REDIS3M_LIBRARY})
 target_link_libraries(klio-export klio ${REDIS3M_LIBRARY})
 target_link_libraries(klio-import klio ${REDIS3M_LIBRARY})
 endif(REDIS3M_FOUND)
+
+if(POSTGRESQL_FOUND)
+target_link_libraries(klio-sensor klio ${POSTGRESQL_LIBRARY})
+target_link_libraries(klio-store klio ${POSTGRESQL_LIBRARY})
+target_link_libraries(klio-export klio ${POSTGRESQL_LIBRARY})
+target_link_libraries(klio-import klio ${POSTGRESQL_LIBRARY})
+endif(POSTGRESQL_FOUND)
 
 #sensor_executable(foobar sourcetest.cpp)
 # Link the executable

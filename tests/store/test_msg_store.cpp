@@ -18,8 +18,6 @@
  * along with libklio. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define BOOST_TEST_MODULE msg_store_test
-
 #include <libklio/config.h>
 
 #ifdef ENABLE_MSG

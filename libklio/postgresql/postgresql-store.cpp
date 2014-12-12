@@ -146,38 +146,38 @@ const std::string PostgreSQLStore::str() {
 
 void PostgreSQLStore::add_sensor_record(const Sensor::Ptr sensor) {
 
-    const char *paramValues[7];
-    paramValues[0] = sensor->uuid_string().c_str();
-    paramValues[1] = sensor->external_id().c_str();
-    paramValues[2] = sensor->name().c_str();
-    paramValues[3] = sensor->description().c_str();
-    paramValues[4] = sensor->unit().c_str();
-    paramValues[5] = sensor->timezone().c_str();
-    paramValues[6] = std::to_string(sensor->device_type()->id()).c_str();
+    const char *params[7];
+    params[0] = sensor->uuid_string().c_str();
+    params[1] = sensor->external_id().c_str();
+    params[2] = sensor->name().c_str();
+    params[3] = sensor->description().c_str();
+    params[4] = sensor->unit().c_str();
+    params[5] = sensor->timezone().c_str();
+    params[6] = std::to_string(sensor->device_type()->id()).c_str();
 
-    execute(INSERT_SENSOR_STMT, paramValues);
+    execute(INSERT_SENSOR_STMT, params);
 }
 
 void PostgreSQLStore::remove_sensor_record(const Sensor::Ptr sensor) {
 
-    const char *paramValues[1];
-    paramValues[0] = sensor->uuid_string().c_str();
+    const char *params[1];
+    params[0] = sensor->uuid_string().c_str();
 
-    execute(DELETE_SENSOR_STMT, paramValues);
+    execute(DELETE_SENSOR_STMT, params);
 }
 
 void PostgreSQLStore::update_sensor_record(const Sensor::Ptr sensor) {
 
-    const char *paramValues[7];
-    paramValues[0] = sensor->uuid_string().c_str();
-    paramValues[1] = sensor->external_id().c_str();
-    paramValues[2] = sensor->name().c_str();
-    paramValues[3] = sensor->description().c_str();
-    paramValues[4] = sensor->unit().c_str();
-    paramValues[5] = sensor->timezone().c_str();
-    paramValues[6] = std::to_string(sensor->device_type()->id()).c_str();
+    const char *params[7];
+    params[0] = sensor->uuid_string().c_str();
+    params[1] = sensor->external_id().c_str();
+    params[2] = sensor->name().c_str();
+    params[3] = sensor->description().c_str();
+    params[4] = sensor->unit().c_str();
+    params[5] = sensor->timezone().c_str();
+    params[6] = std::to_string(sensor->device_type()->id()).c_str();
 
-    execute(UPDATE_SENSOR_STMT, paramValues);
+    execute(UPDATE_SENSOR_STMT, params);
 }
 
 std::vector<Sensor::Ptr> PostgreSQLStore::get_sensor_records() {
@@ -197,10 +197,10 @@ readings_t_Ptr PostgreSQLStore::get_all_reading_records(const Sensor::Ptr sensor
 
     readings_t_Ptr readings;
 
-    const char *paramValues[1];
-    paramValues[0] = sensor->uuid_string().c_str();
+    const char *params[1];
+    params[0] = sensor->uuid_string().c_str();
 
-    PGresult* result = select(SELECT_READINGS_STMT, FETCH_SENSORS_STMT, paramValues);
+    PGresult* result = select(SELECT_READINGS_STMT, FETCH_SENSORS_STMT, params);
 
     for (int row = 0; row < PQntuples(result); row++) {
         readings->insert(parse_reading(result, row));
@@ -213,12 +213,12 @@ readings_t_Ptr PostgreSQLStore::get_timeframe_reading_records(const Sensor::Ptr 
 
     readings_t_Ptr readings;
 
-    const char *paramValues[3];
-    paramValues[0] = sensor->uuid_string().c_str();
-    paramValues[1] = std::to_string(begin).c_str();
-    paramValues[2] = std::to_string(end).c_str();
+    const char *params[3];
+    params[0] = sensor->uuid_string().c_str();
+    params[1] = std::to_string(begin).c_str();
+    params[2] = std::to_string(end).c_str();
 
-    PGresult* result = select(SELECT_TIMEFRAME_READINGS_STMT, FETCH_SENSORS_STMT, paramValues);
+    PGresult* result = select(SELECT_TIMEFRAME_READINGS_STMT, FETCH_SENSORS_STMT, params);
 
     for (int row = 0; row < PQntuples(result); row++) {
         readings->insert(parse_reading(result, row));
@@ -229,10 +229,10 @@ readings_t_Ptr PostgreSQLStore::get_timeframe_reading_records(const Sensor::Ptr 
 
 unsigned long int PostgreSQLStore::get_num_readings_value(const Sensor::Ptr sensor) {
 
-    const char *paramValues[1];
-    paramValues[0] = sensor->uuid_string().c_str();
+    const char *params[1];
+    params[0] = sensor->uuid_string().c_str();
 
-    PGresult* result = select(COUNT_READINGS_STMT, FETCH_SENSORS_STMT, paramValues);
+    PGresult* result = select(COUNT_READINGS_STMT, FETCH_SENSORS_STMT, params);
 
     int num = atoi(PQgetvalue(result, 0, 0));
     PQclear(result);
@@ -241,10 +241,10 @@ unsigned long int PostgreSQLStore::get_num_readings_value(const Sensor::Ptr sens
 
 reading_t PostgreSQLStore::get_last_reading_record(const Sensor::Ptr sensor) {
 
-    const char *paramValues[1];
-    paramValues[0] = sensor->uuid_string().c_str();
+    const char *params[1];
+    params[0] = sensor->uuid_string().c_str();
 
-    PGresult* result = select(SELECT_LAST_READING_STMT, FETCH_SENSORS_STMT, paramValues);
+    PGresult* result = select(SELECT_LAST_READING_STMT, FETCH_SENSORS_STMT, params);
 
     std::pair<timestamp_t, double> reading = parse_reading(result, 0);
     PQclear(result);
@@ -253,11 +253,11 @@ reading_t PostgreSQLStore::get_last_reading_record(const Sensor::Ptr sensor) {
 
 reading_t PostgreSQLStore::get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp) {
 
-    const char *paramValues[2];
-    paramValues[0] = sensor->uuid_string().c_str();
-    paramValues[1] = std::to_string(timestamp).c_str();
+    const char *params[2];
+    params[0] = sensor->uuid_string().c_str();
+    params[1] = std::to_string(timestamp).c_str();
 
-    PGresult* result = select(SELECT_READING_STMT, FETCH_SENSORS_STMT, paramValues);
+    PGresult* result = select(SELECT_READING_STMT, FETCH_SENSORS_STMT, params);
 
     std::pair<timestamp_t, double> reading = parse_reading(result, 0);
     PQclear(result);
@@ -276,16 +276,16 @@ void PostgreSQLStore::update_reading_records(const Sensor::Ptr sensor, const rea
 
 void PostgreSQLStore::add_reading_records(const std::string statement, const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
 
-    const char *paramValues[3];
-    paramValues[0] = sensor->uuid_string().c_str();
+    const char *params[3];
+    params[0] = sensor->uuid_string().c_str();
 
     for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
 
-        paramValues[1] = std::to_string(time_converter->convert_to_epoch((*it).first)).c_str();
-        paramValues[2] = std::to_string((*it).second).c_str();
+        params[1] = std::to_string(time_converter->convert_to_epoch((*it).first)).c_str();
+        params[2] = std::to_string((*it).second).c_str();
 
         try {
-            execute(statement, paramValues);
+            execute(statement, params);
 
         } catch (std::exception const& e) {
             handle_reading_insertion_error(ignore_errors, (*it).first, (*it).second);
@@ -300,13 +300,13 @@ void PostgreSQLStore::execute(const std::string statement) {
     PQclear(result);
 }
 
-void PostgreSQLStore::execute(const std::string statement, const char *paramValues[]) {
+void PostgreSQLStore::execute(const std::string statement, const char *params[]) {
 
     PGresult *result = PQexecParams(_connection,
             statement.c_str(),
             1, /* one param */
             NULL, /* let the backend deduce param type */
-            paramValues,
+            params,
             NULL, /* don't need param lengths since text */
             NULL, /* default to all text params */
             1); /* ask for binary results */
@@ -327,13 +327,13 @@ PGresult* PostgreSQLStore::select(const std::string select_statement, const std:
     return result;
 }
 
-PGresult* PostgreSQLStore::select(const std::string select_statement, const std::string fetch_statement, const char *paramValues[]) {
+PGresult* PostgreSQLStore::select(const std::string select_statement, const std::string fetch_statement, const char *params[]) {
 
     PGresult *result = PQexecParams(_connection,
             select_statement.c_str(),
             1, /* one param */
             NULL, /* let the backend deduce param type */
-            paramValues,
+            params,
             NULL, /* don't need param lengths since text */
             NULL, /* default to all text params */
             1); /* ask for binary results */

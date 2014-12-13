@@ -120,6 +120,7 @@ void PostgreSQLStore::clear_connection_refferences() {
 }
 
 void PostgreSQLStore::check_integrity() {
+    //FIXME: implement method
 }
 
 void PostgreSQLStore::initialize() {

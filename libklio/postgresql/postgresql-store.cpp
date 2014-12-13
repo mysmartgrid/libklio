@@ -17,8 +17,8 @@
 
 using namespace klio;
 
-const char* PostgreSQLStore::CREATE_SENSORS_TABLE_SQL = "CREATE TABLE IF NOT EXISTS sensors (uuid VARCHAR(40), external_id VARCHAR(40), name VARCHAR(100), description VARCHAR(255), unit VARCHAR(20), timezone VARCHAR(30), device_type_id INT, PRIMARY KEY(uuid))";
-const char* PostgreSQLStore::CREATE_READINGS_TABLE_SQL = "CREATE TABLE IF NOT EXISTS readings (uuid VARCHAR(40), timestamp INTEGER, value FLOAT8, PRIMARY KEY(uuid, timestamp))";
+const char* PostgreSQLStore::CREATE_SENSORS_TABLE_SQL = "CREATE TABLE IF NOT EXISTS sensors (uuid VARCHAR(36), external_id VARCHAR(36), name VARCHAR(100), description VARCHAR(255), unit VARCHAR(20), timezone VARCHAR(30), device_type_id INT, PRIMARY KEY(uuid))";
+const char* PostgreSQLStore::CREATE_READINGS_TABLE_SQL = "CREATE TABLE IF NOT EXISTS readings (uuid VARCHAR(36), timestamp INTEGER, value FLOAT8, PRIMARY KEY(uuid, timestamp))";
 const char* PostgreSQLStore::DROP_SENSORS_TABLE_SQL = "DROP TABLE sensors";
 const char* PostgreSQLStore::DROP_READINGS_TABLE_SQL = "DROP TABLE readings";
 const char* PostgreSQLStore::INSERT_SENSOR_SQL = "INSERT INTO sensors (uuid, external_id, name, description, unit, timezone, device_type_id) VALUES ($1::varchar, $2::varchar, $3::varchar, $4::varchar, $5::varchar, $6::varchar, $7::integer)";

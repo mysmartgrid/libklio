@@ -191,7 +191,7 @@ void SQLite3Store::initialize() {
     //FIXME: change type of field timestamp
     
     //Create table sensors if it does not exist
-    sqlite3_stmt* stmt = prepare("CREATE TABLE IF NOT EXISTS sensors(uuid VARCHAR(16) PRIMARY KEY, external_id VARCHAR(32), name VARCHAR(100), description VARCHAR(255), unit VARCHAR(20), timezone INTEGER, device_type_id INTEGER)");
+    sqlite3_stmt* stmt = prepare("CREATE TABLE IF NOT EXISTS sensors(uuid VARCHAR(36) PRIMARY KEY, external_id VARCHAR(36), name VARCHAR(100), description VARCHAR(255), unit VARCHAR(20), timezone VARCHAR(30), device_type_id INTEGER)");
 
     try {
         execute(stmt, SQLITE_DONE);

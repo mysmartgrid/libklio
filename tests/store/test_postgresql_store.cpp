@@ -63,6 +63,8 @@ BOOST_AUTO_TEST_CASE(check_create_postgresql_storage) {
                 "host=localhost port=5432 dbname=kliostore user=kliotester password=12test34",
                 store->info()
                 );
+        
+        store = create_postgresql_test_store();
 
         store->dispose();
 

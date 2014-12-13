@@ -361,9 +361,9 @@ klio::RedisStore::Ptr create_redis_test_store(const std::string& host, const uns
 klio::RedisStore::Ptr create_redis_test_store() {
 
     return create_redis_test_store(
-                klio::RedisStore::DEFAULT_REDIS_HOST,
-                klio::RedisStore::DEFAULT_REDIS_PORT,
-                klio::RedisStore::DEFAULT_REDIS_DB);
+            klio::RedisStore::DEFAULT_REDIS_HOST,
+            klio::RedisStore::DEFAULT_REDIS_PORT,
+            klio::RedisStore::DEFAULT_REDIS_DB);
 }
 
 BOOST_AUTO_TEST_CASE(check_redis_bulk_insert) {
@@ -410,6 +410,68 @@ BOOST_AUTO_TEST_CASE(check_redis_bulk_insert) {
 }
 
 #endif /* ENABLE_REDIS3M */
+
+#ifdef ENABLE_POSTGRESQL
+
+klio::PostgreSQLStore::Ptr create_postgresql_test_store(const std::string& info) {
+
+    std::cout << "Attempting to create PostgreSQL store " << std::endl;
+    klio::PostgreSQLStore::Ptr store = store_factory->create_postgresql_store(info);
+    std::cout << "Created: " << store->str() << std::endl;
+    return store;
+}
+
+klio::PostgreSQLStore::Ptr create_postgresql_test_store() {
+
+    return create_postgresql_test_store(
+            "host=localhost port=5432 dbname=kliostore user=kliotester password=12test34"
+            );
+}
+
+BOOST_AUTO_TEST_CASE(check_postgresql_bulk_insert) {
+
+    try {
+        std::cout << std::endl << "Testing - The bulk-insertion of readings in PostgreSQL." << std::endl;
+        klio::Sensor::Ptr sensor = create_test_sensor("sensor", "sensor", "Watt");
+        klio::PostgreSQLStore::Ptr store = create_postgresql_test_store();
+
+        try {
+            store->add_sensor(sensor);
+            std::cout << "added to store: " << sensor->str() << std::endl;
+
+            // insert a reading.
+            klio::TimeConverter::Ptr tc(new klio::TimeConverter());
+            klio::readings_t readings;
+            size_t num_readings = 100;
+            for (size_t i = 0; i < num_readings; i++) {
+
+                klio::timestamp_t timestamp = tc->get_timestamp() - i;
+                double reading = 23;
+                klio::reading_t foo(timestamp, reading);
+                readings.insert(foo);
+            }
+            std::cout << "Inserting " << readings.size() << " readings." << std::endl;
+            store->add_readings(sensor, readings);
+
+            klio::readings_t_Ptr loaded_readings = store->get_all_readings(sensor);
+            std::cout << "Loaded " << loaded_readings->size() << " readings." << std::endl;
+
+            BOOST_CHECK_EQUAL(num_readings, loaded_readings->size());
+
+            store->dispose();
+
+        } catch (klio::StoreException const& ex) {
+            store->dispose();
+            std::cout << "Caught invalid exception: " << ex.what() << std::endl;
+            BOOST_FAIL("Unexpected store exception occurred during sensor test");
+            //store->remove_sensor(sensor);
+        }
+    } catch (std::exception const& ex) {
+        BOOST_FAIL("Unexpected exception occurred during sensor test");
+    }
+}
+
+#endif /* ENABLE_POSTGRESQL */
 
 BOOST_AUTO_TEST_CASE(check_sqlite3_bulk_insert_duplicates) {
 

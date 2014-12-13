@@ -91,42 +91,41 @@ namespace klio {
 
         void open_db();
         void close_db();
+        void clear_connection_refferences();
         PostgreSQLTransaction::Ptr create_transaction_handler();
-        
-        void add_reading_records(const std::string statement, const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors);
 
-        void execute(const std::string statement);
-        void execute(const std::string statement, const char *paramValues[]);
-        void check(PGresult *result, ExecStatusType expected_return);
-        PGresult* select(const std::string select_statement, const std::string fetch_statement);
-        PGresult* select(const std::string select_statement, const std::string fetch_statement, const char *paramValues[]);
-        Sensor::Ptr parse_sensor(PGresult* result, int row);
-        reading_t parse_reading(PGresult* result, int row);
+        void add_reading_records(const char* statement, const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors);
+        readings_t_Ptr get_reading_records(const char* statement, const char* params[], const int num_params);
+
+        void execute(const char* statement, const char* params[], const int num_params);
+        PGresult* execute(const char* statement, const char* params[], const int num_params, const ExecStatusType expected_return);
+        void clear(PGresult* result);
+
+        Sensor::Ptr parse_sensor(PGresult* result, const int row);
+        reading_t parse_reading(PGresult* result, const int row);
+        std::string get_string_value(PGresult* result, const int row, const int col);
+        unsigned long int get_long_value(PGresult* result, const int row, const int col);
+        double get_double_value(PGresult* result, const int row, const int col);
 
         std::string _info;
         PGconn* _connection;
         PostgreSQLTransaction::Ptr _transaction;
-        
-        static const std::string CREATE_SENSORS_TABLE_STMT;
-        static const std::string CREATE_READINGS_TABLE_STMT;
-        static const std::string DROP_SENSORS_TABLE_STMT;
-        static const std::string DROP_READINGS_TABLE_STMT;
-        static const std::string INSERT_SENSOR_STMT;
-        static const std::string DELETE_SENSOR_STMT;
-        static const std::string UPDATE_SENSOR_STMT;
-        static const std::string SELECT_SENSORS_STMT;
-        static const std::string SELECT_READINGS_STMT;
-        static const std::string SELECT_TIMEFRAME_READINGS_STMT;
-        static const std::string COUNT_READINGS_STMT;
-        static const std::string SELECT_LAST_READING_STMT;
-        static const std::string SELECT_READING_STMT;
-        static const std::string INSERT_READING_STMT;
-        static const std::string UPDATE_READING_STMT;
-        static const std::string FETCH_SENSORS_STMT;
-        static const std::string FETCH_READINGS_STMT;
-        
-        static const std::string SENSOR_CURSOR;
-        static const std::string READING_CURSOR;
+
+        static const char* CREATE_SENSORS_TABLE_SQL;
+        static const char* CREATE_READINGS_TABLE_SQL;
+        static const char* DROP_SENSORS_TABLE_SQL;
+        static const char* DROP_READINGS_TABLE_SQL;
+        static const char* INSERT_SENSOR_SQL;
+        static const char* DELETE_SENSOR_SQL;
+        static const char* UPDATE_SENSOR_SQL;
+        static const char* SELECT_SENSORS_SQL;
+        static const char* SELECT_READINGS_SQL;
+        static const char* SELECT_TIMEFRAME_READINGS_SQL;
+        static const char* COUNT_READINGS_SQL;
+        static const char* SELECT_LAST_READING_SQL;
+        static const char* SELECT_READING_SQL;
+        static const char* INSERT_READING_SQL;
+        static const char* UPDATE_READING_SQL;
     };
 };
 

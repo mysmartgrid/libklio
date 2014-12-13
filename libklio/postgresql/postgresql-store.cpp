@@ -17,23 +17,21 @@
 
 using namespace klio;
 
-const std::string PostgreSQLStore::CREATE_SENSORS_TABLE_STMT = "CREATE TABLE IF NOT EXISTS sensors (uuid VARCHAR(16), external_id VARCHAR(32), name VARCHAR(100), description VARCHAR(255), unit VARCHAR(20), timezone INT, device_type_id INT, PRIMARY KEY(uuid))";
-const std::string PostgreSQLStore::CREATE_READINGS_TABLE_STMT = "CREATE TABLE IF NOT EXISTS readings (uuid VARCHAR(16), timestamp INT, value REAL, PRIMARY KEY(uuid, timestamp))";
-const std::string PostgreSQLStore::DROP_SENSORS_TABLE_STMT = "DROP TABLE sensors";
-const std::string PostgreSQLStore::DROP_READINGS_TABLE_STMT = "DROP TABLE readings";
-const std::string PostgreSQLStore::INSERT_SENSOR_STMT = "INSERT INTO sensors (uuid, external_id, name, description, unit, timezone, device_type_id) VALUES ($1, $2, $3, $4, $5, $6, $7)";
-const std::string PostgreSQLStore::DELETE_SENSOR_STMT = "DELETE FROM sensors WHERE uuid = $1";
-const std::string PostgreSQLStore::UPDATE_SENSOR_STMT = "UPDATE sensors SET external_id = $2, name = $3, description = $4, unit = $5, timezone = $6, device_type_id = $7 WHERE uuid = $1";
-const std::string PostgreSQLStore::SELECT_SENSORS_STMT = "DECLARE CURSOR sensor_cursor FOR SELECT uuid, external_id, name, description, unit, timezone, device_type_id FROM sensors";
-const std::string PostgreSQLStore::SELECT_READINGS_STMT = "DECLARE CURSOR reading_cursor FOR SELECT timestamp, value FROM readings WHERE uuid = $1";
-const std::string PostgreSQLStore::SELECT_TIMEFRAME_READINGS_STMT = "DECLARE CURSOR reading_cursor FOR SELECT timestamp, value FROM readings WHERE uuid = $1 AND timestamp BETWEEN $2 AND $3";
-const std::string PostgreSQLStore::COUNT_READINGS_STMT = "DECLARE CURSOR sensor_cursor FOR SELECT COUNT(*) FROM readings WHERE uuid = $1";
-const std::string PostgreSQLStore::SELECT_LAST_READING_STMT = "DECLARE CURSOR reading_cursor FOR SELECT timestamp, value FROM readings WHERE uuid = $1 ORDER BY timestamp DESC LIMIT 1";
-const std::string PostgreSQLStore::SELECT_READING_STMT = "DECLARE CURSOR reading_cursor FOR SELECT timestamp, value FROM readings WHERE uuid = $1 AND timestamp = $2";
-const std::string PostgreSQLStore::INSERT_READING_STMT = "INSERT INTO readings (uuid, timestamp, value) VALUES ($1, $2, $3)";
-const std::string PostgreSQLStore::UPDATE_READING_STMT = "UPDATE readings SET timestamp = $2, value = $3 WHERE uuid = $1";
-const std::string PostgreSQLStore::FETCH_SENSORS_STMT = "FETCH ALL IN sensor_cursor";
-const std::string PostgreSQLStore::FETCH_READINGS_STMT = "FETCH ALL IN reading_cursor";
+const char* PostgreSQLStore::CREATE_SENSORS_TABLE_SQL = "CREATE TABLE IF NOT EXISTS sensors (uuid VARCHAR(40), external_id VARCHAR(40), name VARCHAR(100), description VARCHAR(255), unit VARCHAR(20), timezone VARCHAR(30), device_type_id INT, PRIMARY KEY(uuid))";
+const char* PostgreSQLStore::CREATE_READINGS_TABLE_SQL = "CREATE TABLE IF NOT EXISTS readings (uuid VARCHAR(40), timestamp INTEGER, value FLOAT8, PRIMARY KEY(uuid, timestamp))";
+const char* PostgreSQLStore::DROP_SENSORS_TABLE_SQL = "DROP TABLE sensors";
+const char* PostgreSQLStore::DROP_READINGS_TABLE_SQL = "DROP TABLE readings";
+const char* PostgreSQLStore::INSERT_SENSOR_SQL = "INSERT INTO sensors (uuid, external_id, name, description, unit, timezone, device_type_id) VALUES ($1::varchar, $2::varchar, $3::varchar, $4::varchar, $5::varchar, $6::varchar, $7::integer)";
+const char* PostgreSQLStore::DELETE_SENSOR_SQL = "DELETE FROM sensors WHERE uuid = $1::varchar";
+const char* PostgreSQLStore::UPDATE_SENSOR_SQL = "UPDATE sensors SET external_id = $2::varchar, name = $3::varchar, description = $4::varchar, unit = $5::varchar, timezone = $6::varchar, device_type_id = $7::integer WHERE uuid = $1::varchar";
+const char* PostgreSQLStore::SELECT_SENSORS_SQL = "SELECT uuid, external_id, name, description, unit, timezone, device_type_id FROM sensors";
+const char* PostgreSQLStore::SELECT_READINGS_SQL = "SELECT timestamp, value FROM readings WHERE uuid = $1::varchar";
+const char* PostgreSQLStore::SELECT_TIMEFRAME_READINGS_SQL = "SELECT timestamp, value FROM readings WHERE uuid = $1::varchar AND timestamp BETWEEN $2::integer AND $3::integer";
+const char* PostgreSQLStore::COUNT_READINGS_SQL = "SELECT COUNT(*) FROM readings WHERE uuid = $1::varchar";
+const char* PostgreSQLStore::SELECT_LAST_READING_SQL = "SELECT timestamp, value FROM readings WHERE uuid = $1::varchar ORDER BY timestamp DESC LIMIT 1";
+const char* PostgreSQLStore::SELECT_READING_SQL = "SELECT timestamp, value FROM readings WHERE uuid = $1::varchar AND timestamp = $2::integer";
+const char* PostgreSQLStore::INSERT_READING_SQL = "INSERT INTO readings (uuid, timestamp, value) VALUES ($1::varchar, $2::integer, $3::float8)";
+const char* PostgreSQLStore::UPDATE_READING_SQL = "UPDATE readings SET timestamp = $2::integer, value = $3::float8 WHERE uuid = $1::varchar";
 
 void PostgreSQLStore::open() {
 
@@ -77,31 +75,30 @@ void PostgreSQLStore::open_db() {
     } else {
         std::ostringstream oss;
         oss << PQerrorMessage(_connection);
-
         close_db();
-
-        if (_transaction) {
-            _transaction->connection(NULL);
-        }
         throw StoreException(oss.str());
     }
 }
 
 void PostgreSQLStore::close_db() {
 
-    PQfinish(_connection);
+    try {
+        PQfinish(_connection);
+        clear_connection_refferences();
 
-    if (PQstatus(_connection) != CONNECTION_OK) {
-        _connection = NULL;
-
-        if (_transaction) {
-            _transaction->connection(NULL);
-        }
-
-    } else {
+    } catch (std::exception const& e) {
+        clear_connection_refferences();
         std::ostringstream oss;
         oss << "Can't close the database.";
         throw StoreException(oss.str());
+    }
+}
+
+void PostgreSQLStore::clear_connection_refferences() {
+
+    _connection = NULL;
+    if (_transaction) {
+        _transaction->connection(NULL);
     }
 }
 
@@ -110,20 +107,20 @@ void PostgreSQLStore::check_integrity() {
 
 void PostgreSQLStore::initialize() {
 
-    execute(CREATE_SENSORS_TABLE_STMT);
-    execute(CREATE_READINGS_TABLE_STMT);
+    execute(CREATE_SENSORS_TABLE_SQL, NULL, 0);
+    execute(CREATE_READINGS_TABLE_SQL, NULL, 0);
 }
 
 void PostgreSQLStore::prepare() {
 
     Store::prepare();
-    //TODO
+    //FIXME: prepare statements
 }
 
 void PostgreSQLStore::dispose() {
 
-    execute(DROP_SENSORS_TABLE_STMT);
-    execute(DROP_READINGS_TABLE_STMT);
+    execute(DROP_SENSORS_TABLE_SQL, NULL, 0);
+    execute(DROP_READINGS_TABLE_SQL, NULL, 0);
     close();
 }
 
@@ -146,7 +143,7 @@ const std::string PostgreSQLStore::str() {
 
 void PostgreSQLStore::add_sensor_record(const Sensor::Ptr sensor) {
 
-    const char *params[7];
+    const char* params[7];
     params[0] = sensor->uuid_string().c_str();
     params[1] = sensor->external_id().c_str();
     params[2] = sensor->name().c_str();
@@ -155,20 +152,20 @@ void PostgreSQLStore::add_sensor_record(const Sensor::Ptr sensor) {
     params[5] = sensor->timezone().c_str();
     params[6] = std::to_string(sensor->device_type()->id()).c_str();
 
-    execute(INSERT_SENSOR_STMT, params);
+    execute(INSERT_SENSOR_SQL, params, 7);
 }
 
 void PostgreSQLStore::remove_sensor_record(const Sensor::Ptr sensor) {
 
-    const char *params[1];
+    const char* params[1];
     params[0] = sensor->uuid_string().c_str();
 
-    execute(DELETE_SENSOR_STMT, params);
+    execute(DELETE_SENSOR_SQL, params, 1);
 }
 
 void PostgreSQLStore::update_sensor_record(const Sensor::Ptr sensor) {
 
-    const char *params[7];
+    const char* params[7];
     params[0] = sensor->uuid_string().c_str();
     params[1] = sensor->external_id().c_str();
     params[2] = sensor->name().c_str();
@@ -177,115 +174,110 @@ void PostgreSQLStore::update_sensor_record(const Sensor::Ptr sensor) {
     params[5] = sensor->timezone().c_str();
     params[6] = std::to_string(sensor->device_type()->id()).c_str();
 
-    execute(UPDATE_SENSOR_STMT, params);
+    execute(UPDATE_SENSOR_SQL, params, 7);
 }
 
 std::vector<Sensor::Ptr> PostgreSQLStore::get_sensor_records() {
 
-    std::vector<Sensor::Ptr> sensors;
+    PGresult* result = NULL;
+    try {
+        const char* params[0];
+        result = execute(SELECT_SENSORS_SQL, params, 0, PGRES_TUPLES_OK);
 
-    PGresult* result = select(SELECT_SENSORS_STMT, FETCH_SENSORS_STMT);
+        std::vector<Sensor::Ptr> sensors;
+        int num_rows = PQntuples(result);
 
-    for (int row = 0; row < PQntuples(result); row++) {
-        sensors.push_back(parse_sensor(result, row));
+        for (int row = 0; row < num_rows; row++) {
+            sensors.push_back(parse_sensor(result, row));
+        }
+        clear(result);
+        return sensors;
+
+    } catch (std::exception const& e) {
+        clear(result);
+        throw e;
     }
-    PQclear(result);
-    return sensors;
 }
 
 readings_t_Ptr PostgreSQLStore::get_all_reading_records(const Sensor::Ptr sensor) {
 
-    readings_t_Ptr readings;
-
-    const char *params[1];
+    const char* params[1];
     params[0] = sensor->uuid_string().c_str();
 
-    PGresult* result = select(SELECT_READINGS_STMT, FETCH_SENSORS_STMT, params);
-
-    for (int row = 0; row < PQntuples(result); row++) {
-        readings->insert(parse_reading(result, row));
-    }
-    PQclear(result);
-    return readings;
+    return get_reading_records(SELECT_READINGS_SQL, params, 1);
 }
 
 readings_t_Ptr PostgreSQLStore::get_timeframe_reading_records(const Sensor::Ptr sensor, const timestamp_t begin, const timestamp_t end) {
 
-    readings_t_Ptr readings;
-
-    const char *params[3];
+    const char* params[3];
     params[0] = sensor->uuid_string().c_str();
     params[1] = std::to_string(begin).c_str();
     params[2] = std::to_string(end).c_str();
 
-    PGresult* result = select(SELECT_TIMEFRAME_READINGS_STMT, FETCH_SENSORS_STMT, params);
-
-    for (int row = 0; row < PQntuples(result); row++) {
-        readings->insert(parse_reading(result, row));
-    }
-    PQclear(result);
-    return readings;
+    return get_reading_records(SELECT_TIMEFRAME_READINGS_SQL, params, 3);
 }
 
 unsigned long int PostgreSQLStore::get_num_readings_value(const Sensor::Ptr sensor) {
 
-    const char *params[1];
+    const char* params[1];
     params[0] = sensor->uuid_string().c_str();
 
-    PGresult* result = select(COUNT_READINGS_STMT, FETCH_SENSORS_STMT, params);
+    PGresult* result = NULL;
+    try {
+        result = execute(COUNT_READINGS_SQL, params, 1, PGRES_TUPLES_OK);
+        unsigned long int num = get_long_value(result, 0, 0);
 
-    int num = atoi(PQgetvalue(result, 0, 0));
-    PQclear(result);
-    return num;
+        clear(result);
+        return num;
+
+    } catch (std::exception const& e) {
+        clear(result);
+        throw e;
+    }
 }
 
 reading_t PostgreSQLStore::get_last_reading_record(const Sensor::Ptr sensor) {
 
-    const char *params[1];
+    const char* params[1];
     params[0] = sensor->uuid_string().c_str();
 
-    PGresult* result = select(SELECT_LAST_READING_STMT, FETCH_SENSORS_STMT, params);
-
-    std::pair<timestamp_t, double> reading = parse_reading(result, 0);
-    PQclear(result);
-    return reading;
+    return *(get_reading_records(SELECT_LAST_READING_SQL, params, 1)->begin());
 }
 
 reading_t PostgreSQLStore::get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp) {
 
-    const char *params[2];
+    const char* params[2];
     params[0] = sensor->uuid_string().c_str();
     params[1] = std::to_string(timestamp).c_str();
 
-    PGresult* result = select(SELECT_READING_STMT, FETCH_SENSORS_STMT, params);
-
-    std::pair<timestamp_t, double> reading = parse_reading(result, 0);
-    PQclear(result);
-    return reading;
+    return *(get_reading_records(SELECT_READING_SQL, params, 2)->begin());
 }
 
 void PostgreSQLStore::add_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
 
-    add_reading_records(INSERT_READING_STMT, sensor, readings, ignore_errors);
+    add_reading_records(INSERT_READING_SQL, sensor, readings, ignore_errors);
 }
 
 void PostgreSQLStore::update_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
 
-    add_reading_records(UPDATE_READING_STMT, sensor, readings, ignore_errors);
+    add_reading_records(UPDATE_READING_SQL, sensor, readings, ignore_errors);
 }
 
-void PostgreSQLStore::add_reading_records(const std::string statement, const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
+void PostgreSQLStore::add_reading_records(const char* statement, const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
 
-    const char *params[3];
+    const char* params[3];
     params[0] = sensor->uuid_string().c_str();
 
     for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
 
-        params[1] = std::to_string(time_converter->convert_to_epoch((*it).first)).c_str();
-        params[2] = std::to_string((*it).second).c_str();
+        const std::string timestamp = std::to_string(time_converter->convert_to_epoch((*it).first));
+        const std::string value = std::to_string((*it).second);
+
+        params[1] = timestamp.c_str();
+        params[2] = value.c_str();
 
         try {
-            execute(statement, params);
+            execute(statement, params, 3);
 
         } catch (std::exception const& e) {
             handle_reading_insertion_error(ignore_errors, (*it).first, (*it).second);
@@ -293,93 +285,98 @@ void PostgreSQLStore::add_reading_records(const std::string statement, const Sen
     }
 }
 
-void PostgreSQLStore::execute(const std::string statement) {
+readings_t_Ptr PostgreSQLStore::get_reading_records(const char* statement, const char* params[], const int num_params) {
 
-    PGresult *result = PQexec(_connection, statement.c_str());
-    check(result, PGRES_COMMAND_OK);
-    PQclear(result);
-}
+    PGresult* result = NULL;
+    try {
+        result = execute(statement, params, num_params, PGRES_TUPLES_OK);
 
-void PostgreSQLStore::execute(const std::string statement, const char *params[]) {
+        readings_t_Ptr readings(new readings_t());
+        int num_rows = PQntuples(result);
 
-    PGresult *result = PQexecParams(_connection,
-            statement.c_str(),
-            1, /* one param */
-            NULL, /* let the backend deduce param type */
-            params,
-            NULL, /* don't need param lengths since text */
-            NULL, /* default to all text params */
-            1); /* ask for binary results */
+        for (int row = 0; row < num_rows; row++) {
+            readings->insert(parse_reading(result, row));
+        }
 
-    check(result, PGRES_COMMAND_OK);
-    PQclear(result);
-}
+        clear(result);
+        return readings;
 
-PGresult* PostgreSQLStore::select(const std::string select_statement, const std::string fetch_statement) {
-
-    PGresult *result = PQexec(_connection, select_statement.c_str());
-    check(result, PGRES_COMMAND_OK);
-    PQclear(result);
-
-    result = PQexec(_connection, fetch_statement.c_str());
-    check(result, PGRES_TUPLES_OK);
-
-    return result;
-}
-
-PGresult* PostgreSQLStore::select(const std::string select_statement, const std::string fetch_statement, const char *params[]) {
-
-    PGresult *result = PQexecParams(_connection,
-            select_statement.c_str(),
-            1, /* one param */
-            NULL, /* let the backend deduce param type */
-            params,
-            NULL, /* don't need param lengths since text */
-            NULL, /* default to all text params */
-            1); /* ask for binary results */
-
-    check(result, PGRES_COMMAND_OK);
-    PQclear(result);
-
-    result = PQexec(_connection, fetch_statement.c_str());
-    check(result, PGRES_TUPLES_OK);
-
-    return result;
-}
-
-void PostgreSQLStore::check(PGresult *result, ExecStatusType expected_return) {
-
-    ExecStatusType rc = PQresultStatus(result);
-
-    if (rc != expected_return) {
-
-        std::ostringstream oss;
-        oss << "Can't execute SQL statement. Error: " << PQerrorMessage(_connection) << ", Error code: " << rc;
-        PQclear(result);
-
-        throw StoreException(oss.str());
+    } catch (std::exception const& e) {
+        clear(result);
+        throw e;
     }
 }
 
-Sensor::Ptr PostgreSQLStore::parse_sensor(PGresult* result, int row) {
+void PostgreSQLStore::execute(const char* statement, const char* params[], const int num_params) {
+
+    PGresult* result = NULL;
+    try {
+        result = execute(statement, params, num_params, PGRES_COMMAND_OK);
+        clear(result);
+
+    } catch (std::exception const& e) {
+        clear(result);
+        throw e;
+    }
+}
+
+PGresult* PostgreSQLStore::execute(const char* statement, const char* params[], const int num_params, const ExecStatusType expected_status) {
+
+    PGresult* result = PQexecParams(_connection, statement, num_params, NULL, params, NULL, NULL, 0);
+    ExecStatusType status = PQresultStatus(result);
+
+    if (status != expected_status) {
+
+        std::ostringstream oss;
+        oss << "Can't execute SQL statement. Error: " << PQerrorMessage(_connection) << ", Error code: " << status;
+        clear(result);
+
+        throw StoreException(oss.str());
+    }
+    return result;
+}
+
+void PostgreSQLStore::clear(PGresult* result) {
+
+    if (result) {
+        PQclear(result);
+    }
+}
+
+Sensor::Ptr PostgreSQLStore::parse_sensor(PGresult* result, const int row) {
 
     return sensor_factory->createSensor(
-            std::string((char*) PQgetvalue(result, row, 0)), //uuid
-            std::string((char*) PQgetvalue(result, row, 1)), //external id
-            std::string((char*) PQgetvalue(result, row, 2)), //name
-            std::string((char*) PQgetvalue(result, row, 3)), //description
-            std::string((char*) PQgetvalue(result, row, 4)), //unit
-            std::string((char*) PQgetvalue(result, row, 5)), //timezone
-            DeviceType::get_by_id(atoi(PQgetvalue(result, row, 6))) //device type
+            get_string_value(result, row, 0), //uuid
+            get_string_value(result, row, 1), //external id
+            get_string_value(result, row, 2), //name
+            get_string_value(result, row, 3), //description
+            get_string_value(result, row, 4), //unit
+            get_string_value(result, row, 5), //timezone
+            DeviceType::get_by_id(get_long_value(result, row, 6)) //device type
             );
 }
 
-reading_t PostgreSQLStore::parse_reading(PGresult* result, int row) {
+reading_t PostgreSQLStore::parse_reading(PGresult* result, const int row) {
 
     return std::pair<timestamp_t, double>(
-            time_converter->convert_from_epoch(atoi(PQgetvalue(result, row, 0))),
-            atof(PQgetvalue(result, row, 1))
+            time_converter->convert_from_epoch(get_long_value(result, row, 0)),
+            get_double_value(result, row, 1)
             );
+}
+
+std::string PostgreSQLStore::get_string_value(PGresult* result, const int row, const int col) {
+
+    return std::string(PQgetvalue(result, row, col));
+}
+
+unsigned long int PostgreSQLStore::get_long_value(PGresult* result, const int row, const int col) {
+
+    return atol(PQgetvalue(result, row, col));
+}
+
+double PostgreSQLStore::get_double_value(PGresult* result, const int row, const int col) {
+
+    return atof(PQgetvalue(result, row, col));
 }
 
 #endif /* ENABLE_POSTGRESQL */

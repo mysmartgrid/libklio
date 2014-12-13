@@ -70,7 +70,6 @@ void PostgreSQLTransaction::rollback() {
         PGresult *result = PQexec(_connection, "ROLLBACK");
 
         if (PQresultStatus(result) == PGRES_COMMAND_OK) {
-
             _pending = false;
             LOG("Transaction has been rolled back.");
 

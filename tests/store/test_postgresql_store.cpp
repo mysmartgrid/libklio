@@ -36,7 +36,7 @@ klio::PostgreSQLStore::Ptr create_postgresql_test_store() {
     std::cout << "Attempting to create PostgreSQL store " << std::endl;
 
     klio::PostgreSQLStore::Ptr store = pstore_factory->create_postgresql_store(
-            "host=localhost port=5432 dbname=kliostore user=kliotester password=12test34 connect_timeout=10"
+            "host=localhost port=5432 dbname=kliostore user=kliotester password=12test34"
             );
 
     std::cout << "Created: " << store->str() << std::endl;
@@ -60,25 +60,24 @@ BOOST_AUTO_TEST_CASE(check_create_postgresql_storage) {
         klio::PostgreSQLStore::Ptr store = create_postgresql_test_store();
 
         BOOST_CHECK_EQUAL(
-                "host=localhost port=5432 dbname=kliostore user=kliotester password=12test34 connect_timeout=10",
+                "host=localhost port=5432 dbname=kliostore user=kliotester password=12test34",
                 store->info()
                 );
 
         store->dispose();
 
     } catch (std::exception const& ex) {
-        BOOST_FAIL("Unexpected exception occurred during RedisStore test");
+        BOOST_FAIL("Unexpected exception occurred during PostgreSQL test");
     }
 }
 
-/*
-BOOST_AUTO_TEST_CASE(check_add_redis_sensor) {
+BOOST_AUTO_TEST_CASE(check_add_postgresql_sensor) {
 
-    std::cout << "Testing sensor addition for Redis" << std::endl;
-    klio::RedisStore::Ptr store = create_redis_test_store();
+    std::cout << "Testing sensor addition for PostgreSQL" << std::endl;
+    klio::PostgreSQLStore::Ptr store = create_postgresql_test_store();
 
     try {
-        klio::Sensor::Ptr sensor = create_test_sensor("aaaa", "Test libklio", "kwh");
+        klio::Sensor::Ptr sensor = create_test_psensor("aaaa", "Test libklio", "kwh");
         store->add_sensor(sensor);
 
         klio::Sensor::Ptr retrieved = store->get_sensor(sensor->uuid());
@@ -99,16 +98,16 @@ BOOST_AUTO_TEST_CASE(check_add_redis_sensor) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_update_redis_sensor) {
+BOOST_AUTO_TEST_CASE(check_update_postgresql_sensor) {
 
-    std::cout << "Testing sensor update for Redis" << std::endl;
-    klio::RedisStore::Ptr store = create_redis_test_store();
+    std::cout << "Testing sensor update for PostgreSQL" << std::endl;
+    klio::PostgreSQLStore::Ptr store = create_postgresql_test_store();
 
     try {
-        klio::Sensor::Ptr sensor = create_test_sensor("Test", "Test update", "kwh");
+        klio::Sensor::Ptr sensor = create_test_psensor("Test", "Test update", "kwh");
         store->add_sensor(sensor);
 
-        klio::Sensor::Ptr changed(sensor_factory->createSensor(
+        klio::Sensor::Ptr changed(psensor_factory->createSensor(
                 sensor->uuid_string(),
                 "Test",
                 "Test libklio",
@@ -132,13 +131,13 @@ BOOST_AUTO_TEST_CASE(check_update_redis_sensor) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_remove_redis_sensor) {
+BOOST_AUTO_TEST_CASE(check_remove_postgresql_sensor) {
 
-    std::cout << "Testing sensor removal for Redis" << std::endl;
-    klio::RedisStore::Ptr store = create_redis_test_store();
+    std::cout << "Testing sensor removal for PostgreSQL" << std::endl;
+    klio::PostgreSQLStore::Ptr store = create_postgresql_test_store();
 
     try {
-        klio::Sensor::Ptr sensor = create_test_sensor("cccc", "Test libklio", "kwh");
+        klio::Sensor::Ptr sensor = create_test_psensor("cccc", "Test libklio", "kwh");
         store->add_sensor(sensor);
 
         store->remove_sensor(sensor);
@@ -160,13 +159,13 @@ BOOST_AUTO_TEST_CASE(check_remove_redis_sensor) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_get_redis_sensor) {
+BOOST_AUTO_TEST_CASE(check_get_postgresql_sensor) {
 
-    std::cout << "Testing sensor query by uuid for Redis" << std::endl;
-    klio::RedisStore::Ptr store = create_redis_test_store();
+    std::cout << "Testing sensor query by uuid for PostgreSQL" << std::endl;
+    klio::PostgreSQLStore::Ptr store = create_postgresql_test_store();
 
     try {
-        klio::Sensor::Ptr sensor = create_test_sensor("dddd", "Test libklio", "kwh");
+        klio::Sensor::Ptr sensor = create_test_psensor("dddd", "Test libklio", "kwh");
         store->add_sensor(sensor);
 
         klio::Sensor::Ptr retrieved = store->get_sensor(sensor->uuid());
@@ -196,13 +195,13 @@ BOOST_AUTO_TEST_CASE(check_get_redis_sensor) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_get_redis_sensor_by_name) {
+BOOST_AUTO_TEST_CASE(check_get_postgresql_sensor_by_name) {
 
-    std::cout << "Testing sensor query by name for Redis" << std::endl;
-    klio::RedisStore::Ptr store = create_redis_test_store();
+    std::cout << "Testing sensor query by name for PostgreSQL" << std::endl;
+    klio::PostgreSQLStore::Ptr store = create_postgresql_test_store();
 
     try {
-        klio::Sensor::Ptr sensor1(sensor_factory->createSensor(
+        klio::Sensor::Ptr sensor1(psensor_factory->createSensor(
                 "98c18074-8bcf-890b-db7c-c1281038adcb",
                 "Unique External Id",
                 "Unique Name",
@@ -212,7 +211,7 @@ BOOST_AUTO_TEST_CASE(check_get_redis_sensor_by_name) {
 
         store->add_sensor(sensor1);
 
-        klio::Sensor::Ptr sensor2(sensor_factory->createSensor(
+        klio::Sensor::Ptr sensor2(psensor_factory->createSensor(
                 "88c18074-890b-8bcf-db7c-c1281038adcb",
                 "External Id 1",
                 "Duplicated Name",
@@ -222,7 +221,7 @@ BOOST_AUTO_TEST_CASE(check_get_redis_sensor_by_name) {
 
         store->add_sensor(sensor2);
 
-        klio::Sensor::Ptr sensor3(sensor_factory->createSensor(
+        klio::Sensor::Ptr sensor3(psensor_factory->createSensor(
                 "99c18074-890b-8bcf-db7c-c1281038adcb",
                 "External Id 2",
                 "Duplicated Name",
@@ -257,13 +256,13 @@ BOOST_AUTO_TEST_CASE(check_get_redis_sensor_by_name) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_get_redis_sensors_by_external_id) {
+BOOST_AUTO_TEST_CASE(check_get_postgresql_sensors_by_external_id) {
 
-    std::cout << "Testing sensor query by external id for Redis" << std::endl;
-    klio::RedisStore::Ptr store = create_redis_test_store();
+    std::cout << "Testing sensor query by external id for PostgreSQL" << std::endl;
+    klio::PostgreSQLStore::Ptr store = create_postgresql_test_store();
 
     try {
-        klio::Sensor::Ptr sensor1(sensor_factory->createSensor(
+        klio::Sensor::Ptr sensor1(psensor_factory->createSensor(
                 "82c18074-8bcf-890b-db7c-c1281038adcb",
                 "External Id 1",
                 "Sensor 1",
@@ -273,7 +272,7 @@ BOOST_AUTO_TEST_CASE(check_get_redis_sensors_by_external_id) {
 
         store->add_sensor(sensor1);
 
-        klio::Sensor::Ptr sensor2(sensor_factory->createSensor(
+        klio::Sensor::Ptr sensor2(psensor_factory->createSensor(
                 "74c18074-890b-8bcf-db7c-c1281038adcb",
                 "External Id 2",
                 "Sensor 2",
@@ -309,13 +308,13 @@ BOOST_AUTO_TEST_CASE(check_get_redis_sensors_by_external_id) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_get_redis_sensor_uuids) {
+BOOST_AUTO_TEST_CASE(check_get_postgresql_sensor_uuids) {
 
-    std::cout << "Testing sensor uuids query for Redis" << std::endl;
-    klio::RedisStore::Ptr store = create_redis_test_store();
+    std::cout << "Testing sensor uuids query for PostgreSQL" << std::endl;
+    klio::PostgreSQLStore::Ptr store = create_postgresql_test_store();
 
     try {
-        klio::Sensor::Ptr sensor1(sensor_factory->createSensor(
+        klio::Sensor::Ptr sensor1(psensor_factory->createSensor(
                 "98c17480-8bcf-890b-db7c-c1081038adcb",
                 "TestA",
                 "TestA",
@@ -325,7 +324,7 @@ BOOST_AUTO_TEST_CASE(check_get_redis_sensor_uuids) {
 
         store->add_sensor(sensor1);
 
-        klio::Sensor::Ptr sensor2(sensor_factory->createSensor(
+        klio::Sensor::Ptr sensor2(psensor_factory->createSensor(
                 "88c17480-890b-8bcf-db7c-c1181038adcb",
                 "TestB",
                 "TestB",
@@ -356,13 +355,13 @@ BOOST_AUTO_TEST_CASE(check_get_redis_sensor_uuids) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_add_retrieve_redis_reading) {
+BOOST_AUTO_TEST_CASE(check_add_retrieve_postgresql_reading) {
 
     std::cout << std::endl << "Adding & retrieving a reading to/from a sensor." << std::endl;
-    klio::RedisStore::Ptr store = create_redis_test_store();
+    klio::PostgreSQLStore::Ptr store = create_postgresql_test_store();
 
     try {
-        klio::Sensor::Ptr sensor = create_test_sensor("eeee", "Test libklio", "watt");
+        klio::Sensor::Ptr sensor = create_test_psensor("eeee", "Test libklio", "watt");
         store->add_sensor(sensor);
         std::cout << "added to store: " << sensor->str() << std::endl;
 
@@ -396,13 +395,13 @@ BOOST_AUTO_TEST_CASE(check_add_retrieve_redis_reading) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_redis_num_readings) {
+BOOST_AUTO_TEST_CASE(check_postgresql_num_readings) {
 
     std::cout << std::endl << "Checking number of readings." << std::endl;
-    klio::RedisStore::Ptr store = create_redis_test_store();
+    klio::PostgreSQLStore::Ptr store = create_postgresql_test_store();
 
     try {
-        klio::Sensor::Ptr sensor = create_test_sensor("ffff", "Test libklio", "watt");
+        klio::Sensor::Ptr sensor = create_test_psensor("ffff", "Test libklio", "watt");
         store->add_sensor(sensor);
         std::cout << "added to store: " << sensor->str() << std::endl;
 
@@ -435,12 +434,12 @@ BOOST_AUTO_TEST_CASE(check_redis_num_readings) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_redis_store_creation_performance) {
+BOOST_AUTO_TEST_CASE(check_postgresql_store_creation_performance) {
 
     try {
-        klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-        klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "sensor1", "Watt", "Europe/Berlin"));
-        klio::Sensor::Ptr sensor2(sensor_factory->createSensor("sensor2", "sensor2", "Watt", "Europe/Berlin"));
+        klio::SensorFactory::Ptr psensor_factory(new klio::SensorFactory());
+        klio::Sensor::Ptr sensor1(psensor_factory->createSensor("sensor1", "sensor1", "Watt", "Europe/Berlin"));
+        klio::Sensor::Ptr sensor2(psensor_factory->createSensor("sensor2", "sensor2", "Watt", "Europe/Berlin"));
         klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
         klio::Store::Ptr store;
 
@@ -454,14 +453,13 @@ BOOST_AUTO_TEST_CASE(check_redis_store_creation_performance) {
 
         try {
             std::cout << std::endl << "Performance Test" << std::endl;
-            std::cout << "Performance Test - RedisStore" << std::endl;
+            std::cout << "Performance Test - PostgreSQLStore" << std::endl;
 
             time_before = boost::posix_time::microsec_clock::local_time();
 
-            store = store_factory->create_redis_store(
-                    klio::RedisStore::DEFAULT_REDIS_HOST,
-                    klio::RedisStore::DEFAULT_REDIS_PORT,
-                    klio::RedisStore::DEFAULT_REDIS_DB,
+            store = store_factory->create_postgresql_store(
+                    "host=localhost port=5432 dbname=kliostore user=kliotester password=12test34",
+                    true,
                     false,
                     false,
                     0);
@@ -470,7 +468,7 @@ BOOST_AUTO_TEST_CASE(check_redis_store_creation_performance) {
 
             elapsed_time = time_after - time_before;
             seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
-            std::cout << "Performance Test - RedisStore - " <<
+            std::cout << "Performance Test - PostgreSQLStore - " <<
                     "Create store :                              "
                     << seconds << " s" << std::endl;
 
@@ -487,12 +485,12 @@ BOOST_AUTO_TEST_CASE(check_redis_store_creation_performance) {
     }
 }
 
-void run_redis_store_performance_tests(const bool auto_commit, const bool auto_flush, const long flush_timeout) {
+void run_postgresql_store_performance_tests(const bool auto_commit, const bool auto_flush, const long flush_timeout) {
 
     try {
-        klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-        klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "sensor1", "Watt", "Europe/Berlin"));
-        klio::Sensor::Ptr sensor2(sensor_factory->createSensor("sensor2", "sensor2", "Watt", "Europe/Berlin"));
+        klio::SensorFactory::Ptr psensor_factory(new klio::SensorFactory());
+        klio::Sensor::Ptr sensor1(psensor_factory->createSensor("sensor1", "sensor1", "Watt", "Europe/Berlin"));
+        klio::Sensor::Ptr sensor2(psensor_factory->createSensor("sensor2", "sensor2", "Watt", "Europe/Berlin"));
         klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
         klio::Store::Ptr store;
 
@@ -506,14 +504,13 @@ void run_redis_store_performance_tests(const bool auto_commit, const bool auto_f
 
         try {
             std::cout << std::endl << "Performance Test" << std::endl;
-            std::cout << std::endl << "Performance Test - RedisStore - " <<
+            std::cout << std::endl << "Performance Test - PostgreSQLStore - " <<
                     " auto commit: " << (auto_commit ? "true" : "false") <<
                     ", auto flushing: " << (auto_flush ? "true" : "false") << std::endl;
 
-            store = store_factory->create_redis_store(
-                    klio::RedisStore::DEFAULT_REDIS_HOST,
-                    klio::RedisStore::DEFAULT_REDIS_PORT,
-                    klio::RedisStore::DEFAULT_REDIS_DB,
+            store = store_factory->create_postgresql_store(
+                    "host=localhost port=5432 dbname=kliostore user=kliotester password=12test34",
+                    true,
                     auto_commit,
                     auto_flush,
                     flush_timeout);
@@ -528,7 +525,7 @@ void run_redis_store_performance_tests(const bool auto_commit, const bool auto_f
 
             elapsed_time = time_after - time_before;
             seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
-            std::cout << "Performance Test - RedisStore - " <<
+            std::cout << "Performance Test - PostgreSQLStore - " <<
                     "Add 1st sensor:                             "
                     << seconds << " s" << std::endl;
 
@@ -538,7 +535,7 @@ void run_redis_store_performance_tests(const bool auto_commit, const bool auto_f
 
             elapsed_time = time_after - time_before;
             seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
-            std::cout << "Performance Test - RedisStore - " <<
+            std::cout << "Performance Test - PostgreSQLStore - " <<
                     "Add 2nd sensor:                             "
                     << seconds << " s" << std::endl;
 
@@ -552,7 +549,7 @@ void run_redis_store_performance_tests(const bool auto_commit, const bool auto_f
 
             elapsed_time = time_after - time_before;
             seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
-            std::cout << "Performance Test - RedisStore - " <<
+            std::cout << "Performance Test - PostgreSQLStore - " <<
                     "Add 1st reading:                            "
                     << seconds << " s" << std::endl;
 
@@ -564,7 +561,7 @@ void run_redis_store_performance_tests(const bool auto_commit, const bool auto_f
 
             elapsed_time = time_after - time_before;
             seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
-            std::cout << "Performance Test - RedisStore - " <<
+            std::cout << "Performance Test - PostgreSQLStore - " <<
                     "Add 2nd reading:                            "
                     << seconds << " s" << std::endl;
 
@@ -583,7 +580,7 @@ void run_redis_store_performance_tests(const bool auto_commit, const bool auto_f
 
             elapsed_time = time_after - time_before;
             seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
-            std::cout << "Performance Test - RedisStore - " <<
+            std::cout << "Performance Test - PostgreSQLStore - " <<
                     "Add " << num_readings << " readings:                          "
                     << seconds << " s" << std::endl;
 
@@ -594,7 +591,7 @@ void run_redis_store_performance_tests(const bool auto_commit, const bool auto_f
 
                 elapsed_time = time_after - time_before;
                 seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
-                std::cout << "Performance Test - RedisStore - " <<
+                std::cout << "Performance Test - PostgreSQLStore - " <<
                         "Flushing " << num_readings << " readings:                     "
                         << seconds << " s" << std::endl;
             }
@@ -606,7 +603,7 @@ void run_redis_store_performance_tests(const bool auto_commit, const bool auto_f
 
                 elapsed_time = time_after - time_before;
                 seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
-                std::cout << "Performance Test - RedisStore - " <<
+                std::cout << "Performance Test - PostgreSQLStore - " <<
                         "Committing " << num_readings << " readings:                   "
                         << seconds << " s" << std::endl;
             }
@@ -617,7 +614,7 @@ void run_redis_store_performance_tests(const bool auto_commit, const bool auto_f
 
             elapsed_time = time_after - time_before;
             seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
-            std::cout << "Performance Test - RedisStore - " <<
+            std::cout << "Performance Test - PostgreSQLStore - " <<
                     "Get sensors by external id:                 "
                     << seconds << " s" << std::endl;
 
@@ -627,7 +624,7 @@ void run_redis_store_performance_tests(const bool auto_commit, const bool auto_f
 
             elapsed_time = time_after - time_before;
             seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
-            std::cout << "Performance Test - RedisStore - " <<
+            std::cout << "Performance Test - PostgreSQLStore - " <<
                     "Get " << num_readings << " readings:                          "
                     << seconds << " s" << std::endl;
 
@@ -644,14 +641,13 @@ void run_redis_store_performance_tests(const bool auto_commit, const bool auto_f
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_redis_store_performance) {
+BOOST_AUTO_TEST_CASE(check_postgresql_store_performance) {
 
-    run_redis_store_performance_tests( true, true,  0);
-    run_redis_store_performance_tests( true, false, 0);
-    run_redis_store_performance_tests(false, true,  0);
-    run_redis_store_performance_tests(false, false, 0);
+    run_postgresql_store_performance_tests(true, true, 0);
+    run_postgresql_store_performance_tests(true, false, 0);
+    run_postgresql_store_performance_tests(false, true, 0);
+    run_postgresql_store_performance_tests(false, false, 0);
 }
- */
 
 #endif /* ENABLE_POSTGRESQL */
 

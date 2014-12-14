@@ -25,6 +25,7 @@ const char* PostgreSQLStore::DELETE_SENSOR_STMT = "DELETE_SENSOR";
 const char* PostgreSQLStore::UPDATE_SENSOR_STMT = "UPDATE_SENSOR";
 const char* PostgreSQLStore::SELECT_SENSORS_STMT = "SELECT_SENSORS";
 const char* PostgreSQLStore::INSERT_READING_STMT = "INSERT_READING";
+const char* PostgreSQLStore::COPY_READINGS_STMT = "COPY_READINGS";
 const char* PostgreSQLStore::UPDATE_READING_STMT = "UPDATE_READING";
 const char* PostgreSQLStore::SELECT_READINGS_STMT = "SELECT_READINGS";
 const char* PostgreSQLStore::SELECT_TIMEFRAME_READINGS_STMT = "SELECT_TIMEFRAME_READINGS";
@@ -286,13 +287,9 @@ void PostgreSQLStore::add_reading_records(const Sensor::Ptr sensor, const readin
         add_reading_records(INSERT_READING_STMT, sensor, readings, ignore_errors);
 
     } else {
-
         PGresult* result = NULL;
         try {
-            result = PQexec(_connection, "COPY readings (uuid, timestamp, value) FROM STDIN (FORMAT csv, DELIMITER ',')");
-            check(result, PGRES_COPY_IN);
-            clear(result);
-            result = NULL;
+            execute(COPY_READINGS_STMT, NULL, 0, PGRES_COPY_IN);
 
             std::ostringstream oss;
             for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
@@ -343,6 +340,9 @@ void PostgreSQLStore::prepare_statements() {
 
     prepare_statement(INSERT_READING_STMT,
             "INSERT INTO readings (uuid, timestamp, value) VALUES ($1::varchar, $2::integer, $3::float8)", 3);
+
+    prepare_statement(COPY_READINGS_STMT,
+            "COPY readings (uuid, timestamp, value) FROM STDIN (FORMAT csv, DELIMITER ',')", 0);
 
     prepare_statement(UPDATE_READING_STMT,
             "UPDATE readings SET timestamp = $2::integer, value = $3::float8 WHERE uuid = $1::varchar", 3);
@@ -436,7 +436,7 @@ void PostgreSQLStore::execute(const char* statement) {
 
     PGresult* result = NULL;
     try {
-        result = PQexecParams(_connection, statement, 0, NULL, NULL, NULL, NULL, 0);
+        result = PQexec(_connection, statement);
         check(result, PGRES_COMMAND_OK);
         clear(result);
 
@@ -460,7 +460,8 @@ void PostgreSQLStore::execute(const char* statement_name, const char* params[], 
             throw e;
         }
     } else {
-        PQsendQueryPrepared(_connection, statement_name, num_params, params, NULL, NULL, 0);
+        int code = PQsendQueryPrepared(_connection, statement_name, num_params, params, NULL, NULL, 0);
+        check(code);
     }
 }
 
@@ -493,9 +494,9 @@ void PostgreSQLStore::check(PGresult* result, const ExecStatusType expected_stat
 
 void PostgreSQLStore::check(const int result) {
 
-    if (result < 1) {
+    if (result < 0) {
         std::ostringstream oss;
-        oss << "Can't execute SQL statement.";
+        oss << "Can't execute SQL statement. Invalid return code: " << result;
         throw StoreException(oss.str());
     }
 }

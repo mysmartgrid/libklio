@@ -130,6 +130,7 @@ namespace klio {
         static const char* UPDATE_SENSOR_STMT;
         static const char* SELECT_SENSORS_STMT;
         static const char* INSERT_READING_STMT;
+        static const char* COPY_READINGS_STMT;
         static const char* UPDATE_READING_STMT;
         static const char* SELECT_READINGS_STMT;
         static const char* SELECT_TIMEFRAME_READINGS_STMT;

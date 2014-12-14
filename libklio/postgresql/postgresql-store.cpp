@@ -282,7 +282,41 @@ reading_t PostgreSQLStore::get_reading_record(const Sensor::Ptr sensor, const ti
 
 void PostgreSQLStore::add_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
 
-    add_reading_records(INSERT_READING_STMT, sensor, readings, ignore_errors);
+    if (readings.size() < 101) {
+        add_reading_records(INSERT_READING_STMT, sensor, readings, ignore_errors);
+
+    } else {
+
+        PGresult* result = NULL;
+        try {
+            result = PQexec(_connection, "COPY readings (uuid, timestamp, value) FROM STDIN (FORMAT csv, DELIMITER ',')");
+            check(result, PGRES_COPY_IN);
+            clear(result);
+            result = NULL;
+
+            std::ostringstream oss;
+            for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
+                oss << sensor->uuid_string() << "," <<
+                        time_converter->convert_to_epoch((*it).first) << "," <<
+                        (*it).second << std::endl;
+            }
+            std::string buffer = oss.str();
+
+            int code = PQputCopyData(_connection, buffer.c_str(), buffer.size());
+            check(code);
+
+            code = PQputCopyEnd(_connection, NULL);
+            check(code);
+
+            result = PQgetResult(_connection);
+            check(result, PGRES_COMMAND_OK);
+            clear(result);
+
+        } catch (std::exception const& e) {
+            clear(result);
+            handle_reading_insertion_error(ignore_errors, sensor);
+        }
+    }
 }
 
 void PostgreSQLStore::update_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
@@ -454,6 +488,15 @@ void PostgreSQLStore::check(PGresult* result, const ExecStatusType expected_stat
         std::ostringstream oss;
         oss << "Can't execute SQL statement.";
         throw EnvironmentException(oss.str());
+    }
+}
+
+void PostgreSQLStore::check(const int result) {
+
+    if (result < 1) {
+        std::ostringstream oss;
+        oss << "Can't execute SQL statement.";
+        throw StoreException(oss.str());
     }
 }
 

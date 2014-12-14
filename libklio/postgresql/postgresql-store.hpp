@@ -72,7 +72,7 @@ namespace klio {
         const std::string str();
 
         static const std::string DEFAULT_CONNECTION_INFO;
-        
+
     protected:
         Transaction::Ptr get_transaction_handler();
 
@@ -110,6 +110,7 @@ namespace klio {
         void execute(const char* statement_name, const char* params[], const int num_params);
         PGresult* execute(const char* statement_name, const char* params[], const int num_params, const ExecStatusType expected_status);
         void check(PGresult* result, const ExecStatusType expected_status);
+        void check(const int result);
         void clear(PGresult* result);
 
         Sensor::Ptr parse_sensor(PGresult* result, const int row);

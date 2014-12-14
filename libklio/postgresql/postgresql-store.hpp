@@ -94,15 +94,16 @@ namespace klio {
         void prepare_statements();
         void prepare_statement(const char* statement_name, const char* statement, const int num_params);
         void finalize_statements();
-        void clear_connection_refferences();
+        void clear_connection_references();
         PostgreSQLTransaction::Ptr create_transaction_handler();
+        const bool has_table(const char* name);
 
         void add_reading_records(const char* statement_name, const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors);
         readings_t_Ptr get_reading_records(const char* statement_name, const char* params[], const int num_params);
 
-        void execute(const char* statement, const char* params[], const int num_params);
-        void execute_prepared(const char* statement_name, const char* params[], const int num_params);
-        PGresult* execute_prepared(const char* statement_name, const char* params[], const int num_params, const ExecStatusType expected_return);
+        void execute(const char* statement);
+        void execute(const char* statement_name, const char* params[], const int num_params);
+        PGresult* execute(const char* statement_name, const char* params[], const int num_params, const ExecStatusType expected_return);
         void check(PGresult* result, const ExecStatusType expected_status);
         void clear(PGresult* result);
 
@@ -116,30 +117,11 @@ namespace klio {
         PGconn* _connection;
         PostgreSQLTransaction::Ptr _transaction;
 
-        static const char* CREATE_SENSORS_TABLE_SQL;
-        static const char* CREATE_READINGS_TABLE_SQL;
-        static const char* DROP_SENSORS_TABLE_SQL;
-        static const char* DROP_READINGS_TABLE_SQL;
-        static const char* DEALLOCATE_ALL_SQL;
-
-        static const char* INSERT_SENSOR_SQL;
-        static const char* DELETE_SENSOR_SQL;
-        static const char* UPDATE_SENSOR_SQL;
-        static const char* SELECT_SENSORS_SQL;
-
-        static const char* INSERT_READING_SQL;
-        static const char* UPDATE_READING_SQL;
-        static const char* SELECT_READINGS_SQL;
-        static const char* SELECT_TIMEFRAME_READINGS_SQL;
-        static const char* COUNT_READINGS_SQL;
-        static const char* SELECT_LAST_READING_SQL;
-        static const char* SELECT_READING_SQL;
-
+        static const char* HAS_TABLE_STMT;
         static const char* INSERT_SENSOR_STMT;
         static const char* DELETE_SENSOR_STMT;
         static const char* UPDATE_SENSOR_STMT;
         static const char* SELECT_SENSORS_STMT;
-
         static const char* INSERT_READING_STMT;
         static const char* UPDATE_READING_STMT;
         static const char* SELECT_READINGS_STMT;

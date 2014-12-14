@@ -69,6 +69,8 @@ namespace klio {
         void dispose();
         const std::string str();
 
+        static const std::string DEFAULT_CONNECTION_INFO;
+        
     protected:
         Transaction::Ptr get_transaction_handler();
 
@@ -96,6 +98,7 @@ namespace klio {
         void finalize_statements();
         void clear_connection_references();
         PostgreSQLTransaction::Ptr create_transaction_handler();
+
         const bool has_table(const char* name);
 
         void add_reading_records(const char* statement_name, const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors);

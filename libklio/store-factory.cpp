@@ -218,6 +218,11 @@ RedisStore::Ptr StoreFactory::create_redis_store(
 
 #ifdef ENABLE_POSTGRESQL
 
+PostgreSQLStore::Ptr StoreFactory::create_postgresql_store() {
+
+    return create_postgresql_store(PostgreSQLStore::DEFAULT_CONNECTION_INFO);
+}
+
 PostgreSQLStore::Ptr StoreFactory::create_postgresql_store(const std::string& info) {
 
     return create_postgresql_store(info, true);

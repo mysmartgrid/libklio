@@ -35,9 +35,7 @@ klio::PostgreSQLStore::Ptr create_postgresql_test_store() {
 
     std::cout << "Attempting to create PostgreSQL store " << std::endl;
 
-    klio::PostgreSQLStore::Ptr store = pstore_factory->create_postgresql_store(
-            "host=localhost port=5432 dbname=kliostore user=kliotester password=12test34"
-            );
+    klio::PostgreSQLStore::Ptr store = pstore_factory->create_postgresql_store();
 
     std::cout << "Created: " << store->str() << std::endl;
     return store;
@@ -59,10 +57,7 @@ BOOST_AUTO_TEST_CASE(check_create_postgresql_storage) {
     try {
         klio::PostgreSQLStore::Ptr store = create_postgresql_test_store();
 
-        BOOST_CHECK_EQUAL(
-                "host=localhost port=5432 dbname=kliostore user=kliotester password=12test34",
-                store->info()
-                );
+        BOOST_CHECK_EQUAL(klio::PostgreSQLStore::DEFAULT_CONNECTION_INFO, store->info());
         
         store = create_postgresql_test_store();
 
@@ -460,7 +455,7 @@ BOOST_AUTO_TEST_CASE(check_postgresql_store_creation_performance) {
             time_before = boost::posix_time::microsec_clock::local_time();
 
             store = store_factory->create_postgresql_store(
-                    "host=localhost port=5432 dbname=kliostore user=kliotester password=12test34",
+                    klio::PostgreSQLStore::DEFAULT_CONNECTION_INFO,
                     true,
                     false,
                     false,
@@ -511,7 +506,7 @@ void run_postgresql_store_performance_tests(const bool auto_commit, const bool a
                     ", auto flushing: " << (auto_flush ? "true" : "false") << std::endl;
 
             store = store_factory->create_postgresql_store(
-                    "host=localhost port=5432 dbname=kliostore user=kliotester password=12test34",
+                    klio::PostgreSQLStore::DEFAULT_CONNECTION_INFO,
                     true,
                     auto_commit,
                     auto_flush,

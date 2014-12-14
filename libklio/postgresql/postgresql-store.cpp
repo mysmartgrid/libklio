@@ -17,6 +17,8 @@
 
 using namespace klio;
 
+const std::string PostgreSQLStore::DEFAULT_CONNECTION_INFO = "host=postgresql-server1 port=5432 dbname=kliostore user=kliouser password=12test34";
+
 const char* PostgreSQLStore::HAS_TABLE_STMT = "HAS_TABLE";
 const char* PostgreSQLStore::INSERT_SENSOR_STMT = "INSERT_SENSOR";
 const char* PostgreSQLStore::DELETE_SENSOR_STMT = "DELETE_SENSOR";
@@ -158,7 +160,12 @@ const bool PostgreSQLStore::has_table(const char* name) {
 const std::string PostgreSQLStore::str() {
 
     std::ostringstream oss;
-    oss << "PostgreSQL database: " << _info;
+    oss << "PostgreSQL database";
+    
+    if (_connection) {
+        oss << ": " << PQuser(_connection) << "@" << PQdb(_connection);
+    }
+    
     return oss.str();
 };
 

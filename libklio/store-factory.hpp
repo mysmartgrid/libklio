@@ -159,6 +159,8 @@ namespace klio {
 #endif /* ENABLE_REDIS3M */
 
 #ifdef ENABLE_POSTGRESQL
+        
+        PostgreSQLStore::Ptr create_postgresql_store();
 
         PostgreSQLStore::Ptr create_postgresql_store(const std::string& info);
 

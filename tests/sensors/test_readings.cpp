@@ -423,9 +423,7 @@ klio::PostgreSQLStore::Ptr create_postgresql_test_store(const std::string& info)
 
 klio::PostgreSQLStore::Ptr create_postgresql_test_store() {
 
-    return create_postgresql_test_store(
-            "host=localhost port=5432 dbname=kliostore user=kliotester password=12test34"
-            );
+    return create_postgresql_test_store(klio::PostgreSQLStore::DEFAULT_CONNECTION_INFO);
 }
 
 BOOST_AUTO_TEST_CASE(check_postgresql_bulk_insert) {

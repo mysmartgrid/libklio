@@ -45,10 +45,12 @@ namespace klio {
                 const std::string& info,
                 const bool auto_commit,
                 const bool auto_flush,
-                const timestamp_t flush_timeout
+                const timestamp_t flush_timeout,
+                const bool synchronous
                 ) :
         Store(auto_commit, auto_flush, flush_timeout),
         _info(info),
+        _synchronous(synchronous),
         _connection(NULL) {
         };
 
@@ -106,7 +108,7 @@ namespace klio {
 
         void execute(const char* statement);
         void execute(const char* statement_name, const char* params[], const int num_params);
-        PGresult* execute(const char* statement_name, const char* params[], const int num_params, const ExecStatusType expected_return);
+        PGresult* execute(const char* statement_name, const char* params[], const int num_params, const ExecStatusType expected_status);
         void check(PGresult* result, const ExecStatusType expected_status);
         void clear(PGresult* result);
 
@@ -117,6 +119,7 @@ namespace klio {
         double get_double_value(PGresult* result, const int row, const int col);
 
         std::string _info;
+        bool _synchronous;
         PGconn* _connection;
         PostgreSQLTransaction::Ptr _transaction;
 

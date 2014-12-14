@@ -230,7 +230,7 @@ PostgreSQLStore::Ptr StoreFactory::create_postgresql_store(const std::string& in
 
 PostgreSQLStore::Ptr StoreFactory::create_postgresql_store(const std::string& info, const bool prepare) {
 
-    return create_postgresql_store(info, prepare, true, true, 600);
+    return create_postgresql_store(info, prepare, true, true, 600, true);
 }
 
 PostgreSQLStore::Ptr StoreFactory::create_postgresql_store(
@@ -238,9 +238,10 @@ PostgreSQLStore::Ptr StoreFactory::create_postgresql_store(
         const bool prepare,
         const bool auto_commit,
         const bool auto_flush,
-        const timestamp_t flush_timeout) {
+        const timestamp_t flush_timeout,
+        const bool synchronous) {
 
-    PostgreSQLStore::Ptr store = PostgreSQLStore::Ptr(new PostgreSQLStore(info, auto_commit, auto_flush, flush_timeout));
+    PostgreSQLStore::Ptr store = PostgreSQLStore::Ptr(new PostgreSQLStore(info, auto_commit, auto_flush, flush_timeout, synchronous));
     store->open();
     store->initialize();
     if (prepare) {

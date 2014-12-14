@@ -459,7 +459,8 @@ BOOST_AUTO_TEST_CASE(check_postgresql_store_creation_performance) {
                     true,
                     false,
                     false,
-                    0);
+                    0,
+                    true);
 
             time_after = boost::posix_time::microsec_clock::local_time();
 
@@ -482,7 +483,7 @@ BOOST_AUTO_TEST_CASE(check_postgresql_store_creation_performance) {
     }
 }
 
-void run_postgresql_store_performance_tests(const bool auto_commit, const bool auto_flush, const long flush_timeout) {
+void run_postgresql_store_performance_tests(const bool auto_commit, const bool auto_flush, const long flush_timeout, const bool synchronous) {
 
     try {
         klio::SensorFactory::Ptr psensor_factory(new klio::SensorFactory());
@@ -503,14 +504,16 @@ void run_postgresql_store_performance_tests(const bool auto_commit, const bool a
             std::cout << std::endl << "Performance Test" << std::endl;
             std::cout << std::endl << "Performance Test - PostgreSQLStore - " <<
                     " auto commit: " << (auto_commit ? "true" : "false") <<
-                    ", auto flushing: " << (auto_flush ? "true" : "false") << std::endl;
+                    ", auto flushing: " << (auto_flush ? "true" : "false") <<
+                    ", synchronous: " << (synchronous ? "true" : "false") << std::endl;
 
             store = store_factory->create_postgresql_store(
                     klio::PostgreSQLStore::DEFAULT_CONNECTION_INFO,
                     true,
                     auto_commit,
                     auto_flush,
-                    flush_timeout);
+                    flush_timeout,
+                    synchronous);
 
             if (!auto_commit) {
                 store->start_transaction();
@@ -640,10 +643,15 @@ void run_postgresql_store_performance_tests(const bool auto_commit, const bool a
 
 BOOST_AUTO_TEST_CASE(check_postgresql_store_performance) {
 
-    run_postgresql_store_performance_tests(true, true, 0);
-    run_postgresql_store_performance_tests(true, false, 0);
-    run_postgresql_store_performance_tests(false, true, 0);
-    run_postgresql_store_performance_tests(false, false, 0);
+    run_postgresql_store_performance_tests(true, true, 0, false);
+    run_postgresql_store_performance_tests(true, false, 0, false);
+    run_postgresql_store_performance_tests(false, true, 0, false);
+    run_postgresql_store_performance_tests(false, false, 0, false);
+    
+    run_postgresql_store_performance_tests(true, true, 0, true);
+    run_postgresql_store_performance_tests(true, false, 0, true);
+    run_postgresql_store_performance_tests(false, true, 0, true);
+    run_postgresql_store_performance_tests(false, false, 0, true);
 }
 
 #endif /* ENABLE_POSTGRESQL */

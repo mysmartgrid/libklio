@@ -161,11 +161,11 @@ const std::string PostgreSQLStore::str() {
 
     std::ostringstream oss;
     oss << "PostgreSQL database";
-    
+
     if (_connection) {
         oss << ": " << PQuser(_connection) << "@" << PQdb(_connection);
     }
-    
+
     return oss.str();
 };
 
@@ -374,6 +374,12 @@ readings_t_Ptr PostgreSQLStore::get_reading_records(const char* statement_name, 
 
     PGresult* result = NULL;
     try {
+        //Wait for previous insertions
+        do {
+            clear(result);
+            result = PQgetResult(_connection);
+        } while (result);
+
         result = execute(statement_name, params, num_params, PGRES_TUPLES_OK);
 
         readings_t_Ptr readings(new readings_t());
@@ -408,14 +414,19 @@ void PostgreSQLStore::execute(const char* statement) {
 
 void PostgreSQLStore::execute(const char* statement_name, const char* params[], const int num_params) {
 
-    PGresult* result = NULL;
-    try {
-        result = execute(statement_name, params, num_params, PGRES_COMMAND_OK);
-        clear(result);
+    if (_synchronous) {
 
-    } catch (std::exception const& e) {
-        clear(result);
-        throw e;
+        PGresult* result = NULL;
+        try {
+            result = execute(statement_name, params, num_params, PGRES_COMMAND_OK);
+            clear(result);
+
+        } catch (std::exception const& e) {
+            clear(result);
+            throw e;
+        }
+    } else {
+        PQsendQueryPrepared(_connection, statement_name, num_params, params, NULL, NULL, 0);
     }
 }
 

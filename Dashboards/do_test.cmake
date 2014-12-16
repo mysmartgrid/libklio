@@ -280,6 +280,7 @@ if ("${TESTING_MODEL}" STREQUAL "Continuous" AND first_checkout EQUAL 0 AND FORC
   endif ()
 endif ()
 
+set(LAST_RETURN_VALUE 0)
 ctest_configure (BUILD ${CTEST_BINARY_DIRECTORY} RETURN_VALUE LAST_RETURN_VALUE)
 
 if( STAGING_DIR)

@@ -15,14 +15,7 @@ const std::string RedisStore::OK = "OK";
 
 const std::string RedisStore::SENSORS_KEY = "libklio:sensors";
 const std::string RedisStore::SENSOR_KEY = "libklio:sensor:";
-const std::string RedisStore::TIMESTAMPS_KEY = ":timestamps";
 const std::string RedisStore::READINGS_KEY = ":readings";
-const std::string RedisStore::READING_KEY = ":reading:";
-
-const std::string RedisStore::SET = "SET";
-const std::string RedisStore::GET = "GET";
-const std::string RedisStore::EXISTS = "EXISTS";
-const std::string RedisStore::DEL = "DEL";
 
 const std::string RedisStore::SADD = "SADD";
 const std::string RedisStore::SMEMBERS = "SMEMBERS";
@@ -31,11 +24,13 @@ const std::string RedisStore::SREM = "SREM";
 const std::string RedisStore::HMSET = "HMSET";
 const std::string RedisStore::HMGET = "HMGET";
 const std::string RedisStore::HGETALL = "HGETALL";
+const std::string RedisStore::HGET = "HGET";
 const std::string RedisStore::HDEL = "HDEL";
+const std::string RedisStore::HKEYS = "HKEYS";
 
+const std::string RedisStore::DEL = "DEL";
 const std::string RedisStore::SELECT = "SELECT";
 const std::string RedisStore::FLUSHDB = "FLUSHDB";
-const std::string RedisStore::SAVE = "SAVE";
 
 void RedisStore::open() {
 
@@ -141,23 +136,18 @@ readings_t_Ptr RedisStore::get_timeframe_reading_records(const Sensor::Ptr senso
 
     //TODO: make this method more efficient
     check_sensor_existence(sensor, true);
-    readings_t_Ptr readings(new readings_t());
-    const std::vector<timestamp_t> timestamps = get_timestamps(sensor);
 
-    for (std::vector<timestamp_t>::const_iterator timestamp = timestamps.begin(); timestamp != timestamps.end(); timestamp++) {
+    readings_t_Ptr selected(new readings_t());
+    readings_t_Ptr readings = run_hget_readings(sensor);
 
-        if (*timestamp >= begin && *timestamp <= end) {
+    for (readings_cit_t reading = readings->begin(); reading != readings->end(); ++reading) {
 
-            std::string reading_key = compose_reading_key(sensor, *timestamp);
+        if ((*reading).first >= begin && (*reading).first <= end) {
 
-            readings->insert(
-                    std::pair<timestamp_t, double>(
-                    *timestamp,
-                    get_double_value(reading_key)
-                    ));
+            selected->insert(*reading);
         }
     }
-    return readings;
+    return selected;
 }
 
 unsigned long int RedisStore::get_num_readings_value(const Sensor::Ptr sensor) {
@@ -184,11 +174,11 @@ reading_t RedisStore::get_reading_record(const Sensor::Ptr sensor, const timesta
     check_sensor_existence(sensor, true);
 
     std::pair<timestamp_t, double> reading = std::pair<timestamp_t, double>(0, 0);
-    std::string reading_key = compose_reading_key(sensor, timestamp);
+    const std::string value = run_hget(compose_readings_key(sensor), std::to_string(timestamp));
 
-    if (run_exists(reading_key)) {
+    if (value.length() > 0) {
         reading.first = timestamp;
-        reading.second = get_double_value(reading_key);
+        reading.second = atof(value.c_str());
     }
     return reading;
 }
@@ -197,7 +187,7 @@ void RedisStore::add_reading_records(const Sensor::Ptr sensor, const readings_t&
 
     check_sensor_existence(sensor, true);
 
-    run_hmset_readings(sensor, readings, ignore_errors);
+    run_hmset_readings(sensor, readings);
 }
 
 void RedisStore::update_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
@@ -222,58 +212,9 @@ const std::string RedisStore::check_sensor_existence(const Sensor::Ptr sensor, c
     return compose_sensor_key(sensor);
 }
 
-const double RedisStore::get_double_value(const std::string& key) {
-
-    return atof(run_get(key).c_str());
-}
-
-const std::vector<timestamp_t> RedisStore::get_timestamps(const Sensor::Ptr sensor) {
-
-    std::vector<timestamp_t> timestamps;
-    const std::string key = compose_timestamps_key(sensor);
-    const std::vector<reply> members = run_smembers(key);
-
-    for (std::vector<reply>::const_iterator member = members.begin(); member != members.end(); member++) {
-
-        timestamps.push_back(atol((*member).str().c_str()));
-    }
-    return timestamps;
-}
-
-void RedisStore::run_set(const std::string& key, const double& value) {
-
-    _connection->run(command(SET)(key) (std::to_string(value)));
-}
-
-const std::string RedisStore::run_get(const std::string& key) {
-
-    return _connection->run(command(GET)(key)).str();
-}
-
-const bool RedisStore::run_exists(const std::string& key) {
-
-    return _connection->run(command(EXISTS)(key)).integer() > 0;
-}
-
-void RedisStore::run_del(const std::string& key) {
-
-    _connection->run(command(DEL)(key));
-}
-
 void RedisStore::run_del_readings(const Sensor::Ptr sensor) {
 
-    const std::vector<timestamp_t> timestamps = get_timestamps(sensor);
-
     command del = command(DEL);
-
-    for (std::vector<timestamp_t>::const_iterator timestamp = timestamps.begin(); timestamp != timestamps.end(); timestamp++) {
-
-        del << compose_reading_key(sensor, *timestamp);
-    }
-    del << compose_timestamps_key(sensor);
-    _connection->run(del);
-
-    del = command(DEL);
     del << compose_readings_key(sensor);
     _connection->run(del);
 }
@@ -307,31 +248,16 @@ const Sensor::Ptr RedisStore::run_hmget_sensor(const std::string& key) {
             );
 }
 
-void RedisStore::run_hmset_readings(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
-
-    command sadd = command(SADD);
-    sadd << compose_timestamps_key(sensor);
+void RedisStore::run_hmset_readings(const Sensor::Ptr sensor, const readings_t& readings) {
 
     command hmset = command(HMSET);
     hmset << compose_readings_key(sensor);
 
     for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
 
-        const timestamp_t timestamp = (*it).first;
-        const double value = (*it).second;
-
-        try {
-            run_set(compose_reading_key(sensor, timestamp), value);
-
-            sadd << timestamp;
-            hmset << timestamp;
-            hmset << value;
-
-        } catch (std::exception const& e) {
-            handle_reading_insertion_error(ignore_errors, timestamp, value);
-        }
+        hmset << (*it).first;
+        hmset << (*it).second;
     }
-    _connection->run(sadd);
     _connection->run(hmset);
 }
 
@@ -343,15 +269,15 @@ readings_t_Ptr RedisStore::run_hget_readings(const Sensor::Ptr sensor) {
             ).elements();
 
     readings_t_Ptr readings = readings_t_Ptr(new readings_t());
-    
+    timestamp_t timestamp;
+    double value;
+
     std::vector<reply>::const_iterator it = replies.begin();
     while (it != replies.end()) {
 
-        const timestamp_t timestamp = atol((*it).str().c_str());
-        it++;
-        const double value = atof((*it).str().c_str());
-        it++;
-        
+        timestamp = atol((*it++).str().c_str());
+        value = atof((*it++).str().c_str());
+
         readings->insert(
                 std::pair<timestamp_t, double>(
                 timestamp,
@@ -368,6 +294,16 @@ void RedisStore::run_hdel_sensor(const std::string& key) {
             ("name") ("description")
             ("unit") ("timezone")
             );
+}
+
+const std::vector<reply> RedisStore::run_hkeys(const std::string& key) {
+
+    return _connection->run(command(HKEYS)(key)).elements();
+}
+
+const std::string RedisStore::run_hget(const std::string& key, const std::string& field) {
+
+    return _connection->run(command(HGET)(key) (field)).str();
 }
 
 void RedisStore::run_sadd(const std::string& key, const std::string& value) {
@@ -405,24 +341,10 @@ const std::string RedisStore::compose_sensor_key(const Sensor::Ptr sensor) {
     return oss.str();
 }
 
-const std::string RedisStore::compose_timestamps_key(const Sensor::Ptr sensor) {
-
-    std::ostringstream oss;
-    oss << compose_sensor_key(sensor) << TIMESTAMPS_KEY;
-    return oss.str();
-}
-
 const std::string RedisStore::compose_readings_key(const Sensor::Ptr sensor) {
 
     std::ostringstream oss;
     oss << compose_sensor_key(sensor) << READINGS_KEY;
-    return oss.str();
-}
-
-const std::string RedisStore::compose_reading_key(const Sensor::Ptr sensor, const timestamp_t timestamp) {
-
-    std::ostringstream oss;
-    oss << compose_sensor_key(sensor) << READING_KEY << timestamp;
     return oss.str();
 }
 

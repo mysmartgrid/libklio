@@ -100,20 +100,16 @@ namespace klio {
         RedisTransaction::Ptr create_transaction_handler();
 
         const std::string check_sensor_existence(const Sensor::Ptr sensor, const bool should_exist);
-        const double get_double_value(const std::string& key);
-        const std::vector<timestamp_t> get_timestamps(const Sensor::Ptr sensor);
-
-        void run_set(const std::string& key, const double& value);
-        const std::string run_get(const std::string& key);
-        const bool run_exists(const std::string& key);
-        void run_del(const std::string& key);
+        
         void run_del_readings(const Sensor::Ptr sensor);
 
         void run_hmset_sensor(const std::string& key, const Sensor::Ptr sensor);
         const Sensor::Ptr run_hmget_sensor(const std::string& key);
-        void run_hmset_readings(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors);
+        void run_hmset_readings(const Sensor::Ptr sensor, const readings_t& readings);
         readings_t_Ptr run_hget_readings(const Sensor::Ptr sensor);
         void run_hdel_sensor(const std::string& key);
+        const std::vector<reply> run_hkeys(const std::string& key);
+        const std::string run_hget(const std::string& key, const std::string& field);
 
         void run_sadd(const std::string& key, const std::string& value);
         const std::vector<reply> run_smembers(const std::string& key);
@@ -123,9 +119,7 @@ namespace klio {
         void run_flushdb();
 
         const std::string compose_sensor_key(const Sensor::Ptr sensor);
-        const std::string compose_timestamps_key(const Sensor::Ptr sensor);
         const std::string compose_readings_key(const Sensor::Ptr sensor);
-        const std::string compose_reading_key(const Sensor::Ptr sensor, const timestamp_t timestamp);
         
         std::string _host;
         unsigned int _port;
@@ -135,28 +129,22 @@ namespace klio {
 
         static const std::string SENSORS_KEY;
         static const std::string SENSOR_KEY;
-        static const std::string TIMESTAMPS_KEY;
         static const std::string READINGS_KEY;
-        static const std::string READING_KEY;
-
-        static const std::string SET;
-        static const std::string GET;
-        static const std::string EXISTS;
-        static const std::string DEL;
 
         static const std::string SADD;
         static const std::string SMEMBERS;
-        static const std::string SISMEMBER;
         static const std::string SREM;
         
         static const std::string HMSET;
         static const std::string HMGET;
         static const std::string HGETALL;
+        static const std::string HGET;
         static const std::string HDEL;
+        static const std::string HKEYS;
 
+        static const std::string DEL;
         static const std::string SELECT;
         static const std::string FLUSHDB;
-        static const std::string SAVE;
     };
 };
 

@@ -31,7 +31,7 @@ include_directories(${CMAKE_SOURCE_DIR}
                     ${SQLITE3_INCLUDE_DIR}
                     ${ROCKSDB_INCLUDE_DIR}
                     ${JSONCPP_INCLUDE}
-                    ${LIBMYSMARTGRID_INCLUDE_DIRS}
+                    ${LIBMYSMARTGRID_INCLUDE_DIR}
 )
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
@@ -56,7 +56,7 @@ target_link_libraries(klio
 )
 
 if( ENABLE_MSG )
-  target_link_libraries(klio ${JSONCPP_LIBRARY} ${LIBMYSMARTGRID_LIBRARIES} ${LIBMYSMARTGRID_LIBRARY})
+  target_link_libraries(klio ${JSONCPP_LIBRARY} ${LIBMYSMARTGRID_LIBRARY})
 endif()
 
 #if(BUILD_SHARED_LIBS)

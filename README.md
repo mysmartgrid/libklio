@@ -122,6 +122,21 @@ requirements for redis3m:
    * libmsgpack-dev
    * boost
 
+In order to run unit tests, a Redis server must be accessible from the
+client machine via host name redis-server1 and port 6379.
+
+Optionally, in case you want to use PostgreSQL as the storage backend,
+the following additional packages need to be installed on the client machine.
+
+1. postgresql client 9.3 or later
+2. libpq-dev 9.3 or later
+
+In order to run unit tests, a PostgreSQL sertver must be accessible from the
+client machine via host name postgresql-server1 and port 5432. In addition, a
+database named kliostore must be created on that server, belonging to the user
+kliouser, with password 12test34.
+
+
 The library uses CMake for compile-time configuration. A Makefile is
 provided which wraps the build infrastructure. A simple
 

@@ -114,8 +114,8 @@ void PostgreSQLStore::check_integrity() {
 
 void PostgreSQLStore::initialize() {
 
-    execute("CREATE TABLE IF NOT EXISTS sensors (uuid VARCHAR(36) NOT NULL, external_id VARCHAR(36) NOT NULL UNIQUE, name VARCHAR(100) NOT NULL, description VARCHAR(255), unit VARCHAR(20) NOT NULL, timezone VARCHAR(30) NOT NULL, device_type_id INTEGER NOT NULL, PRIMARY KEY(uuid))");
-    execute("CREATE TABLE IF NOT EXISTS readings (uuid VARCHAR(36) NOT NULL, timestamp INTEGER NOT NULL, value FLOAT8 NOT NULL, PRIMARY KEY(uuid, timestamp))");
+    execute("CREATE TABLE IF NOT EXISTS sensors (uuid VARCHAR(36), external_id VARCHAR(36), name VARCHAR(100), description VARCHAR(255), unit VARCHAR(20), timezone VARCHAR(30), device_type_id INTEGER, PRIMARY KEY(uuid))");
+    execute("CREATE TABLE IF NOT EXISTS readings (uuid VARCHAR(36), timestamp INTEGER, value FLOAT8, PRIMARY KEY(uuid, timestamp))");
 }
 
 void PostgreSQLStore::prepare() {

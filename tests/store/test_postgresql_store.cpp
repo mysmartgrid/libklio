@@ -643,15 +643,15 @@ void run_postgresql_store_performance_tests(const bool auto_commit, const bool a
 
 BOOST_AUTO_TEST_CASE(check_postgresql_store_performance) {
 
-    run_postgresql_store_performance_tests(true, true, 0, false);
-    run_postgresql_store_performance_tests(true, false, 0, false);
-    run_postgresql_store_performance_tests(false, true, 0, false);
-    run_postgresql_store_performance_tests(false, false, 0, false);
-    
     run_postgresql_store_performance_tests(true, true, 0, true);
     run_postgresql_store_performance_tests(true, false, 0, true);
     run_postgresql_store_performance_tests(false, true, 0, true);
     run_postgresql_store_performance_tests(false, false, 0, true);
+
+    run_postgresql_store_performance_tests(true, true, 0, false);
+    run_postgresql_store_performance_tests(true, false, 0, false);
+    run_postgresql_store_performance_tests(false, true, 0, false);
+    run_postgresql_store_performance_tests(false, false, 0, false);
 }
 
 #endif /* ENABLE_POSTGRESQL */

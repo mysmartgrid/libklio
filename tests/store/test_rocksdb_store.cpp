@@ -28,7 +28,6 @@
 #include <libklio/sensor-factory.hpp>
 #include <testconfig.h>
 
-
 /**
  * see http://www.boost.org/doc/libs/1_43_0/libs/test/doc/html/tutorials/hello-the-testing-world.html
  */
@@ -52,7 +51,7 @@ BOOST_AUTO_TEST_CASE(check_open_corrupt_rocksdb_path) {
 
     } catch (klio::StoreException const& ex) {
         //This exception is expected
-        bfs::remove(db);//TODO: use dispose() here
+        bfs::remove(db); //TODO: use dispose() here
     }
 }
 
@@ -103,7 +102,7 @@ BOOST_AUTO_TEST_CASE(check_add_rocksdb_sensor) {
         store->add_sensor(sensor);
 
         klio::Sensor::Ptr retrieved = store->get_sensor(sensor->uuid());
-        
+
         BOOST_CHECK_EQUAL(sensor->uuid(), retrieved->uuid());
         BOOST_CHECK_EQUAL(sensor->name(), retrieved->name());
         BOOST_CHECK_EQUAL(sensor->external_id(), retrieved->external_id());
@@ -112,7 +111,7 @@ BOOST_AUTO_TEST_CASE(check_add_rocksdb_sensor) {
         BOOST_CHECK_EQUAL(sensor->timezone(), retrieved->timezone());
 
         store->dispose();
-        
+
     } catch (std::exception const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
@@ -580,7 +579,7 @@ void run_rocksdb_store_performance_tests(const bool auto_flush, const long flush
         klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
         klio::Store::Ptr store;
         bfs::path db(TEST_DB_PATH);
-    
+
         boost::posix_time::time_duration elapsed_time;
         double seconds = 0;
         boost::posix_time::ptime time_before;
@@ -708,10 +707,10 @@ void run_rocksdb_store_performance_tests(const bool auto_flush, const long flush
 
 BOOST_AUTO_TEST_CASE(check_rocksdb_store_performance) {
 
-    run_rocksdb_store_performance_tests( true, 0, false, 1000);
-    run_rocksdb_store_performance_tests( true, 0,  true, 1000);
+    run_rocksdb_store_performance_tests(true, 0, false, 1000);
+    run_rocksdb_store_performance_tests(true, 0, true, 1000);
     run_rocksdb_store_performance_tests(false, 0, false, 1000);
-    run_rocksdb_store_performance_tests(false, 0,  true, 1000);
+    run_rocksdb_store_performance_tests(false, 0, true, 1000);
 }
 
 #endif /* ENABLE_ROCKSDB */

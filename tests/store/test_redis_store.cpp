@@ -639,9 +639,9 @@ void run_redis_store_performance_tests(const bool auto_commit, const bool auto_f
 
 BOOST_AUTO_TEST_CASE(check_redis_store_performance) {
 
-    run_redis_store_performance_tests( true, true,  0, 1000);
-    run_redis_store_performance_tests( true, false, 0, 1000);
-    run_redis_store_performance_tests(false, true,  0, 1000);
+    run_redis_store_performance_tests(true, true, 0, 1000);
+    run_redis_store_performance_tests(true, false, 0, 1000);
+    run_redis_store_performance_tests(false, true, 0, 1000);
     run_redis_store_performance_tests(false, false, 0, 1000);
 }
 

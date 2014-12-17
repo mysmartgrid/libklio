@@ -48,7 +48,7 @@ namespace klio {
                 const timestamp_t flush_timeout,
                 const bool synchronous
                 ) :
-        Store(auto_commit, auto_flush, flush_timeout, 10, 1000),
+        Store(auto_commit, auto_flush, flush_timeout, 10, 100000),
         _info(info),
         _synchronous(synchronous),
         _connection(NULL) {
@@ -109,8 +109,9 @@ namespace klio {
         void execute(const char* statement);
         void execute(const char* statement_name, const char* params[], const int num_params);
         PGresult* execute(const char* statement_name, const char* params[], const int num_params, const ExecStatusType expected_status);
-        void check(PGresult* result, const ExecStatusType expected_status);
+        void clear_results();
         void check(const int result);
+        void check(PGresult* result, const ExecStatusType expected_status);
         void clear(PGresult* result);
 
         Sensor::Ptr parse_sensor(PGresult* result, const int row);

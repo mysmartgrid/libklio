@@ -309,22 +309,22 @@ void PostgreSQLStore::add_bulk_reading_records(const Sensor::Ptr sensor, const r
     }
     const std::string buffer = oss.str();
     oss.clear();
- 
+
+    clear_results();
+    //FIXME
+    //check(result, PGRES_COMMAND_OK);
+
     PGresult* result = NULL;
     try {
         result = execute(COPY_READINGS_STMT, NULL, 0, PGRES_COPY_IN);
         clear(result);
         result = NULL;
-        
+
         int code = PQputCopyData(_connection, buffer.c_str(), buffer.length());
         check(code);
 
         code = PQputCopyEnd(_connection, NULL);
         check(code);
-        
-        result = PQgetResult(_connection);
-        check(result, PGRES_COMMAND_OK);
-        clear(result);
 
     } catch (std::exception const& e) {
         clear(result);
@@ -417,14 +417,11 @@ void PostgreSQLStore::finalize_statements() {
 
 readings_t_Ptr PostgreSQLStore::get_reading_records(const char* statement_name, const char* params[], const int num_params) {
 
+    //Previous insertions
+    clear_results();
+
     PGresult* result = NULL;
     try {
-        //Wait for previous insertions
-        do {
-            clear(result);
-            result = PQgetResult(_connection);
-        } while (result);
-
         result = execute(statement_name, params, num_params, PGRES_TUPLES_OK);
 
         readings_t_Ptr readings(new readings_t());
@@ -510,6 +507,15 @@ void PostgreSQLStore::check(const int result) {
         oss << "Can't execute SQL statement. Invalid return code: " << result;
         throw StoreException(oss.str());
     }
+}
+
+void PostgreSQLStore::clear_results() {
+
+    PGresult* result = NULL;
+    do {
+        clear(result);
+        result = PQgetResult(_connection);
+    } while (result);
 }
 
 void PostgreSQLStore::clear(PGresult* result) {

@@ -481,7 +481,7 @@ BOOST_AUTO_TEST_CASE(check_redis_store_creation_performance) {
     }
 }
 
-void run_redis_store_performance_tests(const bool auto_commit, const bool auto_flush, const long flush_timeout) {
+void run_redis_store_performance_tests(const bool auto_commit, const bool auto_flush, const long flush_timeout, const size_t num_readings) {
 
     try {
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
@@ -563,7 +563,6 @@ void run_redis_store_performance_tests(const bool auto_commit, const bool auto_f
                     << seconds << " s" << std::endl;
 
             klio::readings_t readings;
-            size_t num_readings = 1000;
             for (size_t i = 0; i < num_readings; i++) {
                 timestamp = tc->get_timestamp() - i;
                 reading = 23;
@@ -640,10 +639,10 @@ void run_redis_store_performance_tests(const bool auto_commit, const bool auto_f
 
 BOOST_AUTO_TEST_CASE(check_redis_store_performance) {
 
-    run_redis_store_performance_tests( true, true,  0);
-    run_redis_store_performance_tests( true, false, 0);
-    run_redis_store_performance_tests(false, true,  0);
-    run_redis_store_performance_tests(false, false, 0);
+    run_redis_store_performance_tests( true, true,  0, 1000);
+    run_redis_store_performance_tests( true, false, 0, 1000);
+    run_redis_store_performance_tests(false, true,  0, 1000);
+    run_redis_store_performance_tests(false, false, 0, 1000);
 }
 
 #endif /* ENABLE_REDIS3M */

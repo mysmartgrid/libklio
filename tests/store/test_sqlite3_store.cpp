@@ -1017,7 +1017,7 @@ BOOST_AUTO_TEST_CASE(check_sqlite3_store_creation_performance) {
     }
 }
 
-void run_sqlite3_store_performance_tests(const bool auto_commit, const bool auto_flush, const long flush_timeout, const std::string synchronous) {
+void run_sqlite3_store_performance_tests(const bool auto_commit, const bool auto_flush, const long flush_timeout, const std::string synchronous, const size_t num_readings) {
 
     try {
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
@@ -1096,7 +1096,6 @@ void run_sqlite3_store_performance_tests(const bool auto_commit, const bool auto
                     << seconds << " s" << std::endl;
 
             klio::readings_t readings;
-            size_t num_readings = 1000;
             for (size_t i = 0; i < num_readings; i++) {
                 timestamp = tc->get_timestamp() - i;
                 reading = 23;
@@ -1174,20 +1173,20 @@ void run_sqlite3_store_performance_tests(const bool auto_commit, const bool auto
 
 BOOST_AUTO_TEST_CASE(check_sqlite3_store_performance) {
 
-    run_sqlite3_store_performance_tests( true,  true,  0, klio::SQLite3Store::OS_SYNC_FULL);
-    run_sqlite3_store_performance_tests( true,  false, 0, klio::SQLite3Store::OS_SYNC_FULL);
-    run_sqlite3_store_performance_tests(false,  true,  0, klio::SQLite3Store::OS_SYNC_FULL);
-    run_sqlite3_store_performance_tests(false, false,  0, klio::SQLite3Store::OS_SYNC_FULL);
+    run_sqlite3_store_performance_tests( true,  true,  0, klio::SQLite3Store::OS_SYNC_FULL,   1000);
+    run_sqlite3_store_performance_tests( true,  false, 0, klio::SQLite3Store::OS_SYNC_FULL,   1000);
+    run_sqlite3_store_performance_tests(false,  true,  0, klio::SQLite3Store::OS_SYNC_FULL,   1000);
+    run_sqlite3_store_performance_tests(false, false,  0, klio::SQLite3Store::OS_SYNC_FULL,   1000);
     
-    run_sqlite3_store_performance_tests( true,  true,  0, klio::SQLite3Store::OS_SYNC_NORMAL);
-    run_sqlite3_store_performance_tests( true,  false, 0, klio::SQLite3Store::OS_SYNC_NORMAL);
-    run_sqlite3_store_performance_tests(false,  true,  0, klio::SQLite3Store::OS_SYNC_NORMAL);
-    run_sqlite3_store_performance_tests(false, false,  0, klio::SQLite3Store::OS_SYNC_NORMAL);
+    run_sqlite3_store_performance_tests( true,  true,  0, klio::SQLite3Store::OS_SYNC_NORMAL, 1000);
+    run_sqlite3_store_performance_tests( true,  false, 0, klio::SQLite3Store::OS_SYNC_NORMAL, 1000);
+    run_sqlite3_store_performance_tests(false,  true,  0, klio::SQLite3Store::OS_SYNC_NORMAL, 1000);
+    run_sqlite3_store_performance_tests(false, false,  0, klio::SQLite3Store::OS_SYNC_NORMAL, 1000);
 
-    run_sqlite3_store_performance_tests( true,  true,  0, klio::SQLite3Store::OS_SYNC_OFF);
-    run_sqlite3_store_performance_tests( true,  false, 0, klio::SQLite3Store::OS_SYNC_OFF);
-    run_sqlite3_store_performance_tests(false,  true,  0, klio::SQLite3Store::OS_SYNC_OFF);
-    run_sqlite3_store_performance_tests(false, false,  0, klio::SQLite3Store::OS_SYNC_OFF);
+    run_sqlite3_store_performance_tests( true,  true,  0, klio::SQLite3Store::OS_SYNC_OFF,    1000);
+    run_sqlite3_store_performance_tests( true,  false, 0, klio::SQLite3Store::OS_SYNC_OFF,    1000);
+    run_sqlite3_store_performance_tests(false,  true,  0, klio::SQLite3Store::OS_SYNC_OFF,    1000);
+    run_sqlite3_store_performance_tests(false, false,  0, klio::SQLite3Store::OS_SYNC_OFF,    1000);
 }
 
 //BOOST_AUTO_TEST_SUITE_END()

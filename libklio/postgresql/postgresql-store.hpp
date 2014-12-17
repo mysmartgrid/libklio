@@ -48,7 +48,7 @@ namespace klio {
                 const timestamp_t flush_timeout,
                 const bool synchronous
                 ) :
-        Store(auto_commit, auto_flush, flush_timeout, 10, 10000),
+        Store(auto_commit, auto_flush, flush_timeout, 10, 1000),
         _info(info),
         _synchronous(synchronous),
         _connection(NULL) {

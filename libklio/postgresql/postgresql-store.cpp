@@ -301,24 +301,27 @@ void PostgreSQLStore::add_single_reading_record(const Sensor::Ptr sensor, const 
 
 void PostgreSQLStore::add_bulk_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
 
+    std::ostringstream oss;
+    for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
+        oss << sensor->uuid_string() << "," <<
+                time_converter->convert_to_epoch((*it).first) << "," <<
+                (*it).second << std::endl;
+    }
+    const std::string buffer = oss.str();
+    oss.clear();
+ 
     PGresult* result = NULL;
     try {
-        execute(COPY_READINGS_STMT, NULL, 0, PGRES_COPY_IN);
-
-        std::ostringstream oss;
-        for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
-            oss << sensor->uuid_string() << "," <<
-                    time_converter->convert_to_epoch((*it).first) << "," <<
-                    (*it).second << std::endl;
-        }
-        std::string buffer = oss.str();
-
-        int code = PQputCopyData(_connection, buffer.c_str(), buffer.size());
+        result = execute(COPY_READINGS_STMT, NULL, 0, PGRES_COPY_IN);
+        clear(result);
+        result = NULL;
+        
+        int code = PQputCopyData(_connection, buffer.c_str(), buffer.length());
         check(code);
 
         code = PQputCopyEnd(_connection, NULL);
         check(code);
-
+        
         result = PQgetResult(_connection);
         check(result, PGRES_COMMAND_OK);
         clear(result);

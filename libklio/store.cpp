@@ -406,7 +406,7 @@ void Store::flush(const Sensor::Ptr sensor, bool ignore_errors) {
 
         readings_cit_t reading = readings->begin();
         readings_t_Ptr bulk(new readings_t());
-        int bulks = 1 + ((int) readings->size() / _max_bulk_size);
+        int bulks = (int) ceil(((double) readings->size()) / ((double) _max_bulk_size));
 
         while (bulks-- > 0) {
 
@@ -418,8 +418,8 @@ void Store::flush(const Sensor::Ptr sensor, bool ignore_errors) {
             bulk->clear();
         }
     }
-
     readings->clear();
+
     readings = found->second->at(UPDATE_OPERATION);
     if (readings->size() > 0) {
         update_reading_records(sensor, *readings, ignore_errors);

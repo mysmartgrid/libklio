@@ -230,46 +230,46 @@ reading_t RocksDBStore::get_reading_record(const Sensor::Ptr sensor, const times
     return reading;
 }
 
-void RocksDBStore::add_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
+void RocksDBStore::add_single_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value, const bool ignore_errors) {
 
     rocksdb::DB* db = open_db(true, false,
             compose_sensor_readings_path(sensor->uuid_string()));
 
-    if (readings.size() < 11) {
+    try {
+        put_value(db, std::to_string(timestamp), std::to_string(value));
 
-        for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
+    } catch (std::exception const& e) {
+        handle_reading_insertion_error(ignore_errors, timestamp, value);
+    }
+}
 
-            try {
-                put_value(db, std::to_string((*it).first), std::to_string((*it).second));
+void RocksDBStore::add_bulk_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
 
-            } catch (std::exception const& e) {
-                handle_reading_insertion_error(ignore_errors, (*it).first, (*it).second);
-            }
-        }
+    rocksdb::DB* db = open_db(true, false,
+            compose_sensor_readings_path(sensor->uuid_string()));
 
-    } else {
-        rocksdb::WriteBatch batch;
+    rocksdb::WriteBatch batch;
 
-        for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
-            try {
-                batch.Put(std::to_string((*it).first), std::to_string((*it).second));
-
-            } catch (std::exception const& e) {
-                handle_reading_insertion_error(ignore_errors, (*it).first, (*it).second);
-            }
-        }
+    for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
         try {
-            write_batch(db, batch);
+            batch.Put(std::to_string((*it).first), std::to_string((*it).second));
 
         } catch (std::exception const& e) {
-            handle_reading_insertion_error(ignore_errors, sensor);
+            handle_reading_insertion_error(ignore_errors, (*it).first, (*it).second);
         }
+    }
+    try {
+        write_batch(db, batch);
+
+    } catch (std::exception const& e) {
+        handle_reading_insertion_error(ignore_errors, sensor);
     }
 }
 
 void RocksDBStore::update_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
 
-    add_reading_records(sensor, readings, ignore_errors);
+    //FIXME: improve this method
+    add_bulk_reading_records(sensor, readings, ignore_errors);
 }
 
 void RocksDBStore::clear_buffers() {

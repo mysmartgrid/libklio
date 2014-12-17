@@ -43,7 +43,7 @@ namespace klio {
                 const bool auto_commit,
                 const bool auto_flush,
                 const timestamp_t flush_timeout) :
-        Store(auto_commit, auto_flush, flush_timeout),
+        Store(auto_commit, auto_flush, flush_timeout, 10, 10000),
         _host(host),
         _port(port),
         _db(db) {
@@ -83,7 +83,8 @@ namespace klio {
         void add_sensor_record(const Sensor::Ptr sensor);
         void remove_sensor_record(const Sensor::Ptr sensor);
         void update_sensor_record(const Sensor::Ptr sensor);
-        void add_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors);
+        void add_single_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value, const bool ignore_errors);
+        void add_bulk_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors);
         void update_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors);
 
         std::vector<Sensor::Ptr> get_sensor_records();
@@ -100,11 +101,12 @@ namespace klio {
         RedisTransaction::Ptr create_transaction_handler();
 
         const std::string check_sensor_existence(const Sensor::Ptr sensor, const bool should_exist);
-        
+
         void run_del_readings(const Sensor::Ptr sensor);
 
         void run_hmset_sensor(const std::string& key, const Sensor::Ptr sensor);
         const Sensor::Ptr run_hmget_sensor(const std::string& key);
+        void run_hmset_reading(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value);
         void run_hmset_readings(const Sensor::Ptr sensor, const readings_t& readings);
         readings_t_Ptr run_hget_readings(const Sensor::Ptr sensor);
         void run_hdel_sensor(const std::string& key);
@@ -120,7 +122,7 @@ namespace klio {
 
         const std::string compose_sensor_key(const Sensor::Ptr sensor);
         const std::string compose_readings_key(const Sensor::Ptr sensor);
-        
+
         std::string _host;
         unsigned int _port;
         unsigned int _db;
@@ -134,7 +136,7 @@ namespace klio {
         static const std::string SADD;
         static const std::string SMEMBERS;
         static const std::string SREM;
-        
+
         static const std::string HMSET;
         static const std::string HMGET;
         static const std::string HGETALL;

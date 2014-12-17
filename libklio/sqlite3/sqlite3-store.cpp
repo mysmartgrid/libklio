@@ -601,7 +601,12 @@ reading_t SQLite3Store::get_reading_record(const Sensor::Ptr sensor, const times
     return reading;
 }
 
-void SQLite3Store::add_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
+void SQLite3Store::add_single_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value, const bool ignore_errors) {
+
+    add_reading_record(sensor, timestamp, value, "INSERT", ignore_errors);
+}
+
+void SQLite3Store::add_bulk_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
 
     for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
         add_reading_record(sensor, (*it).first, (*it).second, "INSERT", ignore_errors);

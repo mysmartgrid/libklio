@@ -183,16 +183,33 @@ reading_t RedisStore::get_reading_record(const Sensor::Ptr sensor, const timesta
     return reading;
 }
 
-void RedisStore::add_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
+void RedisStore::add_single_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value, const bool ignore_errors) {
 
     check_sensor_existence(sensor, true);
 
-    run_hmset_readings(sensor, readings);
+    try {
+        run_hmset_reading(sensor, timestamp, value);
+
+    } catch (std::exception const& e) {
+        handle_reading_insertion_error(ignore_errors, timestamp, value);
+    }
+}
+
+void RedisStore::add_bulk_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
+
+    check_sensor_existence(sensor, true);
+
+    try {
+        run_hmset_readings(sensor, readings);
+
+    } catch (std::exception const& e) {
+        handle_reading_insertion_error(ignore_errors, sensor);
+    }
 }
 
 void RedisStore::update_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
 
-    add_reading_records(sensor, readings, ignore_errors);
+    add_bulk_reading_records(sensor, readings, ignore_errors);
 }
 
 const std::string RedisStore::check_sensor_existence(const Sensor::Ptr sensor, const bool should_exist) {
@@ -258,6 +275,13 @@ void RedisStore::run_hmset_readings(const Sensor::Ptr sensor, const readings_t& 
         hmset << (*it).first;
         hmset << (*it).second;
     }
+    _connection->run(hmset);
+}
+
+void RedisStore::run_hmset_reading(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value) {
+
+    command hmset = command(HMSET);
+    hmset << compose_readings_key(sensor) << timestamp << value;
     _connection->run(hmset);
 }
 

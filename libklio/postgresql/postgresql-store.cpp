@@ -281,44 +281,74 @@ reading_t PostgreSQLStore::get_reading_record(const Sensor::Ptr sensor, const ti
     return *(get_reading_records(SELECT_READING_STMT, params, 2)->begin());
 }
 
-void PostgreSQLStore::add_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
+void PostgreSQLStore::add_single_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value, const bool ignore_errors) {
 
-    if (readings.size() < 101) {
-        add_reading_records(INSERT_READING_STMT, sensor, readings, ignore_errors);
+    const std::string timestamp_str = std::to_string(time_converter->convert_to_epoch(timestamp));
+    const std::string value_str = std::to_string(value);
 
-    } else {
-        PGresult* result = NULL;
-        try {
-            execute(COPY_READINGS_STMT, NULL, 0, PGRES_COPY_IN);
+    const char* params[3];
+    params[0] = sensor->uuid_string().c_str();
+    params[1] = timestamp_str.c_str();
+    params[2] = value_str.c_str();
 
-            std::ostringstream oss;
-            for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
-                oss << sensor->uuid_string() << "," <<
-                        time_converter->convert_to_epoch((*it).first) << "," <<
-                        (*it).second << std::endl;
-            }
-            std::string buffer = oss.str();
+    try {
+        execute(INSERT_READING_STMT, params, 3);
 
-            int code = PQputCopyData(_connection, buffer.c_str(), buffer.size());
-            check(code);
+    } catch (std::exception const& e) {
+        handle_reading_insertion_error(ignore_errors, timestamp, value);
+    }
+}
 
-            code = PQputCopyEnd(_connection, NULL);
-            check(code);
+void PostgreSQLStore::add_bulk_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
 
-            result = PQgetResult(_connection);
-            check(result, PGRES_COMMAND_OK);
-            clear(result);
+    PGresult* result = NULL;
+    try {
+        execute(COPY_READINGS_STMT, NULL, 0, PGRES_COPY_IN);
 
-        } catch (std::exception const& e) {
-            clear(result);
-            handle_reading_insertion_error(ignore_errors, sensor);
+        std::ostringstream oss;
+        for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
+            oss << sensor->uuid_string() << "," <<
+                    time_converter->convert_to_epoch((*it).first) << "," <<
+                    (*it).second << std::endl;
         }
+        std::string buffer = oss.str();
+
+        int code = PQputCopyData(_connection, buffer.c_str(), buffer.size());
+        check(code);
+
+        code = PQputCopyEnd(_connection, NULL);
+        check(code);
+
+        result = PQgetResult(_connection);
+        check(result, PGRES_COMMAND_OK);
+        clear(result);
+
+    } catch (std::exception const& e) {
+        clear(result);
+        handle_reading_insertion_error(ignore_errors, sensor);
     }
 }
 
 void PostgreSQLStore::update_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
 
-    add_reading_records(UPDATE_READING_STMT, sensor, readings, ignore_errors);
+    const char* params[3];
+    params[0] = sensor->uuid_string().c_str();
+
+    for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
+
+        const std::string timestamp = std::to_string(time_converter->convert_to_epoch((*it).first));
+        const std::string value = std::to_string((*it).second);
+
+        params[1] = timestamp.c_str();
+        params[2] = value.c_str();
+
+        try {
+            execute(UPDATE_READING_STMT, params, 3);
+
+        } catch (std::exception const& e) {
+            handle_reading_insertion_error(ignore_errors, (*it).first, (*it).second);
+        }
+    }
 }
 
 void PostgreSQLStore::prepare_statements() {
@@ -380,28 +410,6 @@ void PostgreSQLStore::prepare_statement(const char* statement_name, const char* 
 void PostgreSQLStore::finalize_statements() {
 
     execute("DEALLOCATE ALL");
-}
-
-void PostgreSQLStore::add_reading_records(const char* statement_name, const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
-
-    const char* params[3];
-    params[0] = sensor->uuid_string().c_str();
-
-    for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
-
-        const std::string timestamp = std::to_string(time_converter->convert_to_epoch((*it).first));
-        const std::string value = std::to_string((*it).second);
-
-        params[1] = timestamp.c_str();
-        params[2] = value.c_str();
-
-        try {
-            execute(statement_name, params, 3);
-
-        } catch (std::exception const& e) {
-            handle_reading_insertion_error(ignore_errors, (*it).first, (*it).second);
-        }
-    }
 }
 
 readings_t_Ptr PostgreSQLStore::get_reading_records(const char* statement_name, const char* params[], const int num_params) {

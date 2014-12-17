@@ -188,12 +188,32 @@ void MSGStore::update_sensor_record(const Sensor::Ptr sensor) {
     }
 }
 
-void MSGStore::add_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
+void MSGStore::add_single_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value, const bool ignore_errors) {
 
-    update_reading_records(sensor, readings, ignore_errors);
+    try {
+        Json::Value jmeasurements(Json::arrayValue);
+
+        Json::Value jtuple(Json::arrayValue);
+        jtuple.append(Json::Int64(timestamp));
+        jtuple.append(value);
+
+        jmeasurements.append(jtuple);
+
+        libmsg::JsonPtr jobject(new Json::Value(Json::objectValue));
+        (*jobject)["measurements"] = jmeasurements;
+
+        std::string url = libmsg::Webclient::composeSensorUrl(_url, sensor->uuid_short());
+        libmsg::Webclient::performHttpPost(url, libmsg::Secret::fromKey(_key), jobject);
+
+    } catch (libmsg::GenericException const& e) {
+        handle_reading_insertion_error(ignore_errors, sensor);
+
+    } catch (std::exception const& e) {
+        handle_reading_insertion_error(ignore_errors, sensor);
+    }
 }
 
-void MSGStore::update_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
+void MSGStore::add_bulk_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
 
     try {
         Json::Value jmeasurements(Json::arrayValue);
@@ -222,6 +242,11 @@ void MSGStore::update_reading_records(const Sensor::Ptr sensor, const readings_t
     } catch (std::exception const& e) {
         handle_reading_insertion_error(ignore_errors, sensor);
     }
+}
+
+void MSGStore::update_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
+
+    add_bulk_reading_records(sensor, readings, ignore_errors);
 }
 
 std::vector<Sensor::Ptr> MSGStore::get_sensor_records() {

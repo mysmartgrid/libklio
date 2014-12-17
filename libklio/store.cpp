@@ -393,11 +393,33 @@ void Store::flush(const Sensor::Ptr sensor, bool ignore_errors) {
     }
 
     readings_t_Ptr readings = found->second->at(INSERT_OPERATION);
-    if (readings->size() > 0) {
-        add_reading_records(sensor, *readings, ignore_errors);
-        readings->clear();
+
+    //Small number of insertions
+    if (readings->size() <= _min_bulk_size) {
+
+        for (readings_cit_t it = readings->begin(); it != readings->end(); ++it) {
+            add_single_reading_record(sensor, (*it).first, (*it).second, ignore_errors);
+        }
+
+        //Bulk insertion
+    } else {
+
+        readings_cit_t reading = readings->begin();
+        readings_t_Ptr bulk(new readings_t());
+        int bulks = 1 + ((int) readings->size() / _max_bulk_size);
+
+        while (bulks-- > 0) {
+
+            while (reading != readings->end() && bulk->size() < _max_bulk_size) {
+                bulk->insert(*reading);
+                reading++;
+            }
+            add_bulk_reading_records(sensor, *bulk, ignore_errors);
+            bulk->clear();
+        }
     }
 
+    readings->clear();
     readings = found->second->at(UPDATE_OPERATION);
     if (readings->size() > 0) {
         update_reading_records(sensor, *readings, ignore_errors);

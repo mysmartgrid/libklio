@@ -48,7 +48,7 @@ namespace klio {
                 const timestamp_t flush_timeout,
                 const bool synchronous
                 ) :
-        Store(auto_commit, auto_flush, flush_timeout),
+        Store(auto_commit, auto_flush, flush_timeout, 10, 10000),
         _info(info),
         _synchronous(synchronous),
         _connection(NULL) {
@@ -79,7 +79,8 @@ namespace klio {
         void add_sensor_record(const Sensor::Ptr sensor);
         void remove_sensor_record(const Sensor::Ptr sensor);
         void update_sensor_record(const Sensor::Ptr sensor);
-        void add_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors);
+        void add_single_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value, const bool ignore_errors);
+        void add_bulk_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors);
         void update_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors);
 
         std::vector<Sensor::Ptr> get_sensor_records();
@@ -103,7 +104,6 @@ namespace klio {
 
         const bool has_table(const char* name);
 
-        void add_reading_records(const char* statement_name, const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors);
         readings_t_Ptr get_reading_records(const char* statement_name, const char* params[], const int num_params);
 
         void execute(const char* statement);

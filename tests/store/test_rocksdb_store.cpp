@@ -571,7 +571,7 @@ BOOST_AUTO_TEST_CASE(check_rocksdb_store_creation_performance) {
     }
 }
 
-void run_rocksdb_store_performance_tests(const bool auto_flush, const long flush_timeout, const bool disable_wal) {
+void run_rocksdb_store_performance_tests(const bool auto_flush, const long flush_timeout, const bool synchronous) {
 
     try {
         klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
@@ -593,9 +593,9 @@ void run_rocksdb_store_performance_tests(const bool auto_flush, const long flush
             std::cout << std::endl << "Performance Test" << std::endl;
             std::cout << std::endl << "Performance Test - RocksDBStore - " <<
                     "auto flushing: " << (auto_flush ? "true" : "false") <<
-                    ", disable WAL: " << (disable_wal ? "true" : "false") << std::endl;
+                    ", synchronous: " << (synchronous ? "true" : "false") << std::endl;
 
-            store = store_factory->create_rocksdb_store(db, auto_flush, flush_timeout, disable_wal);
+            store = store_factory->create_rocksdb_store(db, auto_flush, flush_timeout, synchronous);
 
             time_before = boost::posix_time::microsec_clock::local_time();
             store->add_sensor(sensor1);

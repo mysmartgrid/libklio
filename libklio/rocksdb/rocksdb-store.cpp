@@ -235,13 +235,34 @@ void RocksDBStore::add_reading_records(const Sensor::Ptr sensor, const readings_
     rocksdb::DB* db = open_db(true, false,
             compose_sensor_readings_path(sensor->uuid_string()));
 
-    for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
+    if (readings.size() < 11) {
 
+        for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
+
+            try {
+                put_value(db, std::to_string((*it).first), std::to_string((*it).second));
+
+            } catch (std::exception const& e) {
+                handle_reading_insertion_error(ignore_errors, (*it).first, (*it).second);
+            }
+        }
+
+    } else {
+        rocksdb::WriteBatch batch;
+
+        for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
+            try {
+                batch.Put(std::to_string((*it).first), std::to_string((*it).second));
+
+            } catch (std::exception const& e) {
+                handle_reading_insertion_error(ignore_errors, (*it).first, (*it).second);
+            }
+        }
         try {
-            put_value(db, std::to_string((*it).first), std::to_string((*it).second));
+            write_batch(db, batch);
 
         } catch (std::exception const& e) {
-            handle_reading_insertion_error(ignore_errors, (*it).first, (*it).second);
+            handle_reading_insertion_error(ignore_errors, sensor);
         }
     }
 }
@@ -333,7 +354,16 @@ std::string RocksDBStore::get_value(rocksdb::DB* db, const std::string& key) {
 
 void RocksDBStore::delete_value(rocksdb::DB* db, const std::string& key) {
 
-    const rocksdb::Status status = db->Delete(rocksdb::WriteOptions(), key);
+    const rocksdb::Status status = db->Delete(_write_options, key);
+
+    if (!status.ok()) {
+        throw StoreException(status.ToString());
+    }
+}
+
+void RocksDBStore::write_batch(rocksdb::DB* db, rocksdb::WriteBatch& batch) {
+
+    const rocksdb::Status status = db->Write(_write_options, &batch);
 
     if (!status.ok()) {
         throw StoreException(status.ToString());

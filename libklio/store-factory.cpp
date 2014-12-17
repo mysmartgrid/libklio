@@ -129,22 +129,22 @@ RocksDBStore::Ptr StoreFactory::create_rocksdb_store(const bfs::path& path) {
 RocksDBStore::Ptr StoreFactory::create_rocksdb_store(const bfs::path& path,
         const bool auto_flush,
         const timestamp_t flush_timeout,
-        const bool disable_wal) {
+        const bool synchronous) {
 
     std::map<const std::string, const std::string> db_options;
     std::map<const std::string, const std::string> read_options;
 
-    return create_rocksdb_store(path, db_options, read_options, auto_flush, flush_timeout, disable_wal);
+    return create_rocksdb_store(path, auto_flush, flush_timeout, synchronous, db_options, read_options);
 }
 
 RocksDBStore::Ptr StoreFactory::create_rocksdb_store(const bfs::path& path,
-        const std::map<const std::string, const std::string>& db_options,
-        const std::map<const std::string, const std::string>& read_options,
         const bool auto_flush,
         const timestamp_t flush_timeout,
-        const bool disable_wal) {
+        const bool synchronous,
+        const std::map<const std::string, const std::string>& db_options,
+        const std::map<const std::string, const std::string>& read_options) {
 
-    RocksDBStore::Ptr store = RocksDBStore::Ptr(new RocksDBStore(path, db_options, read_options, auto_flush, flush_timeout, disable_wal));
+    RocksDBStore::Ptr store = RocksDBStore::Ptr(new RocksDBStore(path, auto_flush, flush_timeout, synchronous, db_options, read_options));
     store->open();
     store->initialize();
     store->prepare();
@@ -159,22 +159,22 @@ RocksDBStore::Ptr StoreFactory::open_rocksdb_store(const bfs::path& path) {
 RocksDBStore::Ptr StoreFactory::open_rocksdb_store(const bfs::path& path,
         const bool auto_flush,
         const timestamp_t flush_timeout,
-        const bool disable_wal) {
+        const bool synchronous) {
 
     std::map<const std::string, const std::string> db_options;
     std::map<const std::string, const std::string> read_options;
     
-    return open_rocksdb_store(path, db_options, read_options, auto_flush, flush_timeout, disable_wal);
+    return open_rocksdb_store(path, auto_flush, flush_timeout, synchronous, db_options, read_options);
 }
 
 RocksDBStore::Ptr StoreFactory::open_rocksdb_store(const bfs::path& path,
-        const std::map<const std::string, const std::string>& db_options,
-        const std::map<const std::string, const std::string>& read_options,
         const bool auto_flush,
         const timestamp_t flush_timeout,
-        const bool disable_wal) {
+        const bool synchronous,
+        const std::map<const std::string, const std::string>& db_options,
+        const std::map<const std::string, const std::string>& read_options) {
 
-    RocksDBStore::Ptr store = RocksDBStore::Ptr(new RocksDBStore(path, db_options, read_options, auto_flush, flush_timeout, disable_wal));
+    RocksDBStore::Ptr store = RocksDBStore::Ptr(new RocksDBStore(path, auto_flush, flush_timeout, synchronous, db_options, read_options));
     store->open();
     store->check_integrity();
     store->prepare();

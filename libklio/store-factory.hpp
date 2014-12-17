@@ -108,15 +108,15 @@ namespace klio {
         RocksDBStore::Ptr create_rocksdb_store(const bfs::path& path,
                 const bool auto_flush,
                 const timestamp_t flush_timeout,
-                const bool disable_wal
+                const bool synchronous
                 );
 
         RocksDBStore::Ptr create_rocksdb_store(const bfs::path& path,
-                const std::map<const std::string, const std::string>& db_options,
-                const std::map<const std::string, const std::string>& read_options,
                 const bool auto_flush,
                 const timestamp_t flush_timeout,
-                const bool disable_wal
+                const bool synchronous,
+                const std::map<const std::string, const std::string>& db_options,
+                const std::map<const std::string, const std::string>& read_options
                 );
 
         RocksDBStore::Ptr open_rocksdb_store(const bfs::path& path);
@@ -124,15 +124,15 @@ namespace klio {
         RocksDBStore::Ptr open_rocksdb_store(const bfs::path& path,
                 const bool auto_flush,
                 const timestamp_t flush_timeout,
-                const bool disable_wal
+                const bool synchronous
                 );
 
         RocksDBStore::Ptr open_rocksdb_store(const bfs::path& path,
-                const std::map<const std::string, const std::string>& db_options,
-                const std::map<const std::string, const std::string>& read_options,
                 const bool auto_flush,
                 const timestamp_t flush_timeout,
-                const bool disable_wal
+                const bool synchronous,
+                const std::map<const std::string, const std::string>& db_options,
+                const std::map<const std::string, const std::string>& read_options
                 );
 
 #endif /* ENABLE_ROCKSDB */

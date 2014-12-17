@@ -38,19 +38,24 @@ namespace klio {
         typedef boost::shared_ptr<RocksDBStore> Ptr;
 
         RocksDBStore(const bfs::path& path,
-                const std::map<const std::string, const std::string>& db_options,
-                const std::map<const std::string, const std::string>& read_options,
                 const bool auto_flush,
                 const timestamp_t flush_timeout,
-                const bool disable_wal) :
+                const bool synchronous,
+                const std::map<const std::string, const std::string>& db_options,
+                const std::map<const std::string, const std::string>& read_options) :
         Store(true, auto_flush, flush_timeout),
         _path(path),
+        _synchronous(synchronous),
         _db_options(db_options),
-        _read_options(read_options),
-        _disable_wal(disable_wal) {
+        _read_options(read_options) {
 
-            _write_options.sync = _auto_flush ? "true" : "false";
-            _write_options.disableWAL = _disable_wal ? "true" : "false";
+            if (_synchronous) {
+                _write_options.sync = "true";
+                _write_options.disableWAL = "false";
+            } else {
+                _write_options.sync = "false";
+                _write_options.disableWAL = "true";
+            }
         };
 
         virtual ~RocksDBStore() {
@@ -85,10 +90,10 @@ namespace klio {
         RocksDBStore& operator =(const RocksDBStore& rhs);
 
         bfs::path _path;
+        bool _synchronous;
         std::map<const std::string, const std::string> _db_options;
         std::map<const std::string, const std::string> _read_options;
         rocksdb::WriteOptions _write_options;
-        bool _disable_wal;
         std::map<const std::string, rocksdb::DB*> _db_buffer;
 
         rocksdb::DB* open_db(const bool create_if_missing, const bool error_if_exists, const std::string& db_path);
@@ -99,6 +104,7 @@ namespace klio {
         void put_value(rocksdb::DB* db, const std::string& key, const std::string& value);
         std::string get_value(rocksdb::DB* db, const std::string& key);
         void delete_value(rocksdb::DB* db, const std::string& key);
+        void write_batch(rocksdb::DB* db, rocksdb::WriteBatch& batch);
         Sensor::Ptr load_sensor(const Sensor::uuid_t& uuid);
 
         const std::string compose_db_path();

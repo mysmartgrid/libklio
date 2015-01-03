@@ -20,7 +20,6 @@
 
 #include <fcntl.h>
 #include <iostream>
-#include <boost/filesystem.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/uuid/uuid_io.hpp>

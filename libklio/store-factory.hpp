@@ -25,6 +25,7 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/shared_ptr.hpp>
 #include <libklio/sqlite3/sqlite3-store.hpp>
+#include <libklio/csv/csv-store.hpp>
 #ifdef ENABLE_MSG
 #include <libklio/msg/msg-store.hpp>
 #endif /* ENABLE_MSG */
@@ -77,6 +78,8 @@ namespace klio {
                 //Visit: http://www.sqlite.org/pragma.html#pragma_synchronous
                 const std::string& synchronous
                 );
+        
+        CSVStore::Ptr create_csv_store(const bfs::path& path);
 
 #ifdef ENABLE_MSG
 

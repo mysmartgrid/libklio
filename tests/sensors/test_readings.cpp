@@ -294,20 +294,20 @@ BOOST_AUTO_TEST_CASE(check_sqlite3_bulk_insert) {
     }
 }
 
-klio::CSVStore::Ptr create_csv_test_store(const bfs::path& path) {
+klio::TXTStore::Ptr create_txt_test_store(const bfs::path& path) {
 
-    std::cout << "Attempt to create CSVStore " << path << std::endl;
-    klio::CSVStore::Ptr store = store_factory->create_csv_store(path);
+    std::cout << "Attempt to create TXTStore " << path << std::endl;
+    klio::TXTStore::Ptr store = store_factory->create_txt_store(path);
     std::cout << "Created " << store->str() << std::endl;
     return store;
 }
 
-BOOST_AUTO_TEST_CASE(check_csv_bulk_insert) {
+BOOST_AUTO_TEST_CASE(check_txt_bulk_insert) {
 
     try {
-        std::cout << std::endl << "Testing - The bulk-insertion of readings in CSV." << std::endl;
+        std::cout << std::endl << "Testing - The bulk-insertion of readings in TXT." << std::endl;
         klio::Sensor::Ptr sensor = create_test_sensor("sensor", "sensor", "Watt");
-        klio::CSVStore::Ptr store = create_csv_test_store(TEST_DB1_FILE);
+        klio::TXTStore::Ptr store = create_txt_test_store(TEST_DB1_FILE);
 
         try {
             store->add_sensor(sensor);

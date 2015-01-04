@@ -2,7 +2,7 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/algorithm/string/erase.hpp>
-#include "store-factory.hpp"
+#include <libklio/store-factory.hpp>
 
 
 using namespace boost::algorithm;
@@ -56,9 +56,14 @@ SQLite3Store::Ptr StoreFactory::open_sqlite3_store(
     return store;
 }
 
-CSVStore::Ptr StoreFactory::create_csv_store(const bfs::path& path) {
+TXTStore::Ptr StoreFactory::create_txt_store(const bfs::path& path) {
 
-    CSVStore::Ptr store = CSVStore::Ptr(new CSVStore(path));
+    return create_txt_store(path, TXTStore::DEFAULT_SEPARATOR);
+}
+
+TXTStore::Ptr StoreFactory::create_txt_store(const bfs::path& path, const std::string& separator) {
+
+    TXTStore::Ptr store = TXTStore::Ptr(new TXTStore(path, separator));
     store->open();
     store->initialize();
     store->check_integrity();
@@ -66,9 +71,14 @@ CSVStore::Ptr StoreFactory::create_csv_store(const bfs::path& path) {
     return store;
 }
 
-CSVStore::Ptr StoreFactory::open_csv_store(const bfs::path& path) {
+TXTStore::Ptr StoreFactory::open_txt_store(const bfs::path& path) {
 
-    CSVStore::Ptr store = CSVStore::Ptr(new CSVStore(path));
+    return open_txt_store(path, TXTStore::DEFAULT_SEPARATOR);
+}
+
+TXTStore::Ptr StoreFactory::open_txt_store(const bfs::path& path, const std::string& separator) {
+
+    TXTStore::Ptr store = TXTStore::Ptr(new TXTStore(path, separator));
     store->open();
     store->check_integrity();
     store->prepare();

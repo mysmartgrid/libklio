@@ -28,16 +28,16 @@
  * see http://www.boost.org/doc/libs/1_43_0/libs/test/doc/html/tutorials/hello-the-testing-world.html
  */
 
-BOOST_AUTO_TEST_CASE(check_open_corrupt_csv_path) {
+BOOST_AUTO_TEST_CASE(check_open_corrupt_txt_path) {
 
-    std::cout << "Testing storage creation for CSV" << std::endl;
+    std::cout << "Testing storage creation for TXT" << std::endl;
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
 
     bfs::path db = boost::filesystem::unique_path();
 
     try {
         std::cout << "Attempting to create " << db << std::endl;
-        klio::Store::Ptr store(store_factory->open_csv_store(db));
+        klio::Store::Ptr store(store_factory->open_txt_store(db));
 
         store->dispose();
 
@@ -49,18 +49,18 @@ BOOST_AUTO_TEST_CASE(check_open_corrupt_csv_path) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_create_csv_storage) {
+BOOST_AUTO_TEST_CASE(check_create_txt_storage) {
 
-    std::cout << "Testing storage creation for CSV" << std::endl;
+    std::cout << "Testing storage creation for TXT" << std::endl;
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
     bfs::path db(TEST_DB_PATH);
 
     std::cout << "Attempting to create " << db << std::endl;
-    klio::Store::Ptr store(store_factory->create_csv_store(db));
+    klio::Store::Ptr store(store_factory->create_txt_store(db));
     std::cout << "Created: " << store->str() << std::endl;
 
     try {
-        klio::Store::Ptr loaded(store_factory->create_csv_store(db));
+        klio::Store::Ptr loaded(store_factory->create_txt_store(db));
         loaded->open();
         std::cout << "Opened database: " << loaded->str() << std::endl;
 
@@ -77,15 +77,15 @@ BOOST_AUTO_TEST_CASE(check_create_csv_storage) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_add_csv_sensor) {
+BOOST_AUTO_TEST_CASE(check_add_txt_sensor) {
 
-    std::cout << "Testing sensor addition for CSV" << std::endl;
+    std::cout << "Testing sensor addition for TXT" << std::endl;
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
     bfs::path db(TEST_DB_PATH);
 
     std::cout << "Attempting to create " << db << std::endl;
-    klio::Store::Ptr store(store_factory->create_csv_store(db));
+    klio::Store::Ptr store(store_factory->create_txt_store(db));
     std::cout << "Created: " << store->str() << std::endl;
 
     try {
@@ -117,15 +117,15 @@ BOOST_AUTO_TEST_CASE(check_add_csv_sensor) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_update_csv_sensor) {
+BOOST_AUTO_TEST_CASE(check_update_txt_sensor) {
 
-    std::cout << "Testing sensor update for CSV" << std::endl;
+    std::cout << "Testing sensor update for TXT" << std::endl;
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
     bfs::path db(TEST_DB_PATH);
 
     std::cout << "Attempting to create " << db << std::endl;
-    klio::Store::Ptr store(store_factory->create_csv_store(db));
+    klio::Store::Ptr store(store_factory->create_txt_store(db));
     std::cout << "Created: " << store->str() << std::endl;
 
     try {
@@ -163,15 +163,15 @@ BOOST_AUTO_TEST_CASE(check_update_csv_sensor) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_remove_csv_sensor) {
+BOOST_AUTO_TEST_CASE(check_remove_txt_sensor) {
 
-    std::cout << "Testing sensor removal for CSV" << std::endl;
+    std::cout << "Testing sensor removal for TXT" << std::endl;
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
     bfs::path db(TEST_DB_PATH);
 
     std::cout << "Attempting to create " << db << std::endl;
-    klio::Store::Ptr store(store_factory->create_csv_store(db));
+    klio::Store::Ptr store(store_factory->create_txt_store(db));
     std::cout << "Created: " << store->str() << std::endl;
 
     try {
@@ -204,15 +204,15 @@ BOOST_AUTO_TEST_CASE(check_remove_csv_sensor) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_get_csv_sensor) {
+BOOST_AUTO_TEST_CASE(check_get_txt_sensor) {
 
-    std::cout << "Testing sensor query by uuid for CSV" << std::endl;
+    std::cout << "Testing sensor query by uuid for TXT" << std::endl;
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
     bfs::path db(TEST_DB_PATH);
 
     std::cout << "Attempting to create " << db << std::endl;
-    klio::Store::Ptr store(store_factory->create_csv_store(db));
+    klio::Store::Ptr store(store_factory->create_txt_store(db));
     std::cout << "Created: " << store->str() << std::endl;
 
     try {
@@ -253,15 +253,15 @@ BOOST_AUTO_TEST_CASE(check_get_csv_sensor) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_get_csv_sensor_by_name) {
+BOOST_AUTO_TEST_CASE(check_get_txt_sensor_by_name) {
 
-    std::cout << "Testing sensor query by name for CSV" << std::endl;
+    std::cout << "Testing sensor query by name for TXT" << std::endl;
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
     bfs::path db(TEST_DB_PATH);
 
     std::cout << "Attempting to create " << db << std::endl;
-    klio::Store::Ptr store(store_factory->create_csv_store(db));
+    klio::Store::Ptr store(store_factory->create_txt_store(db));
     std::cout << "Created: " << store->str() << std::endl;
 
     try {
@@ -320,15 +320,15 @@ BOOST_AUTO_TEST_CASE(check_get_csv_sensor_by_name) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_get_csv_sensors_by_external_id) {
+BOOST_AUTO_TEST_CASE(check_get_txt_sensors_by_external_id) {
 
-    std::cout << "Testing sensor query by external id for CSV" << std::endl;
+    std::cout << "Testing sensor query by external id for TXT" << std::endl;
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
     bfs::path db(TEST_DB_PATH);
 
     std::cout << "Attempting to create " << db << std::endl;
-    klio::Store::Ptr store(store_factory->create_csv_store(db));
+    klio::Store::Ptr store(store_factory->create_txt_store(db));
     std::cout << "Created: " << store->str() << std::endl;
 
     try {
@@ -378,15 +378,15 @@ BOOST_AUTO_TEST_CASE(check_get_csv_sensors_by_external_id) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_get_csv_sensor_uuids) {
+BOOST_AUTO_TEST_CASE(check_get_txt_sensor_uuids) {
 
-    std::cout << "Testing sensor uuids query for CSV" << std::endl;
+    std::cout << "Testing sensor uuids query for TXT" << std::endl;
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
     klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
     bfs::path db(TEST_DB_PATH);
 
     std::cout << "Attempting to create " << db << std::endl;
-    klio::Store::Ptr store(store_factory->create_csv_store(db));
+    klio::Store::Ptr store(store_factory->create_txt_store(db));
     std::cout << "Created: " << store->str() << std::endl;
 
     try {
@@ -431,7 +431,7 @@ BOOST_AUTO_TEST_CASE(check_get_csv_sensor_uuids) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_add_retrieve_csv_reading) {
+BOOST_AUTO_TEST_CASE(check_add_retrieve_txt_reading) {
 
     std::cout << std::endl << "Adding & retrieving a reading to/from a sensor." << std::endl;
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
@@ -439,7 +439,7 @@ BOOST_AUTO_TEST_CASE(check_add_retrieve_csv_reading) {
     bfs::path db(TEST_DB_PATH);
 
     std::cout << "Attempting to create " << db << std::endl;
-    klio::Store::Ptr store(store_factory->create_csv_store(db));
+    klio::Store::Ptr store(store_factory->create_txt_store(db));
     std::cout << "Created: " << store->str() << std::endl;
 
     try {
@@ -476,7 +476,7 @@ BOOST_AUTO_TEST_CASE(check_add_retrieve_csv_reading) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_csv_num_readings) {
+BOOST_AUTO_TEST_CASE(check_txt_num_readings) {
 
     std::cout << std::endl << "Checking number of readings." << std::endl;
     klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
@@ -484,7 +484,7 @@ BOOST_AUTO_TEST_CASE(check_csv_num_readings) {
     bfs::path db(TEST_DB_PATH);
 
     std::cout << "Attempting to create " << db << std::endl;
-    klio::Store::Ptr store(store_factory->create_csv_store(db));
+    klio::Store::Ptr store(store_factory->create_txt_store(db));
     std::cout << "Created: " << store->str() << std::endl;
 
     try {

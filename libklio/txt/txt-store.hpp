@@ -17,8 +17,8 @@
  * along with libklio. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LIBKLIO_CSV_CSVSTORE_HPP
-#define LIBKLIO_CSV_CSVSTORE_HPP 1
+#ifndef LIBKLIO_TXT_TXTSTORE_HPP
+#define LIBKLIO_TXT_TXTSTORE_HPP 1
 
 #include <boost/filesystem.hpp>
 #include <libklio/store.hpp>
@@ -27,17 +27,17 @@ namespace bfs = boost::filesystem;
 
 namespace klio {
 
-    class CSVStore : public Store {
+    class TXTStore : public Store {
     public:
-        typedef boost::shared_ptr<CSVStore> Ptr;
+        typedef boost::shared_ptr<TXTStore> Ptr;
 
-        CSVStore(const bfs::path& path) :
+        TXTStore(const bfs::path& path, const std::string& separator) :
         Store(true, true, 0, 10, 10000),
         _path(path),
-        _separator(",") {
+        _separator(separator) {
         };
 
-        virtual ~CSVStore() {
+        virtual ~TXTStore() {
             close();
         };
 
@@ -47,6 +47,8 @@ namespace klio {
         void initialize();
         void dispose();
         const std::string str();
+
+        const static std::string DEFAULT_SEPARATOR;
 
     protected:
         void add_sensor_record(const Sensor::Ptr sensor);
@@ -64,8 +66,8 @@ namespace klio {
         reading_t get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp);
 
     private:
-        CSVStore(const CSVStore& original);
-        CSVStore& operator =(const CSVStore& rhs);
+        TXTStore(const TXTStore& original);
+        TXTStore& operator =(const TXTStore& rhs);
 
         typedef boost::tokenizer<boost::char_separator<char> > Tokenizer;
         const static std::string ENABLED;
@@ -89,4 +91,4 @@ namespace klio {
     };
 };
 
-#endif /* LIBKLIO_CSV_CSVSTORE_HPP */
+#endif /* LIBKLIO_TXT_TXTSTORE_HPP */

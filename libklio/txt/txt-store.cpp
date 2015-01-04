@@ -4,21 +4,22 @@
 #include <stdlib.h>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
-#include <libklio/csv/csv-store.hpp>
+#include <libklio/txt/txt-store.hpp>
 
 using namespace klio;
 
-const std::string CSVStore::ENABLED = "1";
-const std::string CSVStore::DISABLED = "0";
-const std::string CSVStore::NOT_A_NUMBER = "nan";
+const std::string TXTStore::ENABLED = "1";
+const std::string TXTStore::DISABLED = "0";
+const std::string TXTStore::NOT_A_NUMBER = "nan";
+const std::string TXTStore::DEFAULT_SEPARATOR = ",";
 
-void CSVStore::open() {
+void TXTStore::open() {
 }
 
-void CSVStore::close() {
+void TXTStore::close() {
 }
 
-void CSVStore::check_integrity() {
+void TXTStore::check_integrity() {
 
     const std::string path = compose_sensors_path();
 
@@ -46,33 +47,32 @@ void CSVStore::check_integrity() {
     }
 }
 
-void CSVStore::initialize() {
+void TXTStore::initialize() {
 
     bfs::remove_all(_path);
     create_directory(_path.string());
     create_directory(compose_sensors_path());
 }
 
-void CSVStore::dispose() {
+void TXTStore::dispose() {
 
     close();
     bfs::remove_all(_path);
 }
 
-const std::string CSVStore::str() {
+const std::string TXTStore::str() {
 
     std::ostringstream oss;
     oss << "CSV database, stored in path " << _path.string();
     return oss.str();
 }
 
-void CSVStore::add_sensor_record(const Sensor::Ptr sensor) {
+void TXTStore::add_sensor_record(const Sensor::Ptr sensor) {
 
     const std::string uuid = sensor->uuid_string();
     create_directory(compose_sensor_path(uuid));
 
-    std::ofstream file;
-    file.open(compose_sensor_properties_path(uuid),
+    std::ofstream file(compose_sensor_properties_path(uuid),
             std::ofstream::out | std::ofstream::app);
 
     try {
@@ -86,15 +86,14 @@ void CSVStore::add_sensor_record(const Sensor::Ptr sensor) {
     }
 }
 
-void CSVStore::remove_sensor_record(const Sensor::Ptr sensor) {
+void TXTStore::remove_sensor_record(const Sensor::Ptr sensor) {
 
     bfs::remove_all(compose_sensor_path(sensor->uuid_string()));
 }
 
-void CSVStore::update_sensor_record(const Sensor::Ptr sensor) {
+void TXTStore::update_sensor_record(const Sensor::Ptr sensor) {
 
-    std::ofstream file;
-    file.open(compose_sensor_properties_path(sensor->uuid_string()),
+    std::ofstream file(compose_sensor_properties_path(sensor->uuid_string()),
             std::ofstream::out | std::ofstream::app);
 
     try {
@@ -108,10 +107,9 @@ void CSVStore::update_sensor_record(const Sensor::Ptr sensor) {
     }
 }
 
-void CSVStore::add_single_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value, const bool ignore_errors) {
+void TXTStore::add_single_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value, const bool ignore_errors) {
 
-    std::ofstream file;
-    file.open(compose_sensor_readings_path(sensor->uuid_string()),
+    std::ofstream file(compose_sensor_readings_path(sensor->uuid_string()),
             std::ofstream::out | std::ofstream::app);
 
     try {
@@ -124,10 +122,9 @@ void CSVStore::add_single_reading_record(const Sensor::Ptr sensor, const timesta
     }
 }
 
-void CSVStore::add_bulk_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
+void TXTStore::add_bulk_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
 
-    std::ofstream file;
-    file.open(compose_sensor_readings_path(sensor->uuid_string()),
+    std::ofstream file(compose_sensor_readings_path(sensor->uuid_string()),
             std::ofstream::out | std::ofstream::app);
 
     for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
@@ -142,10 +139,9 @@ void CSVStore::add_bulk_reading_records(const Sensor::Ptr sensor, const readings
     file.close();
 }
 
-void CSVStore::update_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
+void TXTStore::update_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
 
-    std::ofstream file;
-    file.open(compose_sensor_readings_path(sensor->uuid_string()),
+    std::ofstream file(compose_sensor_readings_path(sensor->uuid_string()),
             std::ofstream::out | std::ofstream::app);
 
     for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
@@ -160,7 +156,7 @@ void CSVStore::update_reading_records(const Sensor::Ptr sensor, const readings_t
     file.close();
 }
 
-std::vector<Sensor::Ptr> CSVStore::get_sensor_records() {
+std::vector<Sensor::Ptr> TXTStore::get_sensor_records() {
 
     //TODO: improve this method
     std::vector<Sensor::Ptr> sensors;
@@ -180,7 +176,7 @@ std::vector<Sensor::Ptr> CSVStore::get_sensor_records() {
     return sensors;
 }
 
-readings_t_Ptr CSVStore::get_all_reading_records(const Sensor::Ptr sensor) {
+readings_t_Ptr TXTStore::get_all_reading_records(const Sensor::Ptr sensor) {
 
     //TODO: improve this method
     readings_t_Ptr readings(new readings_t());
@@ -213,7 +209,7 @@ readings_t_Ptr CSVStore::get_all_reading_records(const Sensor::Ptr sensor) {
     return readings;
 }
 
-readings_t_Ptr CSVStore::get_timeframe_reading_records(const Sensor::Ptr sensor, const timestamp_t begin, const timestamp_t end) {
+readings_t_Ptr TXTStore::get_timeframe_reading_records(const Sensor::Ptr sensor, const timestamp_t begin, const timestamp_t end) {
 
     //TODO: improve this method
     readings_t_Ptr readings(new readings_t());
@@ -231,25 +227,24 @@ readings_t_Ptr CSVStore::get_timeframe_reading_records(const Sensor::Ptr sensor,
     return readings;
 }
 
-unsigned long int CSVStore::get_num_readings_value(const Sensor::Ptr sensor) {
+unsigned long int TXTStore::get_num_readings_value(const Sensor::Ptr sensor) {
 
     //TODO: make this method more efficient
     return get_all_readings(sensor)->size();
 }
 
-reading_t CSVStore::get_last_reading_record(const Sensor::Ptr sensor) {
+reading_t TXTStore::get_last_reading_record(const Sensor::Ptr sensor) {
 
     //TODO: improve this method
     return *(get_all_reading_records(sensor)->end());
 }
 
-reading_t CSVStore::get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp) {
+reading_t TXTStore::get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp) {
 
     //TODO: improve this method
     readings_t_Ptr all = get_all_reading_records(sensor);
-    std::map<klio::timestamp_t, double>::iterator it;
 
-    for (it = all->begin(); it != all->end(); ++it) {
+    for (std::map<klio::timestamp_t, double>::iterator it = all->begin(); it != all->end(); ++it) {
 
         if ((*it).first == timestamp) {
             return *it;
@@ -258,7 +253,7 @@ reading_t CSVStore::get_reading_record(const Sensor::Ptr sensor, const timestamp
     return std::pair<timestamp_t, double>(0, 0);
 }
 
-void CSVStore::save_sensor(std::ofstream& file, const Sensor::Ptr sensor) {
+void TXTStore::save_sensor(std::ofstream& file, const Sensor::Ptr sensor) {
 
     file << ENABLED << _separator <<
             sensor->uuid() << _separator <<
@@ -269,20 +264,20 @@ void CSVStore::save_sensor(std::ofstream& file, const Sensor::Ptr sensor) {
             sensor->timezone() << std::endl;
 }
 
-void CSVStore::save_reading(std::ofstream& file, const timestamp_t& timestamp, const double value) {
+void TXTStore::save_reading(std::ofstream& file, const timestamp_t& timestamp, const double value) {
 
     file << ENABLED << _separator <<
             std::to_string(timestamp) << _separator <<
             std::to_string(value) << std::endl;
 }
 
-void CSVStore::delete_reading(std::ofstream& file, const timestamp_t& timestamp) {
+void TXTStore::delete_reading(std::ofstream& file, const timestamp_t& timestamp) {
 
     file << DISABLED << _separator
             << std::to_string(timestamp) << std::endl;
 }
 
-std::vector<std::vector<std::string>> CSVStore::read_records(const std::string& path) {
+std::vector<std::vector<std::string>> TXTStore::read_records(const std::string& path) {
 
     const boost::char_separator<char> separator(_separator.c_str());
     std::vector<std::vector < std::string>> records;
@@ -325,35 +320,35 @@ std::vector<std::vector<std::string>> CSVStore::read_records(const std::string& 
     return records;
 }
 
-const std::string CSVStore::compose_sensors_path() {
+const std::string TXTStore::compose_sensors_path() {
 
     std::ostringstream str;
     str << _path.string() << "/sensors";
     return str.str();
 }
 
-const std::string CSVStore::compose_sensor_path(const std::string& uuid) {
+const std::string TXTStore::compose_sensor_path(const std::string& uuid) {
 
     std::ostringstream str;
     str << compose_sensors_path() << "/" << uuid;
     return str.str();
 }
 
-const std::string CSVStore::compose_sensor_properties_path(const std::string& uuid) {
+const std::string TXTStore::compose_sensor_properties_path(const std::string& uuid) {
 
     std::ostringstream str;
     str << compose_sensor_path(uuid) << "/properties.csv";
     return str.str();
 }
 
-const std::string CSVStore::compose_sensor_readings_path(const std::string& uuid) {
+const std::string TXTStore::compose_sensor_readings_path(const std::string& uuid) {
 
     std::ostringstream str;
     str << compose_sensor_path(uuid) << "/readings.csv";
     return str.str();
 }
 
-void CSVStore::create_directory(const std::string& dir) {
+void TXTStore::create_directory(const std::string& dir) {
 
     if (!bfs::create_directory(dir)) {
 

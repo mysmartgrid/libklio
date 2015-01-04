@@ -81,11 +81,11 @@ namespace klio {
         
         TXTStore::Ptr create_txt_store(const bfs::path& path);
         
-        TXTStore::Ptr create_txt_store(const bfs::path& path, const std::string& separator);
+        TXTStore::Ptr create_txt_store(const bfs::path& path, const std::string& field_separator);
         
         TXTStore::Ptr open_txt_store(const bfs::path& path);
 
-        TXTStore::Ptr open_txt_store(const bfs::path& path, const std::string& separator);
+        TXTStore::Ptr open_txt_store(const bfs::path& path, const std::string& field_separator);
 
 #ifdef ENABLE_MSG
 

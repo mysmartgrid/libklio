@@ -58,12 +58,12 @@ SQLite3Store::Ptr StoreFactory::open_sqlite3_store(
 
 TXTStore::Ptr StoreFactory::create_txt_store(const bfs::path& path) {
 
-    return create_txt_store(path, TXTStore::DEFAULT_SEPARATOR);
+    return create_txt_store(path, TXTStore::DEFAULT_FIELD_SEPARATOR);
 }
 
-TXTStore::Ptr StoreFactory::create_txt_store(const bfs::path& path, const std::string& separator) {
+TXTStore::Ptr StoreFactory::create_txt_store(const bfs::path& path, const std::string& field_separator) {
 
-    TXTStore::Ptr store = TXTStore::Ptr(new TXTStore(path, separator));
+    TXTStore::Ptr store = TXTStore::Ptr(new TXTStore(path, field_separator));
     store->open();
     store->initialize();
     store->check_integrity();
@@ -73,12 +73,12 @@ TXTStore::Ptr StoreFactory::create_txt_store(const bfs::path& path, const std::s
 
 TXTStore::Ptr StoreFactory::open_txt_store(const bfs::path& path) {
 
-    return open_txt_store(path, TXTStore::DEFAULT_SEPARATOR);
+    return open_txt_store(path, TXTStore::DEFAULT_FIELD_SEPARATOR);
 }
 
-TXTStore::Ptr StoreFactory::open_txt_store(const bfs::path& path, const std::string& separator) {
+TXTStore::Ptr StoreFactory::open_txt_store(const bfs::path& path, const std::string& field_separator) {
 
-    TXTStore::Ptr store = TXTStore::Ptr(new TXTStore(path, separator));
+    TXTStore::Ptr store = TXTStore::Ptr(new TXTStore(path, field_separator));
     store->open();
     store->check_integrity();
     store->prepare();

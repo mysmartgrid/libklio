@@ -34,7 +34,8 @@ namespace klio {
         TXTStore(const bfs::path& path, const std::string& separator) :
         Store(true, true, 0, 10, 10000),
         _path(path),
-        _separator(separator) {
+        _field_separator(separator),
+        _token_separator(separator.c_str()) {
         };
 
         virtual ~TXTStore() {
@@ -48,7 +49,7 @@ namespace klio {
         void dispose();
         const std::string str();
 
-        const static std::string DEFAULT_SEPARATOR;
+        const static std::string DEFAULT_FIELD_SEPARATOR;
 
     protected:
         void add_sensor_record(const Sensor::Ptr sensor);
@@ -85,7 +86,8 @@ namespace klio {
         void create_directory(const std::string& dir);
 
         bfs::path _path;
-        std::string _separator;
+        std::string _field_separator;
+        const boost::char_separator<char> _token_separator;
     };
 };
 

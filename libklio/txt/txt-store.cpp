@@ -11,7 +11,7 @@ using namespace klio;
 const std::string TXTStore::ENABLED = "1";
 const std::string TXTStore::DISABLED = "0";
 const std::string TXTStore::NOT_A_NUMBER = "nan";
-const std::string TXTStore::DEFAULT_SEPARATOR = ",";
+const std::string TXTStore::DEFAULT_FIELD_SEPARATOR = ",";
 
 void TXTStore::open() {
 }
@@ -189,11 +189,6 @@ readings_t_Ptr TXTStore::get_all_reading_records(const Sensor::Ptr sensor) {
 
         if (value.find(NOT_A_NUMBER) == std::string::npos) {
 
-            size_t pos = value.find(',');
-            if (pos != std::string::npos) {
-                value.replace(pos, 1, ".");
-            }
-
             try {
                 timestamp_t timestamp = boost::lexical_cast<timestamp_t>((*record).at(1));
 
@@ -214,9 +209,8 @@ readings_t_Ptr TXTStore::get_timeframe_reading_records(const Sensor::Ptr sensor,
     //TODO: improve this method
     readings_t_Ptr readings(new readings_t());
     readings_t_Ptr all = get_all_reading_records(sensor);
-    std::map<klio::timestamp_t, double>::iterator it;
 
-    for (it = all->begin(); it != all->end(); ++it) {
+    for (std::map<klio::timestamp_t, double>::iterator it = all->begin(); it != all->end(); ++it) {
 
         klio::timestamp_t timestamp = (*it).first;
 
@@ -255,25 +249,24 @@ reading_t TXTStore::get_reading_record(const Sensor::Ptr sensor, const timestamp
 
 void TXTStore::save_sensor(std::ofstream& file, const Sensor::Ptr sensor) {
 
-    file << ENABLED << _separator <<
-            sensor->uuid() << _separator <<
-            sensor->external_id() << _separator <<
-            sensor->name() << _separator <<
-            sensor->description() << _separator <<
-            sensor->unit() << _separator <<
+    file << ENABLED << _field_separator <<
+            sensor->uuid() << _field_separator <<
+            sensor->external_id() << _field_separator <<
+            sensor->name() << _field_separator <<
+            sensor->description() << _field_separator <<
+            sensor->unit() << _field_separator <<
             sensor->timezone() << std::endl;
 }
 
 void TXTStore::save_reading(std::ofstream& file, const timestamp_t& timestamp, const double value) {
 
-    file << ENABLED << _separator <<
-            std::to_string(timestamp) << _separator <<
+    file << ENABLED << _field_separator <<
+            std::to_string(timestamp) << _field_separator <<
             std::to_string(value) << std::endl;
 }
 
 std::vector<std::vector<std::string>> TXTStore::read_records(const std::string& path) {
 
-    const boost::char_separator<char> separator(_separator.c_str());
     std::vector<std::vector < std::string>> records;
     std::vector<std::string> record;
 
@@ -284,7 +277,7 @@ std::vector<std::vector<std::string>> TXTStore::read_records(const std::string& 
     try {
         while (getline(file, line)) {
 
-            boost::tokenizer<boost::char_separator<char> > tokenizer(line, separator);
+            boost::tokenizer<boost::char_separator<char> > tokenizer(line, _token_separator);
 
             if (tokenizer.begin() != tokenizer.end()) {
 

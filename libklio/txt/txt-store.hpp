@@ -69,14 +69,12 @@ namespace klio {
         TXTStore(const TXTStore& original);
         TXTStore& operator =(const TXTStore& rhs);
 
-        typedef boost::tokenizer<boost::char_separator<char> > Tokenizer;
         const static std::string ENABLED;
         const static std::string DISABLED;
         const static std::string NOT_A_NUMBER;
 
         void save_sensor(std::ofstream& file, const Sensor::Ptr sensor);
         void save_reading(std::ofstream& file, const timestamp_t& timestamp, const double value);
-        void delete_reading(std::ofstream& file, const timestamp_t& timestamp);
         std::vector<std::vector<std::string>> read_records(const std::string& path);
 
         const std::string compose_db_path();

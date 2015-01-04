@@ -271,12 +271,6 @@ void TXTStore::save_reading(std::ofstream& file, const timestamp_t& timestamp, c
             std::to_string(value) << std::endl;
 }
 
-void TXTStore::delete_reading(std::ofstream& file, const timestamp_t& timestamp) {
-
-    file << DISABLED << _separator
-            << std::to_string(timestamp) << std::endl;
-}
-
 std::vector<std::vector<std::string>> TXTStore::read_records(const std::string& path) {
 
     const boost::char_separator<char> separator(_separator.c_str());
@@ -285,14 +279,12 @@ std::vector<std::vector<std::string>> TXTStore::read_records(const std::string& 
 
     std::map<std::string, std::vector < std::string>> lines;
     std::string line;
-
-    std::ifstream file;
-    file.open(path.c_str());
+    std::ifstream file(path.c_str());
 
     try {
         while (getline(file, line)) {
 
-            Tokenizer tokenizer(line, separator);
+            boost::tokenizer<boost::char_separator<char> > tokenizer(line, separator);
 
             if (tokenizer.begin() != tokenizer.end()) {
 

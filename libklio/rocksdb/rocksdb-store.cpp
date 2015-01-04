@@ -7,8 +7,7 @@
 #include <cstdio>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
-#include <libklio/sensor-factory.hpp>
-#include "rocksdb-store.hpp"
+#include <libklio/rocksdb/rocksdb-store.hpp>
 
 
 using namespace klio;

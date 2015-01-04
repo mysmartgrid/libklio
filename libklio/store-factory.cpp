@@ -192,7 +192,7 @@ RocksDBStore::Ptr StoreFactory::open_rocksdb_store(const bfs::path& path,
 
     std::map<const std::string, const std::string> db_options;
     std::map<const std::string, const std::string> read_options;
-    
+
     return open_rocksdb_store(path, auto_flush, flush_timeout, synchronous, db_options, read_options);
 }
 

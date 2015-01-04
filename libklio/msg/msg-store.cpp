@@ -4,7 +4,7 @@
 
 #include <jsoncpp/json/json.h>
 #include <libmysmartgrid/error.h>
-#include "msg-store.hpp"
+#include <libklio/msg/msg-store.hpp>
 
 
 using namespace klio;

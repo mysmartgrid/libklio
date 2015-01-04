@@ -5,10 +5,8 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
-#include <libklio/sensor-factory.hpp>
 #include <libklio/sqlite3/sqlite3-transaction.hpp>
-#include <libklio/common.hpp>
-#include "sqlite3-store.hpp"
+#include <libklio/sqlite3/sqlite3-store.hpp>
 
 
 using namespace klio;
@@ -189,7 +187,7 @@ void SQLite3Store::check_integrity() {
 void SQLite3Store::initialize() {
 
     //FIXME: change type of field timestamp
-    
+
     //Create table sensors if it does not exist
     sqlite3_stmt* stmt = prepare("CREATE TABLE IF NOT EXISTS sensors(uuid VARCHAR(36) PRIMARY KEY, external_id VARCHAR(36), name VARCHAR(100), description VARCHAR(255), unit VARCHAR(20), timezone VARCHAR(30), device_type_id INTEGER)");
 

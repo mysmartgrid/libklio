@@ -1,6 +1,5 @@
 #include <boost/uuid/uuid_io.hpp>
-
-#include "store.hpp"
+#include <libklio/store.hpp>
 
 
 using namespace klio;

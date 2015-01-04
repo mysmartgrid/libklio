@@ -99,11 +99,12 @@ namespace klio {
         bool operator !=(const DeviceType& d);
 
     private:
+
         DeviceType(const int id, const std::string& name) :
         _id(id),
         _name(name) {
         };
-        
+
         DeviceType(const DeviceType& original);
         DeviceType& operator =(const DeviceType& d);
 

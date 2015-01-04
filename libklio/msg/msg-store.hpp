@@ -25,11 +25,11 @@
 
 #ifdef ENABLE_MSG
 
-#include <libklio/store.hpp>
 #include <libmysmartgrid/webclient.h>
+#include <libklio/store.hpp>
 
 namespace Json {
-class Value;
+    class Value;
 }
 
 namespace klio {
@@ -49,7 +49,7 @@ namespace klio {
         _key(key),
         _description(description),
         _type(type),
-        _last_heartbeat(0){
+        _last_heartbeat(0) {
         };
 
         virtual ~MSGStore() {
@@ -71,7 +71,7 @@ namespace klio {
         const std::string description() const {
             return _description;
         };
-        
+
         const std::string type() const {
             return _type;
         };

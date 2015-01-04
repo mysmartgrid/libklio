@@ -38,7 +38,7 @@ namespace klio {
         virtual ~PostgreSQLTransaction() {
             rollback();
         }
-        
+
         void connection(PGconn* connection) {
             _connection = connection;
         }
@@ -50,7 +50,7 @@ namespace klio {
     private:
         PostgreSQLTransaction(const PostgreSQLTransaction& original);
         PostgreSQLTransaction& operator=(const PostgreSQLTransaction& rhs);
-        
+
         PGconn* _connection;
     };
 };

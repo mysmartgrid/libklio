@@ -84,6 +84,7 @@ namespace klio {
         void sync_sensors(const Store::Ptr store);
 
     protected:
+
         Store(const bool auto_commit, const bool auto_flush, const timestamp_t flush_timeout, const unsigned int min_bulk_size, const unsigned int max_bulk_size) :
         _auto_commit(auto_commit),
         _auto_flush(auto_flush),

@@ -24,8 +24,7 @@
 #include <sqlite3.h>
 #include <boost/filesystem.hpp>
 #include <libklio/store.hpp>
-#include <libklio/sensor-factory.hpp>
-#include "sqlite3-transaction.hpp"
+#include <libklio/sqlite3/sqlite3-transaction.hpp>
 
 
 namespace bfs = boost::filesystem;
@@ -93,17 +92,17 @@ namespace klio {
         reading_t get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp);
 
         void clear_buffers();
-        
+
     private:
         SQLite3Store(const SQLite3Store& original);
         SQLite3Store& operator =(const SQLite3Store& rhs);
-        
+
         void open_db();
         void close_db();
         void prepare_statements();
         void finalize_statements();
         SQLite3Transaction::Ptr create_transaction_handler();
-        
+
         const bool has_table(const std::string& name);
         const bool has_column(const std::string& table, const std::string& column);
 

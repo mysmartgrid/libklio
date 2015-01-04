@@ -3,7 +3,7 @@
 #ifdef ENABLE_POSTGRESQL
 
 #include <sstream>
-#include "postgresql-transaction.hpp"
+#include <libklio/postgresql/postgresql-transaction.hpp>
 
 
 using namespace klio;
@@ -76,9 +76,9 @@ void PostgreSQLTransaction::rollback() {
         } else {
             LOG("Can't rollback transaction: " << PQerrorMessage(_connection));
         }
-        
+
         PQclear(result);
-        
+
     } else {
         LOG("Transaction is not rolled back.");
     }

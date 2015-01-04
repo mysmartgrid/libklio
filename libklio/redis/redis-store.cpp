@@ -2,8 +2,7 @@
 
 #ifdef ENABLE_REDIS3M
 
-#include <libklio/sensor-factory.hpp>
-#include "redis-store.hpp"
+#include <libklio/redis/redis-store.hpp>
 
 
 using namespace klio;

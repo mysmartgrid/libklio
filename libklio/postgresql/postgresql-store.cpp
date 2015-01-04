@@ -9,10 +9,7 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
-#include <libklio/sensor-factory.hpp>
-#include <libklio/common.hpp>
-#include "postgresql-transaction.hpp"
-#include "postgresql-store.hpp"
+#include <libklio/postgresql/postgresql-store.hpp>
 
 
 using namespace klio;

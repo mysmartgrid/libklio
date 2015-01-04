@@ -26,14 +26,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <boost/filesystem.hpp>
-#include <libklio/store.hpp>
-#include <libklio/sensor-factory.hpp>
 #include <postgresql/libpq-fe.h>
-#include "postgresql-transaction.hpp"
+#include <libklio/store.hpp>
+#include <libklio/postgresql/postgresql-transaction.hpp>
 
-
-namespace bfs = boost::filesystem;
 
 namespace klio {
 

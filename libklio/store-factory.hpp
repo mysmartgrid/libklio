@@ -78,11 +78,11 @@ namespace klio {
                 //Visit: http://www.sqlite.org/pragma.html#pragma_synchronous
                 const std::string& synchronous
                 );
-        
+
         TXTStore::Ptr create_txt_store(const bfs::path& path);
-        
+
         TXTStore::Ptr create_txt_store(const bfs::path& path, const std::string& field_separator);
-        
+
         TXTStore::Ptr open_txt_store(const bfs::path& path);
 
         TXTStore::Ptr open_txt_store(const bfs::path& path, const std::string& field_separator);
@@ -113,7 +113,7 @@ namespace klio {
 #ifdef ENABLE_ROCKSDB
 
         RocksDBStore::Ptr create_rocksdb_store(const bfs::path& path);
-        
+
         RocksDBStore::Ptr create_rocksdb_store(const bfs::path& path,
                 const bool auto_flush,
                 const timestamp_t flush_timeout,
@@ -129,7 +129,7 @@ namespace klio {
                 );
 
         RocksDBStore::Ptr open_rocksdb_store(const bfs::path& path);
-        
+
         RocksDBStore::Ptr open_rocksdb_store(const bfs::path& path,
                 const bool auto_flush,
                 const timestamp_t flush_timeout,
@@ -168,7 +168,7 @@ namespace klio {
 #endif /* ENABLE_REDIS3M */
 
 #ifdef ENABLE_POSTGRESQL
-        
+
         PostgreSQLStore::Ptr create_postgresql_store();
 
         PostgreSQLStore::Ptr create_postgresql_store(const std::string& info);
@@ -185,7 +185,7 @@ namespace klio {
                 );
 
 #endif /* ENABLE_POSTGRESQL */
-        
+
     private:
         StoreFactory(const StoreFactory& original);
         StoreFactory& operator =(const StoreFactory& rhs);

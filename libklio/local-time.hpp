@@ -23,7 +23,6 @@
 
 #include <boost/date_time/local_time/local_time.hpp>
 #include <boost/date_time/gregorian/gregorian.hpp>
-#include <boost/shared_ptr.hpp>
 #include <libklio/common.hpp>
 #include <libklio/sensor.hpp>
 #include <libklio/types.hpp>

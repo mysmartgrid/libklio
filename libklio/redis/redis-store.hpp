@@ -27,7 +27,7 @@
 #include <iostream>
 #include <redis3m/redis3m.hpp>
 #include <libklio/store.hpp>
-#include "redis-transaction.hpp"
+#include <libklio/redis/redis-transaction.hpp>
 
 using namespace redis3m;
 

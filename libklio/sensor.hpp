@@ -96,15 +96,15 @@ namespace klio {
         void description(const std::string& description) {
             _description = description;
         }
-        
+
         void unit(const std::string& unit) {
             _unit = unit;
         }
-        
+
         void timezone(const std::string& timezone) {
             _timezone = timezone;
         }
-        
+
         void device_type(const klio::DeviceType::Ptr device_type) {
             _device_type = device_type;
         }

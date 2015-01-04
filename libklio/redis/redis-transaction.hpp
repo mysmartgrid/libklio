@@ -52,7 +52,7 @@ namespace klio {
         const bool run(const std::string& command);
 
         connection::ptr_t _connection;
-        
+
         static const std::string MULTI;
         static const std::string EXEC;
         static const std::string DISCARD;

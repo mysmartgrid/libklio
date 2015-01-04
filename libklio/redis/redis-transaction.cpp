@@ -1,6 +1,6 @@
 #include <sstream>
 #include <vector>
-#include "redis-transaction.hpp"
+#include <libklio/redis/redis-transaction.hpp>
 
 
 using namespace klio;
@@ -70,8 +70,8 @@ void RedisTransaction::rollback() {
 
 const bool RedisTransaction::run(const std::string& command) {
 
-    const std::vector<reply> replies = 
-        _connection->run(redis3m::command(command)).elements();
+    const std::vector<reply> replies =
+            _connection->run(redis3m::command(command)).elements();
 
     for (std::vector<reply>::const_iterator it = replies.begin(); it != replies.end(); ++it) {
         if ((*it).integer() == 0 && (*it).str() != "OK") {

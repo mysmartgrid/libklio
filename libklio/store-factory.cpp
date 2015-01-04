@@ -60,6 +60,16 @@ CSVStore::Ptr StoreFactory::create_csv_store(const bfs::path& path) {
 
     CSVStore::Ptr store = CSVStore::Ptr(new CSVStore(path));
     store->open();
+    store->initialize();
+    store->check_integrity();
+    store->prepare();
+    return store;
+}
+
+CSVStore::Ptr StoreFactory::open_csv_store(const bfs::path& path) {
+
+    CSVStore::Ptr store = CSVStore::Ptr(new CSVStore(path));
+    store->open();
     store->check_integrity();
     store->prepare();
     return store;

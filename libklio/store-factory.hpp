@@ -80,6 +80,8 @@ namespace klio {
                 );
         
         CSVStore::Ptr create_csv_store(const bfs::path& path);
+        
+        CSVStore::Ptr open_csv_store(const bfs::path& path);
 
 #ifdef ENABLE_MSG
 

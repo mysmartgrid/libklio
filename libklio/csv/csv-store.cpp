@@ -70,8 +70,10 @@ void CSVStore::add_sensor_record(const Sensor::Ptr sensor) {
 
     const std::string uuid = sensor->uuid_string();
     create_directory(compose_sensor_path(uuid));
-    
-    std::ofstream file(compose_sensor_properties_path(uuid));
+
+    std::ofstream file;
+    file.open(compose_sensor_properties_path(uuid),
+            std::ofstream::out | std::ofstream::app);
 
     try {
         save_sensor(file, sensor);
@@ -91,7 +93,9 @@ void CSVStore::remove_sensor_record(const Sensor::Ptr sensor) {
 
 void CSVStore::update_sensor_record(const Sensor::Ptr sensor) {
 
-    std::ofstream file(compose_sensor_properties_path(sensor->uuid_string()));
+    std::ofstream file;
+    file.open(compose_sensor_properties_path(sensor->uuid_string()),
+            std::ofstream::out | std::ofstream::app);
 
     try {
         save_sensor(file, sensor);
@@ -106,7 +110,9 @@ void CSVStore::update_sensor_record(const Sensor::Ptr sensor) {
 
 void CSVStore::add_single_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value, const bool ignore_errors) {
 
-    std::ofstream file(compose_sensor_readings_path(sensor->uuid_string()));
+    std::ofstream file;
+    file.open(compose_sensor_readings_path(sensor->uuid_string()),
+            std::ofstream::out | std::ofstream::app);
 
     try {
         save_reading(file, timestamp, value);
@@ -120,7 +126,9 @@ void CSVStore::add_single_reading_record(const Sensor::Ptr sensor, const timesta
 
 void CSVStore::add_bulk_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
 
-    std::ofstream file(compose_sensor_readings_path(sensor->uuid_string()));
+    std::ofstream file;
+    file.open(compose_sensor_readings_path(sensor->uuid_string()),
+            std::ofstream::out | std::ofstream::app);
 
     for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
 
@@ -136,7 +144,9 @@ void CSVStore::add_bulk_reading_records(const Sensor::Ptr sensor, const readings
 
 void CSVStore::update_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
 
-    std::ofstream file(compose_sensor_readings_path(sensor->uuid_string()));
+    std::ofstream file;
+    file.open(compose_sensor_readings_path(sensor->uuid_string()),
+            std::ofstream::out | std::ofstream::app);
 
     for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
 
@@ -280,7 +290,9 @@ std::vector<std::vector<std::string>> CSVStore::read_records(const std::string& 
 
     std::map<std::string, std::vector < std::string>> lines;
     std::string line;
-    std::ifstream file(path.c_str());
+
+    std::ifstream file;
+    file.open(path.c_str());
 
     try {
         while (getline(file, line)) {

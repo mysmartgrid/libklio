@@ -32,7 +32,7 @@ namespace klio {
         typedef boost::shared_ptr<CSVStore> Ptr;
 
         CSVStore(const bfs::path& path) :
-        Store(true, true, 600, 10, 10000),
+        Store(true, true, 0, 10, 10000),
         _path(path),
         _separator(",") {
         };

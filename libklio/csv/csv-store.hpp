@@ -22,7 +22,6 @@
 
 #include <boost/filesystem.hpp>
 #include <libklio/store.hpp>
-#include <libklio/sensor-factory.hpp>
 
 namespace bfs = boost::filesystem;
 
@@ -73,8 +72,7 @@ namespace klio {
         const static std::string DISABLED;
         const static std::string NOT_A_NUMBER;
 
-        void remove_db(const std::string& db_path);
-        void save_sensor(const bool create, const Sensor::Ptr sensor);
+        void save_sensor(std::ofstream& file, const Sensor::Ptr sensor);
         void save_reading(std::ofstream& file, const timestamp_t& timestamp, const double value);
         void delete_reading(std::ofstream& file, const timestamp_t& timestamp);
         std::vector<std::vector<std::string>> read_records(const std::string& path);

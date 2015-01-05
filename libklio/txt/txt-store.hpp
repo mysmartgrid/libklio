@@ -78,6 +78,7 @@ namespace klio {
         void save_reading(std::ofstream& file, const timestamp_t& timestamp, const double value);
         std::vector<std::vector<std::string>> read_records(const std::string& path);
 
+        void check_sensor(const Sensor::Ptr sensor, const bool exists);
         const std::string compose_db_path();
         const std::string compose_sensors_path();
         const std::string compose_sensor_path(const std::string& uuid);

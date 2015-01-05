@@ -69,6 +69,8 @@ const std::string TXTStore::str() {
 
 void TXTStore::add_sensor_record(const Sensor::Ptr sensor) {
 
+    check_sensor(sensor, false);
+
     const std::string uuid = sensor->uuid_string();
     create_directory(compose_sensor_path(uuid));
 
@@ -77,7 +79,6 @@ void TXTStore::add_sensor_record(const Sensor::Ptr sensor) {
 
     try {
         save_sensor(file, sensor);
-
         file.close();
 
     } catch (const std::exception& e) {
@@ -93,12 +94,13 @@ void TXTStore::remove_sensor_record(const Sensor::Ptr sensor) {
 
 void TXTStore::update_sensor_record(const Sensor::Ptr sensor) {
 
+    check_sensor(sensor, true);
+
     std::ofstream file(compose_sensor_properties_path(sensor->uuid_string()),
             std::ofstream::out | std::ofstream::app);
 
     try {
         save_sensor(file, sensor);
-
         file.close();
 
     } catch (const std::exception& e) {
@@ -108,6 +110,8 @@ void TXTStore::update_sensor_record(const Sensor::Ptr sensor) {
 }
 
 void TXTStore::add_single_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value, const bool ignore_errors) {
+
+    check_sensor(sensor, true);
 
     std::ofstream file(compose_sensor_readings_path(sensor->uuid_string()),
             std::ofstream::out | std::ofstream::app);
@@ -123,6 +127,8 @@ void TXTStore::add_single_reading_record(const Sensor::Ptr sensor, const timesta
 }
 
 void TXTStore::add_bulk_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
+
+    check_sensor(sensor, true);
 
     std::ofstream file(compose_sensor_readings_path(sensor->uuid_string()),
             std::ofstream::out | std::ofstream::app);
@@ -141,6 +147,8 @@ void TXTStore::add_bulk_reading_records(const Sensor::Ptr sensor, const readings
 
 void TXTStore::update_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
 
+    check_sensor(sensor, true);
+    
     std::ofstream file(compose_sensor_readings_path(sensor->uuid_string()),
             std::ofstream::out | std::ofstream::app);
 
@@ -178,6 +186,8 @@ std::vector<Sensor::Ptr> TXTStore::get_sensor_records() {
 
 readings_t_Ptr TXTStore::get_all_reading_records(const Sensor::Ptr sensor) {
 
+    check_sensor(sensor, true);
+    
     //TODO: improve this method
     readings_t_Ptr readings(new readings_t());
     std::vector<std::vector < std::string>> records = read_records(compose_sensor_readings_path(sensor->uuid_string()));
@@ -296,13 +306,33 @@ std::vector<std::vector<std::string>> TXTStore::read_records(const std::string& 
 
     } catch (std::exception& e) {
         file.close();
-        throw StoreException("Invalid CVS file format.");
+        throw StoreException("Invalid CVS file format");
     }
 
     for (std::map<std::string, std::vector < std::string>>::iterator it = lines.begin(); it != lines.end(); ++it) {
         records.push_back(it->second);
     }
     return records;
+}
+
+void TXTStore::check_sensor(const Sensor::Ptr sensor, const bool should_exist) {
+
+    const std::string uuid = sensor->uuid_string();
+    const std::string path = compose_sensor_properties_path(uuid);
+
+    if (bfs::exists(path)) {
+        
+        if (!should_exist) {
+            std::ostringstream oss;
+            oss << "Sensor " << path << " already exists";
+            throw StoreException(oss.str());
+        }
+
+    } else if (should_exist) {
+        std::ostringstream oss;
+        oss << "Sensor " << uuid << " not found";
+        throw StoreException(oss.str());
+    }
 }
 
 const std::string TXTStore::compose_sensors_path() {

@@ -144,6 +144,8 @@ else()
 endif()
 
 set (CTEST_BUILD_NAME "${CMAKE_SYSTEM_PROCESSOR}-${_compiler_str}${_boost_str}-${GIT_BRANCH}")
+set (CTEST_BUILD_NAME_DEVEL  "${CMAKE_SYSTEM_PROCESSOR}-${_compiler_str}${_boost_str}-development")
+set (CTEST_BUILD_NAME_MASTER "${CMAKE_SYSTEM_PROCESSOR}-${_compiler_str}${_boost_str}-master")
 
 set (CTEST_BASE_DIRECTORY   "${BUILD_TMP_DIR}/${CTEST_PROJECT_NAME}/${TESTING_MODEL}")
 set (CTEST_SOURCE_DIRECTORY "${CTEST_BASE_DIRECTORY}/src-${GIT_BRANCH}-${CMAKE_SYSTEM_PROCESSOR}" )
@@ -199,6 +201,12 @@ else()
   set_if_exists (REDIS3M_HOME ${EXTERNAL_SOFTWARE}/redis3m)
 endif()
 set_if_exists (LIBMYSMARTGRID_HOME "${BUILD_TMP_DIR}/libmysmartgrid/${TESTING_MODEL}/install-${CTEST_BUILD_NAME}")
+if(NOT LIBMYSMARTGRID_HOME)
+  set_if_exists (LIBMYSMARTGRID_HOME "${BUILD_TMP_DIR}/libmysmartgrid/${TESTING_MODEL}/install-${CTEST_BUILD_NAME_DEVEL}")
+endif()
+if(NOT LIBMYSMARTGRID_HOME)
+  set_if_exists (LIBMYSMARTGRID_HOME "${BUILD_TMP_DIR}/libmysmartgrid/${TESTING_MODEL}/install-${CTEST_BUILD_NAME_MASTER}")
+endif()
 
 # LIBKLIO_HOME
 # LIBHXB_HOME

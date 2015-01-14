@@ -301,12 +301,17 @@ if (${LAST_RETURN_VALUE} EQUAL 0)
     RETURN_VALUE LAST_RETURN_VALUE)
 
   message("======> run Install:  <===")
-  execute_process(
-    COMMAND ${CMAKE_COMMAND} -DCMAKE_INSTALL_PREFIX=${CTEST_INSTALL_DIRECTORY} -P cmake_install.cmake
-    WORKING_DIRECTORY ${CTEST_BINARY_DIRECTORY}
-    RESULT_VARIABLE INSTALL_ERRORS
-    )
-  message("======> Install: ${INSTALL_ERRORS} <===")
+  if (${BUILD_ERRORS} EQUAL 0)
+    execute_process(
+      COMMAND ${CMAKE_COMMAND} -DCMAKE_INSTALL_PREFIX=${CTEST_INSTALL_DIRECTORY} -P cmake_install.cmake
+      WORKING_DIRECTORY ${CTEST_BINARY_DIRECTORY}
+      RESULT_VARIABLE INSTALL_ERRORS
+      )
+    message("======> Install: ${INSTALL_ERRORS} <===")
+  else()
+    message("======> skip installation due to build errors.")
+    set(INSTALL_ERRORS 1)
+  endif()
 
   if (${BUILD_ERRORS} EQUAL 0 AND ${INSTALL_ERRORS} EQUAL 0)
     set (PROPERLY_BUILT_AND_INSTALLED TRUE)

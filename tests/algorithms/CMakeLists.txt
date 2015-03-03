@@ -18,4 +18,4 @@ endif(ROCKSDB_FOUND)
 ADD_TEST(AlgorithmTest ${CMAKE_CURRENT_BINARY_DIR}/algorithmstest TestAlgorithms)
 
 # Link the executable 
-target_link_libraries(algorithmstest klio ${Boost_LIBRARIES} )
+target_link_libraries(algorithmstest klio ${Boost_LIBRARIES} pthread)

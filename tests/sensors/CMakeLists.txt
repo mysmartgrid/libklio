@@ -20,6 +20,6 @@ endif(ROCKSDB_FOUND)
 ADD_TEST(SensorTest ${CMAKE_CURRENT_BINARY_DIR}/sensorstest TestSensors)
 
 # Link the executable 
-target_link_libraries(sensorstest klio ${Boost_LIBRARIES} )
+target_link_libraries(sensorstest klio ${Boost_LIBRARIES} pthread)
 
 

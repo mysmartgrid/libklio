@@ -24,8 +24,7 @@
 #include <sqlite3.h>
 #include <boost/filesystem.hpp>
 #include <libklio/store.hpp>
-#include <libklio/sensor-factory.hpp>
-#include "sqlite3-transaction.hpp"
+#include <libklio/sqlite3/sqlite3-transaction.hpp>
 
 
 namespace bfs = boost::filesystem;
@@ -43,7 +42,7 @@ namespace klio {
                 const timestamp_t flush_timeout,
                 const std::string& synchronous
                 ) :
-        Store(auto_commit, auto_flush, flush_timeout),
+        Store(auto_commit, auto_flush, flush_timeout, 10, 10000),
         _path(path),
         _db(NULL),
         _synchronous(synchronous),
@@ -81,7 +80,8 @@ namespace klio {
         void add_sensor_record(const Sensor::Ptr sensor);
         void remove_sensor_record(const Sensor::Ptr sensor);
         void update_sensor_record(const Sensor::Ptr sensor);
-        void add_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors);
+        void add_single_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value, const bool ignore_errors);
+        void add_bulk_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors);
         void update_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors);
 
         std::vector<Sensor::Ptr> get_sensor_records();
@@ -92,17 +92,17 @@ namespace klio {
         reading_t get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp);
 
         void clear_buffers();
-        
+
     private:
         SQLite3Store(const SQLite3Store& original);
         SQLite3Store& operator =(const SQLite3Store& rhs);
-        
+
         void open_db();
         void close_db();
         void prepare_statements();
         void finalize_statements();
         SQLite3Transaction::Ptr create_transaction_handler();
-        
+
         const bool has_table(const std::string& name);
         const bool has_column(const std::string& table, const std::string& column);
 

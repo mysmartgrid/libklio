@@ -18,7 +18,6 @@
  * along with libklio. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include <libklio/config.h>
 
 #ifdef ENABLE_MSG

@@ -18,7 +18,7 @@
  *
  */
 
-#include "common.hpp"
+#include <libklio/common.hpp>
 #include <sstream>
 
 

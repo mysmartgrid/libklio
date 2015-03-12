@@ -33,10 +33,10 @@ namespace klio {
     public:
         typedef boost::shared_ptr<TimeConverter> Ptr;
 
-        TimeConverter(){
+        TimeConverter() {
         };
 
-        virtual ~TimeConverter(){
+        virtual ~TimeConverter() {
         };
 
         const timestamp_t get_timestamp();

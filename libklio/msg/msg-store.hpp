@@ -25,11 +25,11 @@
 
 #ifdef ENABLE_MSG
 
-#include <libklio/store.hpp>
 #include <libmysmartgrid/webclient.h>
+#include <libklio/store.hpp>
 
 namespace Json {
-class Value;
+    class Value;
 }
 
 namespace klio {
@@ -43,7 +43,7 @@ namespace klio {
                 const std::string& key,
                 const std::string& description,
                 const std::string& type) :
-        Store(true, 600, true),
+        Store(true, true, 600, 1, 1000),
         _url(url),
         _id(id),
         _key(key),
@@ -71,7 +71,7 @@ namespace klio {
         const std::string description() const {
             return _description;
         };
-        
+
         const std::string type() const {
             return _type;
         };
@@ -97,7 +97,8 @@ namespace klio {
         void add_sensor_record(const Sensor::Ptr sensor);
         void remove_sensor_record(const Sensor::Ptr sensor);
         void update_sensor_record(const Sensor::Ptr sensor);
-        void add_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors);
+        void add_single_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value, const bool ignore_errors);
+        void add_bulk_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors);
         void update_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors);
 
         std::vector<Sensor::Ptr> get_sensor_records();

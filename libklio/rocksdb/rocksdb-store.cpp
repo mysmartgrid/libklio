@@ -7,8 +7,7 @@
 #include <cstdio>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
-#include <libklio/sensor-factory.hpp>
-#include "rocksdb-store.hpp"
+#include <libklio/rocksdb/rocksdb-store.hpp>
 
 
 using namespace klio;
@@ -230,25 +229,46 @@ reading_t RocksDBStore::get_reading_record(const Sensor::Ptr sensor, const times
     return reading;
 }
 
-void RocksDBStore::add_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
+void RocksDBStore::add_single_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value, const bool ignore_errors) {
 
     rocksdb::DB* db = open_db(true, false,
             compose_sensor_readings_path(sensor->uuid_string()));
 
-    for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
+    try {
+        put_value(db, std::to_string(timestamp), std::to_string(value));
 
+    } catch (std::exception const& e) {
+        handle_reading_insertion_error(ignore_errors, timestamp, value);
+    }
+}
+
+void RocksDBStore::add_bulk_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
+
+    rocksdb::DB* db = open_db(true, false,
+            compose_sensor_readings_path(sensor->uuid_string()));
+
+    rocksdb::WriteBatch batch;
+
+    for (readings_cit_t it = readings.begin(); it != readings.end(); ++it) {
         try {
-            put_value(db, std::to_string((*it).first), std::to_string((*it).second));
+            batch.Put(std::to_string((*it).first), std::to_string((*it).second));
 
         } catch (std::exception const& e) {
             handle_reading_insertion_error(ignore_errors, (*it).first, (*it).second);
         }
     }
+    try {
+        write_batch(db, batch);
+
+    } catch (std::exception const& e) {
+        handle_reading_insertion_error(ignore_errors, sensor);
+    }
 }
 
 void RocksDBStore::update_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) {
 
-    add_reading_records(sensor, readings, ignore_errors);
+    //FIXME: improve this method
+    add_bulk_reading_records(sensor, readings, ignore_errors);
 }
 
 void RocksDBStore::clear_buffers() {
@@ -309,11 +329,7 @@ void RocksDBStore::put_sensor(const bool create, const Sensor::Ptr sensor) {
 
 void RocksDBStore::put_value(rocksdb::DB* db, const std::string& key, const std::string& value) {
 
-    rocksdb::WriteOptions options;
-    options.sync = _write_options["sync"] == "true";
-    options.disableWAL = _write_options["disableWAL"] == "true";
-
-    const rocksdb::Status status = db->Put(options, key, value);
+    const rocksdb::Status status = db->Put(_write_options, key, value);
 
     if (!status.ok()) {
         throw StoreException(status.ToString());
@@ -337,7 +353,16 @@ std::string RocksDBStore::get_value(rocksdb::DB* db, const std::string& key) {
 
 void RocksDBStore::delete_value(rocksdb::DB* db, const std::string& key) {
 
-    const rocksdb::Status status = db->Delete(rocksdb::WriteOptions(), key);
+    const rocksdb::Status status = db->Delete(_write_options, key);
+
+    if (!status.ok()) {
+        throw StoreException(status.ToString());
+    }
+}
+
+void RocksDBStore::write_batch(rocksdb::DB* db, rocksdb::WriteBatch& batch) {
+
+    const rocksdb::Status status = db->Write(_write_options, &batch);
 
     if (!status.ok()) {
         throw StoreException(status.ToString());

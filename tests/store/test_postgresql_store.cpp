@@ -1,7 +1,7 @@
 /**
  * This file is part of libklio.
  *
- * (c) Fraunhofer ITWM - Ely de Oliveira   <ely.oliveira@itwm.fhg.de>, 2014
+ * (c) Fraunhofer ITWM - Ely de Oliveira   <ely.oliveira@itwm.fhg.de>, 2013
  *
  * libklio is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 
 #include <libklio/config.h>
 
-#ifdef ENABLE_ROCKSDB
+#ifdef ENABLE_POSTGRESQL
 
 #include <iostream>
 #include <boost/test/unit_test.hpp>
@@ -28,77 +28,53 @@
 #include <libklio/sensor-factory.hpp>
 #include <testconfig.h>
 
-/**
- * see http://www.boost.org/doc/libs/1_43_0/libs/test/doc/html/tutorials/hello-the-testing-world.html
- */
+klio::StoreFactory::Ptr pstore_factory = klio::StoreFactory::Ptr(new klio::StoreFactory());
+klio::SensorFactory::Ptr psensor_factory = klio::SensorFactory::Ptr(new klio::SensorFactory());
 
-BOOST_AUTO_TEST_CASE(check_open_corrupt_rocksdb_path) {
+klio::PostgreSQLStore::Ptr create_postgresql_test_store() {
 
-    std::cout << "Testing storage creation for RocksDB" << std::endl;
-    klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
+    std::cout << "Attempting to create PostgreSQL store " << std::endl;
 
-    bfs::path db = boost::filesystem::unique_path();
+    klio::PostgreSQLStore::Ptr store = pstore_factory->create_postgresql_store();
 
-    klio::Store::Ptr store;
-
-    try {
-        std::cout << "Attempting to create " << db << std::endl;
-        klio::Store::Ptr store(store_factory->open_rocksdb_store(db));
-
-        store->dispose();
-
-        BOOST_FAIL("An exception is expected to be risen when a corrupt store is opened.");
-
-    } catch (klio::StoreException const& ex) {
-        //This exception is expected
-        bfs::remove(db); //TODO: use dispose() here
-    }
+    std::cout << "Created: " << store->str() << std::endl;
+    return store;
 }
 
-BOOST_AUTO_TEST_CASE(check_create_rocksdb_storage) {
+klio::Sensor::Ptr create_test_psensor(
+        const std::string& external_id,
+        const std::string& name,
+        const std::string& unit) {
 
-    std::cout << "Testing storage creation for RocksDB" << std::endl;
-    klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
-    bfs::path db(TEST_DB_PATH);
+    klio::Sensor::Ptr sensor(psensor_factory->createSensor(external_id, name, unit, "Europe/Berlin"));
+    std::cout << "Created " << sensor->str() << std::endl;
+    return sensor;
+}
 
-    std::cout << "Attempting to create " << db << std::endl;
-    klio::Store::Ptr store(store_factory->create_rocksdb_store(db));
-    std::cout << "Created: " << store->str() << std::endl;
+BOOST_AUTO_TEST_CASE(check_create_postgresql_storage) {
 
+    std::cout << "Testing storage creation for PostgreSQL" << std::endl;
     try {
-        klio::Store::Ptr loaded(store_factory->create_rocksdb_store(db));
-        loaded->open();
-        std::cout << "Opened database: " << loaded->str() << std::endl;
+        klio::PostgreSQLStore::Ptr store = create_postgresql_test_store();
+
+        BOOST_CHECK_EQUAL(klio::PostgreSQLStore::DEFAULT_CONNECTION_INFO, store->info());
+        
+        store = create_postgresql_test_store();
 
         store->dispose();
 
     } catch (std::exception const& ex) {
-        store->dispose();
-        std::cout << "Caught invalid exception: " << ex.what() << std::endl;
-        BOOST_FAIL("Unexpected exception occurred for initialize request");
+        BOOST_FAIL("Unexpected exception occurred during PostgreSQL test");
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_add_rocksdb_sensor) {
+BOOST_AUTO_TEST_CASE(check_add_postgresql_sensor) {
 
-    std::cout << "Testing sensor addition for RocksDB" << std::endl;
-    klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
-    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-    bfs::path db(TEST_DB_PATH);
-
-    std::cout << "Attempting to create " << db << std::endl;
-    klio::Store::Ptr store(store_factory->create_rocksdb_store(db));
-    std::cout << "Created: " << store->str() << std::endl;
+    std::cout << "Testing sensor addition for PostgreSQL" << std::endl;
+    klio::PostgreSQLStore::Ptr store = create_postgresql_test_store();
 
     try {
-        klio::Sensor::Ptr sensor(sensor_factory->createSensor(
-                "89c18074-8bcf-240b-db7c-c1281038adcb",
-                "Test",
-                "Test libklio",
-                "this is a sensor description",
-                "kwh",
-                "Europe/Berlin"));
-
+        klio::Sensor::Ptr sensor = create_test_psensor("aaaa", "Test libklio", "kwh");
         store->add_sensor(sensor);
 
         klio::Sensor::Ptr retrieved = store->get_sensor(sensor->uuid());
@@ -115,34 +91,21 @@ BOOST_AUTO_TEST_CASE(check_add_rocksdb_sensor) {
     } catch (std::exception const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
-        BOOST_FAIL("Unexpected exception occurred for initialize request");
+        BOOST_FAIL("Unexpected exception occurred");
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_update_rocksdb_sensor) {
+BOOST_AUTO_TEST_CASE(check_update_postgresql_sensor) {
 
-    std::cout << "Testing sensor update for RocksDB" << std::endl;
-    klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
-    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-    bfs::path db(TEST_DB_PATH);
-
-    std::cout << "Attempting to create " << db << std::endl;
-    klio::Store::Ptr store(store_factory->create_rocksdb_store(db));
-    std::cout << "Created: " << store->str() << std::endl;
+    std::cout << "Testing sensor update for PostgreSQL" << std::endl;
+    klio::PostgreSQLStore::Ptr store = create_postgresql_test_store();
 
     try {
-        klio::Sensor::Ptr sensor(sensor_factory->createSensor(
-                "92c18074-8bcf-240b-db7c-c1281038adcb",
-                "Test",
-                "Test libklio",
-                "description",
-                "watt",
-                "Europe/Berlin"));
-
+        klio::Sensor::Ptr sensor = create_test_psensor("Test", "Test update", "kwh");
         store->add_sensor(sensor);
 
-        klio::Sensor::Ptr changed(sensor_factory->createSensor(
-                "92c18074-8bcf-240b-db7c-c1281038adcb",
+        klio::Sensor::Ptr changed(psensor_factory->createSensor(
+                sensor->uuid_string(),
                 "Test",
                 "Test libklio",
                 "changed description",
@@ -161,30 +124,17 @@ BOOST_AUTO_TEST_CASE(check_update_rocksdb_sensor) {
     } catch (std::exception const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
-        BOOST_FAIL("Unexpected exception occurred for initialize request");
+        BOOST_FAIL("Unexpected exception occurred");
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_remove_rocksdb_sensor) {
+BOOST_AUTO_TEST_CASE(check_remove_postgresql_sensor) {
 
-    std::cout << "Testing sensor removal for RocksDB" << std::endl;
-    klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
-    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-    bfs::path db(TEST_DB_PATH);
-
-    std::cout << "Attempting to create " << db << std::endl;
-    klio::Store::Ptr store(store_factory->create_rocksdb_store(db));
-    std::cout << "Created: " << store->str() << std::endl;
+    std::cout << "Testing sensor removal for PostgreSQL" << std::endl;
+    klio::PostgreSQLStore::Ptr store = create_postgresql_test_store();
 
     try {
-        klio::Sensor::Ptr sensor(sensor_factory->createSensor(
-                "89c18074-8bcf-890b-db7c-c1281038adcb",
-                "Test",
-                "Test libklio",
-                "description",
-                "watt",
-                "Europe/Berlin"));
-
+        klio::Sensor::Ptr sensor = create_test_psensor("cccc", "Test libklio", "kwh");
         store->add_sensor(sensor);
 
         store->remove_sensor(sensor);
@@ -202,30 +152,17 @@ BOOST_AUTO_TEST_CASE(check_remove_rocksdb_sensor) {
     } catch (std::exception const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
-        BOOST_FAIL("Unexpected exception occurred for initialize request");
+        BOOST_FAIL("Unexpected exception occurred");
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_get_rocksdb_sensor) {
+BOOST_AUTO_TEST_CASE(check_get_postgresql_sensor) {
 
-    std::cout << "Testing sensor query by uuid for RocksDB" << std::endl;
-    klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
-    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-    bfs::path db(TEST_DB_PATH);
-
-    std::cout << "Attempting to create " << db << std::endl;
-    klio::Store::Ptr store(store_factory->create_rocksdb_store(db));
-    std::cout << "Created: " << store->str() << std::endl;
+    std::cout << "Testing sensor query by uuid for PostgreSQL" << std::endl;
+    klio::PostgreSQLStore::Ptr store = create_postgresql_test_store();
 
     try {
-        klio::Sensor::Ptr sensor(sensor_factory->createSensor(
-                "98c18074-8bcf-890b-db7c-c1281038adcb",
-                "GetTest",
-                "GetTest",
-                "GetDescription",
-                "watt",
-                "Europe/Berlin"));
-
+        klio::Sensor::Ptr sensor = create_test_psensor("dddd", "Test libklio", "kwh");
         store->add_sensor(sensor);
 
         klio::Sensor::Ptr retrieved = store->get_sensor(sensor->uuid());
@@ -251,23 +188,17 @@ BOOST_AUTO_TEST_CASE(check_get_rocksdb_sensor) {
     } catch (std::exception const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
-        BOOST_FAIL("Unexpected exception occurred for initialize request");
+        BOOST_FAIL("Unexpected exception occurred");
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_get_rocksdb_sensor_by_name) {
+BOOST_AUTO_TEST_CASE(check_get_postgresql_sensor_by_name) {
 
-    std::cout << "Testing sensor query by name for RocksDB" << std::endl;
-    klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
-    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-    bfs::path db(TEST_DB_PATH);
-
-    std::cout << "Attempting to create " << db << std::endl;
-    klio::Store::Ptr store(store_factory->create_rocksdb_store(db));
-    std::cout << "Created: " << store->str() << std::endl;
+    std::cout << "Testing sensor query by name for PostgreSQL" << std::endl;
+    klio::PostgreSQLStore::Ptr store = create_postgresql_test_store();
 
     try {
-        klio::Sensor::Ptr sensor1(sensor_factory->createSensor(
+        klio::Sensor::Ptr sensor1(psensor_factory->createSensor(
                 "98c18074-8bcf-890b-db7c-c1281038adcb",
                 "Unique External Id",
                 "Unique Name",
@@ -277,7 +208,7 @@ BOOST_AUTO_TEST_CASE(check_get_rocksdb_sensor_by_name) {
 
         store->add_sensor(sensor1);
 
-        klio::Sensor::Ptr sensor2(sensor_factory->createSensor(
+        klio::Sensor::Ptr sensor2(psensor_factory->createSensor(
                 "88c18074-890b-8bcf-db7c-c1281038adcb",
                 "External Id 1",
                 "Duplicated Name",
@@ -287,7 +218,7 @@ BOOST_AUTO_TEST_CASE(check_get_rocksdb_sensor_by_name) {
 
         store->add_sensor(sensor2);
 
-        klio::Sensor::Ptr sensor3(sensor_factory->createSensor(
+        klio::Sensor::Ptr sensor3(psensor_factory->createSensor(
                 "99c18074-890b-8bcf-db7c-c1281038adcb",
                 "External Id 2",
                 "Duplicated Name",
@@ -309,32 +240,26 @@ BOOST_AUTO_TEST_CASE(check_get_rocksdb_sensor_by_name) {
         BOOST_CHECK_EQUAL(sensor1->uuid(), retrieved->uuid());
         BOOST_CHECK_EQUAL(sensor1->external_id(), retrieved->external_id());
         BOOST_CHECK_EQUAL(sensor1->name(), retrieved->name());
+        BOOST_CHECK_EQUAL(sensor1->description(), retrieved->description());
         BOOST_CHECK_EQUAL(sensor1->unit(), retrieved->unit());
         BOOST_CHECK_EQUAL(sensor1->timezone(), retrieved->timezone());
-        BOOST_CHECK_EQUAL(sensor1->description(), retrieved->description());
 
         store->dispose();
 
     } catch (std::exception const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
-        BOOST_FAIL("Unexpected exception occurred for initialize request");
+        BOOST_FAIL("Unexpected exception occurred");
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_get_rocksdb_sensors_by_external_id) {
+BOOST_AUTO_TEST_CASE(check_get_postgresql_sensors_by_external_id) {
 
-    std::cout << "Testing sensor query by external id for RocksDB" << std::endl;
-    klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
-    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-    bfs::path db(TEST_DB_PATH);
-
-    std::cout << "Attempting to create " << db << std::endl;
-    klio::Store::Ptr store(store_factory->create_rocksdb_store(db));
-    std::cout << "Created: " << store->str() << std::endl;
+    std::cout << "Testing sensor query by external id for PostgreSQL" << std::endl;
+    klio::PostgreSQLStore::Ptr store = create_postgresql_test_store();
 
     try {
-        klio::Sensor::Ptr sensor1(sensor_factory->createSensor(
+        klio::Sensor::Ptr sensor1(psensor_factory->createSensor(
                 "82c18074-8bcf-890b-db7c-c1281038adcb",
                 "External Id 1",
                 "Sensor 1",
@@ -344,7 +269,7 @@ BOOST_AUTO_TEST_CASE(check_get_rocksdb_sensors_by_external_id) {
 
         store->add_sensor(sensor1);
 
-        klio::Sensor::Ptr sensor2(sensor_factory->createSensor(
+        klio::Sensor::Ptr sensor2(psensor_factory->createSensor(
                 "74c18074-890b-8bcf-db7c-c1281038adcb",
                 "External Id 2",
                 "Sensor 2",
@@ -364,9 +289,9 @@ BOOST_AUTO_TEST_CASE(check_get_rocksdb_sensors_by_external_id) {
         BOOST_CHECK_EQUAL(sensor1->uuid(), retrieved->uuid());
         BOOST_CHECK_EQUAL(sensor1->external_id(), retrieved->external_id());
         BOOST_CHECK_EQUAL(sensor1->name(), retrieved->name());
+        BOOST_CHECK_EQUAL(sensor1->description(), retrieved->description());
         BOOST_CHECK_EQUAL(sensor1->unit(), retrieved->unit());
         BOOST_CHECK_EQUAL(sensor1->timezone(), retrieved->timezone());
-        BOOST_CHECK_EQUAL(sensor1->description(), retrieved->description());
 
         sensors = store->get_sensors_by_external_id("External Id 3");
         BOOST_CHECK_EQUAL(0, sensors.size());
@@ -376,23 +301,17 @@ BOOST_AUTO_TEST_CASE(check_get_rocksdb_sensors_by_external_id) {
     } catch (std::exception const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
-        BOOST_FAIL("Unexpected exception occurred for initialize request");
+        BOOST_FAIL("Unexpected exception occurred");
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_get_rocksdb_sensor_uuids) {
+BOOST_AUTO_TEST_CASE(check_get_postgresql_sensor_uuids) {
 
-    std::cout << "Testing sensor uuids query for RocksDB" << std::endl;
-    klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
-    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-    bfs::path db(TEST_DB_PATH);
-
-    std::cout << "Attempting to create " << db << std::endl;
-    klio::Store::Ptr store(store_factory->create_rocksdb_store(db));
-    std::cout << "Created: " << store->str() << std::endl;
+    std::cout << "Testing sensor uuids query for PostgreSQL" << std::endl;
+    klio::PostgreSQLStore::Ptr store = create_postgresql_test_store();
 
     try {
-        klio::Sensor::Ptr sensor1(sensor_factory->createSensor(
+        klio::Sensor::Ptr sensor1(psensor_factory->createSensor(
                 "98c17480-8bcf-890b-db7c-c1081038adcb",
                 "TestA",
                 "TestA",
@@ -402,7 +321,7 @@ BOOST_AUTO_TEST_CASE(check_get_rocksdb_sensor_uuids) {
 
         store->add_sensor(sensor1);
 
-        klio::Sensor::Ptr sensor2(sensor_factory->createSensor(
+        klio::Sensor::Ptr sensor2(psensor_factory->createSensor(
                 "88c17480-890b-8bcf-db7c-c1181038adcb",
                 "TestB",
                 "TestB",
@@ -429,23 +348,17 @@ BOOST_AUTO_TEST_CASE(check_get_rocksdb_sensor_uuids) {
     } catch (std::exception const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
-        BOOST_FAIL("Unexpected exception occurred for initialize request");
+        BOOST_FAIL("Unexpected exception occurred");
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_add_retrieve_rocksdb_reading) {
+BOOST_AUTO_TEST_CASE(check_add_retrieve_postgresql_reading) {
 
     std::cout << std::endl << "Adding & retrieving a reading to/from a sensor." << std::endl;
-    klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
-    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-    bfs::path db(TEST_DB_PATH);
-
-    std::cout << "Attempting to create " << db << std::endl;
-    klio::Store::Ptr store(store_factory->create_rocksdb_store(db));
-    std::cout << "Created: " << store->str() << std::endl;
+    klio::PostgreSQLStore::Ptr store = create_postgresql_test_store();
 
     try {
-        klio::Sensor::Ptr sensor(sensor_factory->createSensor("sensor", "sensor", "Watt", "Europe/Berlin"));
+        klio::Sensor::Ptr sensor = create_test_psensor("eeee", "Test libklio", "watt");
         store->add_sensor(sensor);
         std::cout << "added to store: " << sensor->str() << std::endl;
 
@@ -456,6 +369,8 @@ BOOST_AUTO_TEST_CASE(check_add_retrieve_rocksdb_reading) {
         store->add_reading(sensor, timestamp, reading);
 
         klio::readings_t_Ptr readings = store->get_all_readings(sensor);
+
+        BOOST_CHECK_EQUAL(1, readings->size());
 
         std::map<klio::timestamp_t, double>::iterator it;
         for (it = readings->begin(); it != readings->end(); it++) {
@@ -468,7 +383,6 @@ BOOST_AUTO_TEST_CASE(check_add_retrieve_rocksdb_reading) {
             BOOST_CHECK_EQUAL(reading, val);
         }
 
-        // cleanup
         store->dispose();
 
     } catch (std::exception const& ex) {
@@ -478,19 +392,13 @@ BOOST_AUTO_TEST_CASE(check_add_retrieve_rocksdb_reading) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_rocksdb_num_readings) {
+BOOST_AUTO_TEST_CASE(check_postgresql_num_readings) {
 
     std::cout << std::endl << "Checking number of readings." << std::endl;
-    klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
-    klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-    bfs::path db(TEST_DB_PATH);
-
-    std::cout << "Attempting to create " << db << std::endl;
-    klio::Store::Ptr store(store_factory->create_rocksdb_store(db));
-    std::cout << "Created: " << store->str() << std::endl;
+    klio::PostgreSQLStore::Ptr store = create_postgresql_test_store();
 
     try {
-        klio::Sensor::Ptr sensor(sensor_factory->createSensor("sensor", "sensor", "Watt", "Europe/Berlin"));
+        klio::Sensor::Ptr sensor = create_test_psensor("ffff", "Test libklio", "watt");
         store->add_sensor(sensor);
         std::cout << "added to store: " << sensor->str() << std::endl;
 
@@ -523,15 +431,14 @@ BOOST_AUTO_TEST_CASE(check_rocksdb_num_readings) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_rocksdb_store_creation_performance) {
+BOOST_AUTO_TEST_CASE(check_postgresql_store_creation_performance) {
 
     try {
-        klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-        klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "sensor1", "Watt", "Europe/Berlin"));
-        klio::Sensor::Ptr sensor2(sensor_factory->createSensor("sensor2", "sensor2", "Watt", "Europe/Berlin"));
+        klio::SensorFactory::Ptr psensor_factory(new klio::SensorFactory());
+        klio::Sensor::Ptr sensor1(psensor_factory->createSensor("sensor1", "sensor1", "Watt", "Europe/Berlin"));
+        klio::Sensor::Ptr sensor2(psensor_factory->createSensor("sensor2", "sensor2", "Watt", "Europe/Berlin"));
         klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
         klio::Store::Ptr store;
-        bfs::path db(TEST_DB_PATH);
 
         boost::posix_time::time_duration elapsed_time;
         double seconds = 0;
@@ -543,17 +450,23 @@ BOOST_AUTO_TEST_CASE(check_rocksdb_store_creation_performance) {
 
         try {
             std::cout << std::endl << "Performance Test" << std::endl;
-            std::cout << "Performance Test - RocksDBStore" << std::endl;
+            std::cout << "Performance Test - PostgreSQLStore" << std::endl;
 
             time_before = boost::posix_time::microsec_clock::local_time();
 
-            store = store_factory->create_rocksdb_store(db, false, false, 0);
+            store = store_factory->create_postgresql_store(
+                    klio::PostgreSQLStore::DEFAULT_CONNECTION_INFO,
+                    true,
+                    false,
+                    false,
+                    0,
+                    true);
 
             time_after = boost::posix_time::microsec_clock::local_time();
 
             elapsed_time = time_after - time_before;
             seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
-            std::cout << "Performance Test - RocksDBStore - " <<
+            std::cout << "Performance Test - PostgreSQLStore - " <<
                     "Create store :                              "
                     << seconds << " s" << std::endl;
 
@@ -570,15 +483,14 @@ BOOST_AUTO_TEST_CASE(check_rocksdb_store_creation_performance) {
     }
 }
 
-void run_rocksdb_store_performance_tests(const bool auto_flush, const long flush_timeout, const bool synchronous, const size_t num_readings) {
+void run_postgresql_store_performance_tests(const bool auto_commit, const bool auto_flush, const long flush_timeout, const bool synchronous, const size_t num_readings) {
 
     try {
-        klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
-        klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "sensor1", "Watt", "Europe/Berlin"));
-        klio::Sensor::Ptr sensor2(sensor_factory->createSensor("sensor2", "sensor2", "Watt", "Europe/Berlin"));
+        klio::SensorFactory::Ptr psensor_factory(new klio::SensorFactory());
+        klio::Sensor::Ptr sensor1(psensor_factory->createSensor("sensor1", "sensor1", "Watt", "Europe/Berlin"));
+        klio::Sensor::Ptr sensor2(psensor_factory->createSensor("sensor2", "sensor2", "Watt", "Europe/Berlin"));
         klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
         klio::Store::Ptr store;
-        bfs::path db(TEST_DB_PATH);
 
         boost::posix_time::time_duration elapsed_time;
         double seconds = 0;
@@ -590,11 +502,22 @@ void run_rocksdb_store_performance_tests(const bool auto_flush, const long flush
 
         try {
             std::cout << std::endl << "Performance Test" << std::endl;
-            std::cout << std::endl << "Performance Test - RocksDBStore - " <<
-                    "auto flushing: " << (auto_flush ? "true" : "false") <<
+            std::cout << std::endl << "Performance Test - PostgreSQLStore - " <<
+                    " auto commit: " << (auto_commit ? "true" : "false") <<
+                    ", auto flushing: " << (auto_flush ? "true" : "false") <<
                     ", synchronous: " << (synchronous ? "true" : "false") << std::endl;
 
-            store = store_factory->create_rocksdb_store(db, auto_flush, flush_timeout, synchronous);
+            store = store_factory->create_postgresql_store(
+                    klio::PostgreSQLStore::DEFAULT_CONNECTION_INFO,
+                    true,
+                    auto_commit,
+                    auto_flush,
+                    flush_timeout,
+                    synchronous);
+
+            if (!auto_commit) {
+                store->start_transaction();
+            }
 
             time_before = boost::posix_time::microsec_clock::local_time();
             store->add_sensor(sensor1);
@@ -602,7 +525,7 @@ void run_rocksdb_store_performance_tests(const bool auto_flush, const long flush
 
             elapsed_time = time_after - time_before;
             seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
-            std::cout << "Performance Test - RocksDBStore - " <<
+            std::cout << "Performance Test - PostgreSQLStore - " <<
                     "Add 1st sensor:                             "
                     << seconds << " s" << std::endl;
 
@@ -612,7 +535,7 @@ void run_rocksdb_store_performance_tests(const bool auto_flush, const long flush
 
             elapsed_time = time_after - time_before;
             seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
-            std::cout << "Performance Test - RocksDBStore - " <<
+            std::cout << "Performance Test - PostgreSQLStore - " <<
                     "Add 2nd sensor:                             "
                     << seconds << " s" << std::endl;
 
@@ -626,7 +549,7 @@ void run_rocksdb_store_performance_tests(const bool auto_flush, const long flush
 
             elapsed_time = time_after - time_before;
             seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
-            std::cout << "Performance Test - RocksDBStore - " <<
+            std::cout << "Performance Test - PostgreSQLStore - " <<
                     "Add 1st reading:                            "
                     << seconds << " s" << std::endl;
 
@@ -638,7 +561,7 @@ void run_rocksdb_store_performance_tests(const bool auto_flush, const long flush
 
             elapsed_time = time_after - time_before;
             seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
-            std::cout << "Performance Test - RocksDBStore - " <<
+            std::cout << "Performance Test - PostgreSQLStore - " <<
                     "Add 2nd reading:                            "
                     << seconds << " s" << std::endl;
 
@@ -656,7 +579,7 @@ void run_rocksdb_store_performance_tests(const bool auto_flush, const long flush
 
             elapsed_time = time_after - time_before;
             seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
-            std::cout << "Performance Test - RocksDBStore - " <<
+            std::cout << "Performance Test - PostgreSQLStore - " <<
                     "Add " << num_readings << " readings:                          "
                     << seconds << " s" << std::endl;
 
@@ -667,8 +590,20 @@ void run_rocksdb_store_performance_tests(const bool auto_flush, const long flush
 
                 elapsed_time = time_after - time_before;
                 seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
-                std::cout << "Performance Test - RocksDBStore - " <<
+                std::cout << "Performance Test - PostgreSQLStore - " <<
                         "Flushing " << num_readings << " readings:                     "
+                        << seconds << " s" << std::endl;
+            }
+
+            if (!auto_commit) {
+                time_before = boost::posix_time::microsec_clock::local_time();
+                store->commit_transaction();
+                time_after = boost::posix_time::microsec_clock::local_time();
+
+                elapsed_time = time_after - time_before;
+                seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+                std::cout << "Performance Test - PostgreSQLStore - " <<
+                        "Committing " << num_readings << " readings:                   "
                         << seconds << " s" << std::endl;
             }
 
@@ -678,7 +613,7 @@ void run_rocksdb_store_performance_tests(const bool auto_flush, const long flush
 
             elapsed_time = time_after - time_before;
             seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
-            std::cout << "Performance Test - RocksDBStore - " <<
+            std::cout << "Performance Test - PostgreSQLStore - " <<
                     "Get sensors by external id:                 "
                     << seconds << " s" << std::endl;
 
@@ -688,7 +623,7 @@ void run_rocksdb_store_performance_tests(const bool auto_flush, const long flush
 
             elapsed_time = time_after - time_before;
             seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
-            std::cout << "Performance Test - RocksDBStore - " <<
+            std::cout << "Performance Test - PostgreSQLStore - " <<
                     "Get " << num_readings << " readings:                          "
                     << seconds << " s" << std::endl;
 
@@ -705,14 +640,19 @@ void run_rocksdb_store_performance_tests(const bool auto_flush, const long flush
     }
 }
 
-BOOST_AUTO_TEST_CASE(check_rocksdb_store_performance) {
+BOOST_AUTO_TEST_CASE(check_postgresql_store_performance) {
 
-    run_rocksdb_store_performance_tests(true, 0, false, 1000);
-    run_rocksdb_store_performance_tests(true, 0, true, 1000);
-    run_rocksdb_store_performance_tests(false, 0, false, 1000);
-    run_rocksdb_store_performance_tests(false, 0, true, 1000);
+    run_postgresql_store_performance_tests(true, true, 0, true, 1000);
+    run_postgresql_store_performance_tests(true, false, 0, true, 1000);
+    run_postgresql_store_performance_tests(false, true, 0, true, 1000);
+    run_postgresql_store_performance_tests(false, false, 0, true, 1000);
+
+    run_postgresql_store_performance_tests(true, true, 0, false, 1000);
+    run_postgresql_store_performance_tests(true, false, 0, false, 1000);
+    run_postgresql_store_performance_tests(false, true, 0, false, 1000);
+    run_postgresql_store_performance_tests(false, false, 0, false, 1000);
 }
 
-#endif /* ENABLE_ROCKSDB */
+#endif /* ENABLE_POSTGRESQL */
 
 //BOOST_AUTO_TEST_SUITE_END()

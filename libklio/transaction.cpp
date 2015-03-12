@@ -1,5 +1,5 @@
 #include <sstream>
-#include "transaction.hpp"
+#include <libklio/transaction.hpp>
 
 using namespace klio;
 

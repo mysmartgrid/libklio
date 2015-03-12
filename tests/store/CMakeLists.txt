@@ -9,12 +9,16 @@ add_executable(storetest ${storetest_src})
 
 if(ROCKSDB_FOUND)
   set_source_files_properties(${storetest_src} COMPILE_FLAGS "-std=gnu++11")
+  link_directories(${ROCKSDB_LIBRARY_DIRS})
 endif(ROCKSDB_FOUND)
+if(REDIS3M_FOUND)
+target_link_libraries(storetest ${REDIS3M_LIBRARY})
+link_directories(${REDIS3M_LIBRARY_DIRS})
+endif(REDIS3M_FOUND)
 
 # Link the executable 
 link_directories(${SQLITE3_LIBRARY_DIRS})
-link_directories(${ROCKSDB_LIBRARY_DIRS})
-target_link_libraries(storetest klio ${Boost_LIBRARIES} pthread)
+target_link_libraries(storetest klio ${Boost_LIBRARIES} )
 
 ADD_TEST(StoreTest ${CMAKE_CURRENT_BINARY_DIR}/storetest TestStore)
 

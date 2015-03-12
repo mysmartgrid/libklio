@@ -1,8 +1,7 @@
 /**
  * This file is part of libklio.
  *
- * (c) Fraunhofer ITWM - Mathias Dalheimer <dalheimer@itwm.fhg.de>,    2010
- *                       Ely de Oliveira   <ely.oliveira@itwm.fhg.de>, 2013
+ * (c) Fraunhofer ITWM - Ely de Oliveira   <ely.oliveira@itwm.fhg.de>, 2014
  *
  * libklio is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,30 +17,30 @@
  * along with libklio. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LIBKLIO_SQLITE3_TRANSACTION_HPP
-#define LIBKLIO_SQLITE3_TRANSACTION_HPP 1
+#ifndef LIBKLIO_POSTGRESQL_TRANSACTION_HPP
+#define LIBKLIO_POSTGRESQL_TRANSACTION_HPP 1
 
-#include <sqlite3.h>
+#include <postgresql/libpq-fe.h>
 #include <libklio/transaction.hpp>
 
 
 namespace klio {
 
-    class SQLite3Transaction : public Transaction {
+    class PostgreSQLTransaction : public Transaction {
     public:
-        typedef boost::shared_ptr<SQLite3Transaction> Ptr;
+        typedef boost::shared_ptr<PostgreSQLTransaction> Ptr;
 
-        SQLite3Transaction(sqlite3* _db) :
+        PostgreSQLTransaction(PGconn* connection) :
         Transaction(),
-        _db(_db) {
+        _connection(connection) {
         }
 
-        virtual ~SQLite3Transaction() {
+        virtual ~PostgreSQLTransaction() {
             rollback();
         }
 
-        void db(sqlite3* db) {
-            _db = db;
+        void connection(PGconn* connection) {
+            _connection = connection;
         }
 
         void start();
@@ -49,11 +48,11 @@ namespace klio {
         void rollback();
 
     private:
-        SQLite3Transaction(const SQLite3Transaction& original);
-        SQLite3Transaction& operator=(const SQLite3Transaction& rhs);
+        PostgreSQLTransaction(const PostgreSQLTransaction& original);
+        PostgreSQLTransaction& operator=(const PostgreSQLTransaction& rhs);
 
-        sqlite3* _db;
+        PGconn* _connection;
     };
 };
 
-#endif /* LIBKLIO_SQLITE3_TRANSACTION_HPP */
+#endif /* LIBKLIO_POSTGRESQL_TRANSACTION_HPP */

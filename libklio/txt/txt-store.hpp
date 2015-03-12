@@ -1,5 +1,5 @@
 /**
- * This class represents a local store, implemented as a RocksDB database.
+ * This class represents a local store, implemented as a CSV file.
  *
  * (c) Fraunhofer ITWM - Ely de Oliveira   <ely.oliveira@itwm.fhg.de>, 2014
  *
@@ -17,48 +17,28 @@
  * along with libklio. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LIBKLIO_ROCKSDB_ROCKSDBSTORE_HPP
-#define LIBKLIO_ROCKSDB_ROCKSDBSTORE_HPP 1
-
-#include <libklio/config.h>
-
-#ifdef ENABLE_ROCKSDB
+#ifndef LIBKLIO_TXT_TXTSTORE_HPP
+#define LIBKLIO_TXT_TXTSTORE_HPP 1
 
 #include <boost/filesystem.hpp>
-#include <rocksdb/db.h>
 #include <libklio/store.hpp>
-
 
 namespace bfs = boost::filesystem;
 
 namespace klio {
 
-    class RocksDBStore : public Store {
+    class TXTStore : public Store {
     public:
-        typedef boost::shared_ptr<RocksDBStore> Ptr;
+        typedef boost::shared_ptr<TXTStore> Ptr;
 
-        RocksDBStore(const bfs::path& path,
-                const bool auto_flush,
-                const timestamp_t flush_timeout,
-                const bool synchronous,
-                const std::map<const std::string, const std::string>& db_options,
-                const std::map<const std::string, const std::string>& read_options) :
-        Store(true, auto_flush, flush_timeout, 10, 10000),
+        TXTStore(const bfs::path& path, const std::string& separator) :
+        Store(true, true, 0, 10, 10000),
         _path(path),
-        _synchronous(synchronous),
-        _db_options(db_options),
-        _read_options(read_options) {
-
-            if (_synchronous) {
-                _write_options.sync = "true";
-                _write_options.disableWAL = "false";
-            } else {
-                _write_options.sync = "false";
-                _write_options.disableWAL = "true";
-            }
+        _field_separator(separator),
+        _token_separator(separator.c_str()) {
         };
 
-        virtual ~RocksDBStore() {
+        virtual ~TXTStore() {
             close();
         };
 
@@ -68,6 +48,8 @@ namespace klio {
         void initialize();
         void dispose();
         const std::string str();
+
+        const static std::string DEFAULT_FIELD_SEPARATOR;
 
     protected:
         void add_sensor_record(const Sensor::Ptr sensor);
@@ -84,39 +66,30 @@ namespace klio {
         reading_t get_last_reading_record(const Sensor::Ptr sensor);
         reading_t get_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp);
 
-        void clear_buffers();
-
     private:
-        RocksDBStore(const RocksDBStore& original);
-        RocksDBStore& operator =(const RocksDBStore& rhs);
+        TXTStore(const TXTStore& original);
+        TXTStore& operator =(const TXTStore& rhs);
 
-        bfs::path _path;
-        bool _synchronous;
-        std::map<const std::string, const std::string> _db_options;
-        std::map<const std::string, const std::string> _read_options;
-        rocksdb::WriteOptions _write_options;
-        std::map<const std::string, rocksdb::DB*> _db_buffer;
+        const static std::string ENABLED;
+        const static std::string DISABLED;
+        const static std::string NOT_A_NUMBER;
 
-        rocksdb::DB* open_db(const bool create_if_missing, const bool error_if_exists, const std::string& db_path);
-        void close_db(const std::string& db_path);
-        void remove_db(const std::string& db_path);
+        void save_sensor(std::ofstream& file, const Sensor::Ptr sensor);
+        void save_reading(std::ofstream& file, const timestamp_t& timestamp, const double value);
+        std::vector<std::vector<std::string>> read_records(const std::string& path);
 
-        void put_sensor(const bool create, const Sensor::Ptr sensor);
-        void put_value(rocksdb::DB* db, const std::string& key, const std::string& value);
-        std::string get_value(rocksdb::DB* db, const std::string& key);
-        void delete_value(rocksdb::DB* db, const std::string& key);
-        void write_batch(rocksdb::DB* db, rocksdb::WriteBatch& batch);
-        Sensor::Ptr load_sensor(const Sensor::uuid_t& uuid);
-
+        void check_sensor(const Sensor::Ptr sensor, const bool exists);
         const std::string compose_db_path();
         const std::string compose_sensors_path();
         const std::string compose_sensor_path(const std::string& uuid);
         const std::string compose_sensor_properties_path(const std::string& uuid);
         const std::string compose_sensor_readings_path(const std::string& uuid);
         void create_directory(const std::string& dir);
+
+        bfs::path _path;
+        std::string _field_separator;
+        const boost::char_separator<char> _token_separator;
     };
 };
 
-#endif /* ENABLE_ROCKSDB */
-
-#endif /* LIBKLIO_ROCKSDB_ROCKSDBSTORE_HPP */
+#endif /* LIBKLIO_TXT_TXTSTORE_HPP */

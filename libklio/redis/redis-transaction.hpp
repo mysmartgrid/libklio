@@ -1,8 +1,7 @@
 /**
  * This file is part of libklio.
  *
- * (c) Fraunhofer ITWM - Mathias Dalheimer <dalheimer@itwm.fhg.de>,    2010
- *                       Ely de Oliveira   <ely.oliveira@itwm.fhg.de>, 2013
+ * (c) Fraunhofer ITWM - Ely de Oliveira   <ely.oliveira@itwm.fhg.de>, 2014
  *
  * libklio is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,30 +17,28 @@
  * along with libklio. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LIBKLIO_SQLITE3_TRANSACTION_HPP
-#define LIBKLIO_SQLITE3_TRANSACTION_HPP 1
+#ifndef LIBKLIO_REDIS_TRANSACTION_HPP
+#define LIBKLIO_REDIS_TRANSACTION_HPP 1
 
-#include <sqlite3.h>
+#include <redis3m/redis3m.hpp>
 #include <libklio/transaction.hpp>
 
 
+using namespace redis3m;
+
 namespace klio {
 
-    class SQLite3Transaction : public Transaction {
+    class RedisTransaction : public Transaction {
     public:
-        typedef boost::shared_ptr<SQLite3Transaction> Ptr;
+        typedef boost::shared_ptr<RedisTransaction> Ptr;
 
-        SQLite3Transaction(sqlite3* _db) :
+        RedisTransaction(connection::ptr_t connection) :
         Transaction(),
-        _db(_db) {
+        _connection(connection) {
         }
 
-        virtual ~SQLite3Transaction() {
+        virtual ~RedisTransaction() {
             rollback();
-        }
-
-        void db(sqlite3* db) {
-            _db = db;
         }
 
         void start();
@@ -49,11 +46,17 @@ namespace klio {
         void rollback();
 
     private:
-        SQLite3Transaction(const SQLite3Transaction& original);
-        SQLite3Transaction& operator=(const SQLite3Transaction& rhs);
+        RedisTransaction(const RedisTransaction& original);
+        RedisTransaction& operator=(const RedisTransaction& rhs);
 
-        sqlite3* _db;
+        const bool run(const std::string& command);
+
+        connection::ptr_t _connection;
+
+        static const std::string MULTI;
+        static const std::string EXEC;
+        static const std::string DISCARD;
     };
 };
 
-#endif /* LIBKLIO_SQLITE3_TRANSACTION_HPP */
+#endif /* LIBKLIO_REDIS_TRANSACTION_HPP */

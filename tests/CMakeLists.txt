@@ -5,6 +5,7 @@ include_directories(${CMAKE_SOURCE_DIR}
                     ${CMAKE_CURRENT_SOURCE_DIR}
                     ${SQLITE3_INCLUDE_DIR}
                     ${ROCKSDB_INCLUDE_DIR}
+                    ${LIBMYSMARTGRID_INCLUDE_DIRS}
                     ${CURL_INCLUDE_DIR}
 )
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})

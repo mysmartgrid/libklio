@@ -25,17 +25,14 @@
 
 #ifdef ENABLE_MSG
 
-#include <curl/curl.h>
-#include <json/json.h>
 #include <libklio/store.hpp>
+#include <libmysmartgrid/webclient.h>
 
+namespace Json {
+class Value;
+}
 
 namespace klio {
-
-    typedef struct {
-        char *data;
-        size_t size;
-    } CURLresponse;
 
     class MSGStore : public Store {
     public:
@@ -124,27 +121,9 @@ namespace klio {
         void heartbeat();
 
         const std::string format_uuid_string(const std::string& meter);
-        const std::string compose_device_url();
-        const std::string compose_sensor_url(const Sensor::Ptr sensor);
-        const std::string compose_sensor_url(const Sensor::Ptr sensor, const std::string& query);
-        const std::string compose_url(const std::string& object, const std::string& id);
 
-        struct json_object *perform_http_get(const std::string& url, const std::string& key);
-        struct json_object *perform_http_post(const std::string& url, const std::string& key, json_object *jobject);
-        void perform_http_delete(const std::string& url, const std::string& key);
-        CURL *create_curl_handler(const std::string& url, const curl_slist *headers);
-        const std::string digest_message(const std::string& data, const std::string& key);
-        struct json_object *perform_http_request(const std::string& method, const std::string& url, const std::string& key, json_object *jbody);
-
-        struct json_object *create_json_object();
-        struct json_object *create_json_string(const std::string& str);
-        struct json_object *create_json_array();
-        struct json_object *create_json_int(const int value);
-        struct json_object *create_json_double(const double value);
-        struct json_object *get_json_readings(const Sensor::Ptr sensor);
-        Sensor::Ptr parse_sensor(const std::string& uuid_str, json_object *jsensor);
-        std::pair<timestamp_t, double > create_reading_pair(json_object *jpair);
-        void destroy_object(json_object * jobject);
+        Sensor::Ptr parse_sensor(const std::string& uuid_str, const Json::Value& jsensor);
+        std::pair<timestamp_t, double> create_reading_pair(const Json::Value& jpair);
     };
 };
 

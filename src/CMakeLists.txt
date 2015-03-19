@@ -5,12 +5,12 @@ set(klio-export_src klio-export.cpp)
 set(klio-import_src klio-import.cpp)
 
 link_directories(${SQLITE3_LIBRARY_DIRS})
+link_libraries(klio)
 
 include_directories(${CMAKE_SOURCE_DIR}
                     ${CMAKE_CURRENT_SOURCE_DIR}
                     ${SQLITE3_INCLUDE_DIR}
                     ${LIBMYSMARTGRID_INCLUDE_DIRS}
-                    ${CURL_INCLUDE_DIR}
 )
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 

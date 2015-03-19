@@ -4,6 +4,7 @@
 
 #include <jsoncpp/json/json.h>
 #include <libmysmartgrid/error.h>
+#include <libmysmartgrid/webclient.h>
 #include <libklio/msg/msg-store.hpp>
 
 

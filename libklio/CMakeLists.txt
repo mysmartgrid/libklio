@@ -71,8 +71,7 @@ install(FILES ${klio_algorithm_hdrs} DESTINATION include/libklio/algorithm)
 
 include_directories(${CMAKE_SOURCE_DIR}
                     ${SQLITE3_INCLUDE_DIR}
-                    ${JSONCPP_INCLUDE}
-                    ${LIBMYSMARTGRID_INCLUDE_DIR}
+                    ${LIBMYSMARTGRID_INCLUDE_DIRS}
 )
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
@@ -97,7 +96,7 @@ target_link_libraries(klio
 )
 
 if( ENABLE_MSG )
-  target_link_libraries(klio ${JSONCPP_LIBRARY} ${LIBMYSMARTGRID_LIBRARY})
+  target_link_libraries(klio ${LIBMYSMARTGRID_LIBRARIES})
 endif()
 
 if( ENABLE_REDIS3M )

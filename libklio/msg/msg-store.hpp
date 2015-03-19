@@ -25,7 +25,6 @@
 
 #ifdef ENABLE_MSG
 
-#include <libmysmartgrid/webclient.h>
 #include <libklio/store.hpp>
 
 namespace Json {

@@ -25,17 +25,14 @@
 
 #ifdef ENABLE_MSG
 
-#include <curl/curl.h>
-#include <json/json.h>
+#include <libmysmartgrid/webclient.h>
 #include <libklio/store.hpp>
 
+namespace Json {
+    class Value;
+}
 
 namespace klio {
-
-    typedef struct {
-        char *data;
-        size_t size;
-    } CURLresponse;
 
     class MSGStore : public Store {
     public:
@@ -46,7 +43,7 @@ namespace klio {
                 const std::string& key,
                 const std::string& description,
                 const std::string& type) :
-        Store(true, 600, true),
+        Store(true, true, 600, 1, 1000),
         _url(url),
         _id(id),
         _key(key),
@@ -74,7 +71,7 @@ namespace klio {
         const std::string description() const {
             return _description;
         };
-        
+
         const std::string type() const {
             return _type;
         };
@@ -100,7 +97,8 @@ namespace klio {
         void add_sensor_record(const Sensor::Ptr sensor);
         void remove_sensor_record(const Sensor::Ptr sensor);
         void update_sensor_record(const Sensor::Ptr sensor);
-        void add_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors);
+        void add_single_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value, const bool ignore_errors);
+        void add_bulk_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors);
         void update_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors);
 
         std::vector<Sensor::Ptr> get_sensor_records();
@@ -124,27 +122,9 @@ namespace klio {
         void heartbeat();
 
         const std::string format_uuid_string(const std::string& meter);
-        const std::string compose_device_url();
-        const std::string compose_sensor_url(const Sensor::Ptr sensor);
-        const std::string compose_sensor_url(const Sensor::Ptr sensor, const std::string& query);
-        const std::string compose_url(const std::string& object, const std::string& id);
 
-        struct json_object *perform_http_get(const std::string& url, const std::string& key);
-        struct json_object *perform_http_post(const std::string& url, const std::string& key, json_object *jobject);
-        void perform_http_delete(const std::string& url, const std::string& key);
-        CURL *create_curl_handler(const std::string& url, const curl_slist *headers);
-        const std::string digest_message(const std::string& data, const std::string& key);
-        struct json_object *perform_http_request(const std::string& method, const std::string& url, const std::string& key, json_object *jbody);
-
-        struct json_object *create_json_object();
-        struct json_object *create_json_string(const std::string& str);
-        struct json_object *create_json_array();
-        struct json_object *create_json_int(const int value);
-        struct json_object *create_json_double(const double value);
-        struct json_object *get_json_readings(const Sensor::Ptr sensor);
-        Sensor::Ptr parse_sensor(const std::string& uuid_str, json_object *jsensor);
-        std::pair<timestamp_t, double > create_reading_pair(json_object *jpair);
-        void destroy_object(json_object * jobject);
+        Sensor::Ptr parse_sensor(const std::string& uuid_str, const Json::Value& jsensor);
+        std::pair<timestamp_t, double> create_reading_pair(const Json::Value& jpair);
     };
 };
 

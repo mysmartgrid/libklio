@@ -3,7 +3,7 @@
 #include <boost/tokenizer.hpp>
 #include <boost/lexical_cast.hpp>
 #include <libklio/time.hpp>
-#include "csv-importer.hpp"
+#include <libklio/csv-importer.hpp>
 
 
 using namespace klio;

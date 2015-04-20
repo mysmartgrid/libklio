@@ -1,8 +1,7 @@
-#include "json-exporter.hpp"
+#include <libklio/json-exporter.hpp>
 
 
 using namespace klio;
-
 
 void JSONExporter::process(klio::readings_t_Ptr readings,
         const std::string& name, const std::string& description) {

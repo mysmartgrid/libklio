@@ -22,7 +22,6 @@
 #define LIBKLIO_EXPORTER_HPP 1
 
 #include <iostream>
-#include <boost/shared_ptr.hpp>
 #include <libklio/types.hpp>
 
 

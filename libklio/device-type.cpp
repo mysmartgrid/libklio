@@ -1,7 +1,6 @@
 #include <sstream>
 #include <boost/assign.hpp>
-#include <boost/shared_ptr.hpp>
-#include "device-type.hpp"
+#include <libklio/device-type.hpp>
 
 
 using namespace klio;
@@ -52,7 +51,6 @@ const DeviceType::Ptr DeviceType::CABLE_RECEIVER = add_type(410, "Cable Receiver
 
 const DeviceType::Ptr DeviceType::EMOS = add_type(501, "EMOS");
 const DeviceType::Ptr DeviceType::WELL_PUMP = add_type(502, "Well pump");
-
 
 const std::string DeviceType::str() {
     std::ostringstream oss;

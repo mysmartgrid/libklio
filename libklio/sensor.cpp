@@ -1,7 +1,7 @@
 #include <sstream>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/algorithm/string/erase.hpp>
-#include "sensor.hpp"
+#include <libklio/sensor.hpp>
 
 
 using namespace klio;

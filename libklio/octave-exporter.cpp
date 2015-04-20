@@ -1,13 +1,12 @@
 #include <vector>
 #include <boost/algorithm/string.hpp>
-#include "octave-exporter.hpp"
+#include <libklio/octave-exporter.hpp>
 
 
 using namespace klio;
 
 static const uint32_t SECONDS_PER_DAY = 60 * 60 * 24;
 static const uint32_t MINUTES_PER_DAY = 60 * 24;
-
 
 void OctaveExporter::write_lead_in(const std::string& name,
         const std::string& description) {

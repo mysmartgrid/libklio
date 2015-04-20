@@ -21,9 +21,6 @@
 #ifndef LIBKLIO_ALGORITHM_COLLATE_HPP
 #define LIBKLIO_ALGORITHM_COLLATE_HPP 1
 
-#include <vector>
-#include <libklio/common.hpp>
-#include <libklio/types.hpp>
 #include <libklio/store.hpp>
 
 

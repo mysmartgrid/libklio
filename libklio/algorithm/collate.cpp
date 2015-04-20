@@ -1,10 +1,9 @@
-#include "collate.hpp"
 #include <iostream>
 #include <iterator>
 #include <boost/multi_array.hpp>
 #include <boost/array.hpp>
 #include <algorithm>
-
+#include <libklio/algorithm/collate.hpp>
 
 std::vector<double> klio::get_sensordata_row(
         const klio::sensordata_table_t& table, unsigned long int row_index) {

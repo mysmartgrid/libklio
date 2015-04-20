@@ -21,7 +21,7 @@
 #ifndef LIBKLIO_CSV_IMPORTER_HPP
 #define LIBKLIO_CSV_IMPORTER_HPP 1
 
-#include "importer.hpp"
+#include <libklio/importer.hpp>
 
 
 namespace klio {

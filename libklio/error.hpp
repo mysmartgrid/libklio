@@ -85,7 +85,7 @@ namespace klio {
         virtual ~StoreException() throw () {
         };
     };
-    
+
     class EnvironmentException : public GenericException {
     public:
         typedef boost::shared_ptr<EnvironmentException> Ptr;
@@ -96,7 +96,7 @@ namespace klio {
 
         virtual ~EnvironmentException() throw () {
         };
-    };    
+    };
 
     class MemoryException : public EnvironmentException {
     public:
@@ -108,7 +108,7 @@ namespace klio {
 
         virtual ~MemoryException() throw () {
         };
-    };    
+    };
 
 }
 

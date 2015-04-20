@@ -18,7 +18,6 @@
  * along with libklio. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include <libklio/config.h>
 
 #ifdef ENABLE_MSG
@@ -99,7 +98,7 @@ BOOST_AUTO_TEST_CASE(check_create_msg_storage) {
 
                 BOOST_FAIL("A DataFormatException must be thrown when an invalid uuid is informed.");
 
-            } catch (klio::GenericException const& ex) {
+            } catch (klio::DataFormatException const& ex) {
                 //This exception was expected
             }
             store->dispose();
@@ -174,16 +173,16 @@ BOOST_AUTO_TEST_CASE(check_open_msg_storage) {
             }
             store->dispose();
 
-        } catch (klio::CommunicationException const& ce) {
-            std::cout << "The MSGStore tests have been partially disabled. Please make sure that: " << std::endl;
-            std::cout << "1 - the server dev3-api.mysmartgrid.de is reachable from your machine, and " << std::endl;
-            std::cout << "2 - the mSG CA certificate is installed on your environment, as explained here: http://developer.mysmartgrid.de/doku.php?id=webserviceinterface2." << std::endl;
-
         } catch (klio::GenericException const& ex) {
             store->dispose();
             std::cout << "Caught invalid exception: " << ex.what() << std::endl;
             BOOST_FAIL("Unexpected exception occurred for initialize request");
         }
+
+    } catch (klio::CommunicationException const& ce) {
+        std::cout << "The MSGStore tests have been partially disabled. Please make sure that: " << std::endl;
+        std::cout << "1 - the server dev3-api.mysmartgrid.de is reachable from your machine, and " << std::endl;
+        std::cout << "2 - the mSG CA certificate is installed on your environment, as explained here: http://developer.mysmartgrid.de/doku.php?id=webserviceinterface2." << std::endl;
 
     } catch (std::exception const& ex) {
         BOOST_FAIL("Unexpected exception occurred during MSGStore test");
@@ -244,7 +243,7 @@ BOOST_AUTO_TEST_CASE(check_add_msg_sensor) {
 
                 BOOST_FAIL("A DataFormatException must be thrown when an invalid unit is informed.");
 
-            } catch (klio::GenericException const& ex) {
+            } catch (klio::DataFormatException const& ex) {
                 //This exception was expected
             }
 
@@ -261,7 +260,7 @@ BOOST_AUTO_TEST_CASE(check_add_msg_sensor) {
 
                 BOOST_FAIL("A DataFormatException must be thrown when an invalid external_id is informed.");
 
-            } catch (klio::GenericException const& ex) {
+            } catch (klio::DataFormatException const& ex) {
                 //This exception was expected
             }
 

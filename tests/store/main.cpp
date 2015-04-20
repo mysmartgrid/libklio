@@ -1,8 +1,7 @@
 /**
  * This file is part of libklio.
  *
- * (c) Fraunhofer ITWM - Mathias Dalheimer <dalheimer@itwm.fhg.de>,    2010
- *                       Ely de Oliveira   <ely.oliveira@itwm.fhg.de>, 2013
+ * (c) Fraunhofer ITWM - Ely de Oliveira   <ely.oliveira@itwm.fhg.de>, 2014
  *
  * libklio is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +21,7 @@
  * this file only exists to define the BOOST_TEST_MODULE name. All the
  * test codes is in the other .cpp files in this directory.
  */
-#define BOOST_TEST_MODULE msg_store_test
+#define BOOST_TEST_MODULE store_test
 
 #include <boost/test/unit_test.hpp>
 #include <iostream>
@@ -32,17 +31,17 @@
  * see http://www.boost.org/doc/libs/1_43_0/libs/test/doc/html/tutorials/hello-the-testing-world.html
  */
 
-BOOST_AUTO_TEST_CASE ( check_sanity ) {
-  try {
-    std::cout << std::endl << "*** Demo test case: Checking world sanity." << std::endl;
-    BOOST_CHECK_EQUAL (42, 42);
-    BOOST_CHECK( 23 != 42 );        // #1 continues on error
-    BOOST_REQUIRE( 23 != 42 );      // #2 throws on error
-    std::cout << "The world seems to be functioning. For now." << std::endl;
-  } catch (std::exception const & ex) {
-    BOOST_ERROR ( ex.what() );
-  }
-  if( 23 == 42 ) {
-    BOOST_FAIL( "23 == 42, oh noes");             // #4 throws on error
-  }
+BOOST_AUTO_TEST_CASE(check_sanity) {
+    try {
+        std::cout << "Demo test case: Checking world sanity." << std::endl;
+        BOOST_CHECK_EQUAL(42, 42);
+        BOOST_CHECK(23 != 42); // #1 continues on error
+        BOOST_REQUIRE(23 != 42); // #2 throws on error
+
+    } catch (std::exception const & ex) {
+        BOOST_ERROR(ex.what());
+    }
+    if (23 == 42) {
+        BOOST_FAIL("23 == 42, oh noes"); // #4 throws on error
+    }
 }

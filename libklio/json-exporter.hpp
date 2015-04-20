@@ -21,7 +21,7 @@
 #ifndef LIBKLIO_JSON_EXPORTER_HPP
 #define LIBKLIO_JSON_EXPORTER_HPP 1
 
-#include "exporter.hpp"
+#include <libklio/exporter.hpp>
 
 
 namespace klio {

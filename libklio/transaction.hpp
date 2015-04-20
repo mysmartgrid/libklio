@@ -41,10 +41,11 @@ namespace klio {
         virtual void start() = 0;
         virtual void commit() = 0;
         virtual void rollback() = 0;
-        
+
         static Ptr Null;
 
     protected:
+
         Transaction() :
         _pending(false) {
         }

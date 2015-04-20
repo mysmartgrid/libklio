@@ -2,6 +2,7 @@
  * This file is part of libklio.
  *
  * (c) Fraunhofer ITWM - Mathias Dalheimer <dalheimer@itwm.fhg.de>, 2010
+ *                       Ely de Oliveira   <ely.oliveira@itwm.fhg.de>, 2014
  *
  * libklio is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,5 +38,15 @@
  *
  */
 #cmakedefine ENABLE_ROCKSDB 1
+
+/*
+ *
+ */
+#cmakedefine ENABLE_REDIS3M 1
+
+/*
+ *
+ */
+#cmakedefine ENABLE_POSTGRESQL 1
 
 #endif /* LIBKLIO_CONFIG_H_IN */

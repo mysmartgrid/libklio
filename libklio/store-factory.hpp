@@ -25,12 +25,19 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/shared_ptr.hpp>
 #include <libklio/sqlite3/sqlite3-store.hpp>
+#include <libklio/txt/txt-store.hpp>
 #ifdef ENABLE_MSG
 #include <libklio/msg/msg-store.hpp>
 #endif /* ENABLE_MSG */
 #ifdef ENABLE_ROCKSDB
 #include <libklio/rocksdb/rocksdb-store.hpp>
 #endif /* ENABLE_ROCKSDB */
+#ifdef ENABLE_REDIS3M
+#include <libklio/redis/redis-store.hpp>
+#endif /* ENABLE_REDIS3M */
+#ifdef ENABLE_POSTGRESQL
+#include <libklio/postgresql/postgresql-store.hpp>
+#endif /* ENABLE_POSTGRESQL */
 
 namespace bfs = boost::filesystem;
 
@@ -72,6 +79,14 @@ namespace klio {
                 const std::string& synchronous
                 );
 
+        TXTStore::Ptr create_txt_store(const bfs::path& path);
+
+        TXTStore::Ptr create_txt_store(const bfs::path& path, const std::string& field_separator);
+
+        TXTStore::Ptr open_txt_store(const bfs::path& path);
+
+        TXTStore::Ptr open_txt_store(const bfs::path& path, const std::string& field_separator);
+
 #ifdef ENABLE_MSG
 
         MSGStore::Ptr create_msg_store();
@@ -84,7 +99,7 @@ namespace klio {
                 const std::string& description,
                 const std::string& type
                 );
-        
+
         MSGStore::Ptr open_msg_store(const std::string& id, const std::string& key);
 
         MSGStore::Ptr open_msg_store(
@@ -100,20 +115,76 @@ namespace klio {
         RocksDBStore::Ptr create_rocksdb_store(const bfs::path& path);
 
         RocksDBStore::Ptr create_rocksdb_store(const bfs::path& path,
+                const bool auto_flush,
+                const timestamp_t flush_timeout,
+                const bool synchronous
+                );
+
+        RocksDBStore::Ptr create_rocksdb_store(const bfs::path& path,
+                const bool auto_flush,
+                const timestamp_t flush_timeout,
+                const bool synchronous,
                 const std::map<const std::string, const std::string>& db_options,
-                const std::map<const std::string, const std::string>& read_options,
-                const std::map<const std::string, const std::string>& write_options
+                const std::map<const std::string, const std::string>& read_options
                 );
 
         RocksDBStore::Ptr open_rocksdb_store(const bfs::path& path);
 
         RocksDBStore::Ptr open_rocksdb_store(const bfs::path& path,
+                const bool auto_flush,
+                const timestamp_t flush_timeout,
+                const bool synchronous
+                );
+
+        RocksDBStore::Ptr open_rocksdb_store(const bfs::path& path,
+                const bool auto_flush,
+                const timestamp_t flush_timeout,
+                const bool synchronous,
                 const std::map<const std::string, const std::string>& db_options,
-                const std::map<const std::string, const std::string>& read_options,
-                const std::map<const std::string, const std::string>& write_options
+                const std::map<const std::string, const std::string>& read_options
                 );
 
 #endif /* ENABLE_ROCKSDB */
+
+#ifdef ENABLE_REDIS3M
+
+        RedisStore::Ptr create_redis_store();
+
+        RedisStore::Ptr create_redis_store(
+                const std::string& host,
+                const unsigned int port,
+                const unsigned int db
+                );
+
+        RedisStore::Ptr create_redis_store(
+                const std::string& host,
+                const unsigned int port,
+                const unsigned int db,
+                const bool auto_commit,
+                const bool auto_flush,
+                const timestamp_t flush_timeout
+                );
+
+#endif /* ENABLE_REDIS3M */
+
+#ifdef ENABLE_POSTGRESQL
+
+        PostgreSQLStore::Ptr create_postgresql_store();
+
+        PostgreSQLStore::Ptr create_postgresql_store(const std::string& info);
+
+        PostgreSQLStore::Ptr create_postgresql_store(const std::string& info, const bool prepare);
+
+        PostgreSQLStore::Ptr create_postgresql_store(
+                const std::string& info,
+                const bool prepare,
+                const bool auto_commit,
+                const bool auto_flush,
+                const timestamp_t flush_timeout,
+                const bool synchronous
+                );
+
+#endif /* ENABLE_POSTGRESQL */
 
     private:
         StoreFactory(const StoreFactory& original);

@@ -1,6 +1,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
-#include "local-time.hpp"
+#include <libklio/local-time.hpp>
 
 
 namespace bfs = boost::filesystem;
@@ -8,7 +8,7 @@ namespace bfs = boost::filesystem;
 using namespace klio;
 
 LocalTime::LocalTime(const char* cmd) : _tz_db() {
-    
+
     try {
         bfs::path zonespec_filename("date_time_zonespec.csv");
 
@@ -36,7 +36,7 @@ LocalTime::LocalTime(const char* cmd) : _tz_db() {
             std::cerr << "Tried " << (bfs::path("/usr") / bfs::path("share/libklio") / zonespec_filename).c_str() << std::endl;
             exit(-1);
         }
-        
+
     } catch (data_not_accessible dna) {
         std::cerr << "Error with time zone data file: " << dna.what() << std::endl;
         exit(EXIT_FAILURE);

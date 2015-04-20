@@ -102,17 +102,40 @@ several libraries:
 3. pkg-config 0.28 or later
 
 Optionally, in case you want to use the mySmartGrid web site as the storage
-backend, the following additional packages needs to be installed. This is your 
+backend, the following additional package needs to be installed. This is your 
 case if you are compiling Hexabus.
 
-1. CURL 7.19 or later
-2. json-c 0.9 or later
-3. OpenSSL 1.0 or later
+1. libmysmartgrid (https://github.com/mysmartgrid/libmysmartgrid)
 
 Optionally, in case you want to use RocksDB as the storage backend, the
 following additional package needs to be installed.
 
 1. RocksDB 2.0 or later
+
+Optionally, in case you want to use Redis as the storage backend, the
+following additional package needs to be installed.
+
+1. Redis3m (https://github.com/luca3m/redis3m)
+
+requirements for redis3m:
+   * libhiredis-dev
+   * libmsgpack-dev
+   * boost
+
+In order to run unit tests, a Redis server must be accessible from the
+client machine via host name redis-server1 and port 6379.
+
+Optionally, in case you want to use PostgreSQL as the storage backend,
+the following additional packages need to be installed on the client machine.
+
+1. postgresql client 9.3 or later
+2. libpq-dev 9.3 or later
+
+In order to run unit tests, a PostgreSQL sertver must be accessible from the
+client machine via host name postgresql-server1 and port 5432. In addition, a
+database named kliostore must be created on that server, belonging to the user
+kliouser, with password 12test34.
+
 
 The library uses CMake for compile-time configuration. A Makefile is
 provided which wraps the build infrastructure. A simple

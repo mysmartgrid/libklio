@@ -2,13 +2,12 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <libklio/local-time.hpp>
 #include <libklio/error.hpp>
-#include "sensor-factory.hpp"
+#include <libklio/sensor-factory.hpp>
 
 
 using namespace klio;
 
 boost::uuids::random_generator SensorFactory::_gen_uuid;
-
 
 Sensor::Ptr SensorFactory::createSensor(
         const std::string& external_id,
@@ -102,7 +101,7 @@ Sensor::Ptr SensorFactory::createSensor(
         const std::string& timezone,
         const DeviceType::Ptr device_type
         ) {
-    
+
     const LocalTime::Ptr local_time(new LocalTime("../.."));
 
     if (!local_time->is_valid_timezone(timezone)) {
@@ -115,6 +114,6 @@ Sensor::Ptr SensorFactory::createSensor(
 
         throw DataFormatException(oss.str());
     }
-    
+
     return Sensor::Ptr(new Sensor(uuid, external_id, name, description, unit, timezone, device_type));
 }

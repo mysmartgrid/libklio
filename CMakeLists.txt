@@ -15,7 +15,7 @@ set(CMAKE_VERBOSE_MAKEFILE true)
 
 set(V_MAJOR 0)
 set(V_MINOR 5)
-set(V_PATCH 4)
+set(V_PATCH 6)
 
 # use ctest
 include(CTest)
@@ -30,6 +30,12 @@ OPTION(ENABLE_ROCKSDB
 OPTION(ENABLE_MSG
   "Build the project with mysmartgrid enabled"
   ON)
+OPTION(ENABLE_REDIS3M
+  "Build the project with redis3m enabled"
+  ON)
+OPTION(ENABLE_POSTGRESQL
+  "Build the project with PostgreSQL enabled"
+  ON)
 
 ################################################################
   ###################################
@@ -42,10 +48,16 @@ set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} ${CMAKE_ADDITIONAL_PATH}/include)
 set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ${CMAKE_ADDITIONAL_PATH}/lib)
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/modules ${CMAKE_MODULE_PATH})
 
+if(CMAKE_TOOLCHAIN_FILE)
+  list(APPEND CMAKE_FIND_ROOT_PATH ${LIBMYSMARTGRID_HOME})
+endif()
+
 include (CheckCompiler)
 info_compiler()
 
 include (UseCodeCoverage)
+
+add_definitions(-std=c++0x)
 
 set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wno-non-virtual-dtor -g -fomit-frame-pointer")
 
@@ -117,29 +129,35 @@ if( ENABLE_ROCKSDB )
 endif()
 
 if( ENABLE_MSG )
-  # libjson
-  include(FindJson)
-  if( NOT JSON_FOUND)
-    message(STATUS "libjson is required.
-            Install json or call cmake -DJSON_HOME=path_to_json_install")
+  include(FindLibMysmartGrid)
+  if( NOT LIBMYSMARTGRID_FOUND)
+    message(STATUS "libmysmartgrid is required.
+            Install libmysmartgrid or call cmake -DLIBMYSMARTGRID_HOME=path_to_libmysmartgrid_install")
     set(ENABLE_MSG False)
   else()
-    include_directories(${JSON_INCLUDE_DIR})
-
-    # Curl
-    IF(WIN32)
-      add_definitions(-DCURL_STATICLIB)
-      include(FindCURL_WIN32)
-    else(WIN32)
-      #  add_definitions(-DCURL_STATICLIB)
-      include(FindCurl)
-      #include(FindGnutls)
-    endif(WIN32)
-    if( NOT CURL_FOUND )
+    include(FindJsonCpp)
+    if( NOT JSONCPP_FOUND)
+      message(STATUS "jsoncpp is required.
+              Install jsoncpp or call cmake -DJSONCPP_HOME=path_to_jsoncpp_install")
       set(ENABLE_MSG False)
-    endif()
-    find_package(OpenSSL)
-  endif( NOT JSON_FOUND)
+    endif( NOT JSONCPP_FOUND)
+  endif( NOT LIBMYSMARTGRID_FOUND)
+endif()
+
+if( ENABLE_REDIS3M )
+  include(FindRedis3m)
+  if( NOT REDIS3M_FOUND)
+    message(STATUS "redis3m support is disabled because the library is not found. Install redis3m or call cmake -DREDIS3M_HOME=path_to_redis3m_install in order to enable it.")
+    set(ENABLE_REDIS3M Off)
+  endif( NOT REDIS3M_FOUND)
+endif()
+
+if( ENABLE_POSTGRESQL )
+  include(FindPostgreSQL)
+  if( NOT POSTGRESQL_FOUND)
+    message(STATUS "PostgreSQL support is disabled because the library is not found. Install PostgreSQL or call cmake -DPOSTGRESQL_HOME=path_to_postgresql_install in order to enable it.")
+    set(ENABLE_POSTGRESQL Off)
+  endif( NOT POSTGRESQL_FOUND)
 endif()
 
 # this file is installed and contains all necessary information about the installed libseda,
@@ -209,10 +227,15 @@ message("  boost libraries shortcut: ${Boost_LIBRARIES}")
 message("  boost program options lib: ${Boost_PROGRAM_OPTIONS_LIBRARY}")
 message("  boost system lib: ${Boost_SYSTEM_LIBRARY}")
 message("  boost filesystem lib: ${Boost_FILESYSTEM_LIBRARY}")
-message("  json: -L${JSON_LIBRARY} -I${JSON_INCLUDE_DIR}")
+message("  libmysmartgrid include: ${LIBMYSMARTGRID_INCLUDE_DIR}, lib: ${LIBMYSMARTGRID_LIBRARY}")
+message("  jsoncpp include: ${JSONCPP_INCLUDE_DIR}, lib: ${JSONCPP_LIBRARY}")
 message("  sqlite3 include: ${SQLITE3_INCLUDE_DIR}, lib: ${SQLITE3_LIBRARIES}")
 message("  rocksdb include: ${ROCKSDB_INCLUDE_DIR}, lib: ${ROCKSDB_STATIC_LIBRARIES}")
+message("  redis3m include: ${REDIS3M_INCLUDE_DIR}, lib: ${REDIS3M_LIBRARY}")
+message("  PostgreSQL include: ${POSTGRESQL_INCLUDE_DIR}, lib: ${POSTGRESQL_LIBRARY}")
 message("  extended logging: ${ENABLE_LOGGING}")
 message("  rocksdb: ${ENABLE_ROCKSDB}")
+message("  redis3m: ${ENABLE_REDIS3M}")
+message("  PostgreSQL: ${ENABLE_POSTGRESQL}")
 message("  mysmartgrid: ${ENABLE_MSG}")
 

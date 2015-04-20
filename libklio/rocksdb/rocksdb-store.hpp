@@ -38,14 +38,24 @@ namespace klio {
         typedef boost::shared_ptr<RocksDBStore> Ptr;
 
         RocksDBStore(const bfs::path& path,
+                const bool auto_flush,
+                const timestamp_t flush_timeout,
+                const bool synchronous,
                 const std::map<const std::string, const std::string>& db_options,
-                const std::map<const std::string, const std::string>& read_options,
-                const std::map<const std::string, const std::string>& write_options) :
-        Store(true, 600, true),
+                const std::map<const std::string, const std::string>& read_options) :
+        Store(true, auto_flush, flush_timeout, 10, 10000),
         _path(path),
+        _synchronous(synchronous),
         _db_options(db_options),
-        _read_options(read_options),
-        _write_options(write_options) {
+        _read_options(read_options) {
+
+            if (_synchronous) {
+                _write_options.sync = "true";
+                _write_options.disableWAL = "false";
+            } else {
+                _write_options.sync = "false";
+                _write_options.disableWAL = "true";
+            }
         };
 
         virtual ~RocksDBStore() {
@@ -63,7 +73,8 @@ namespace klio {
         void add_sensor_record(const Sensor::Ptr sensor);
         void remove_sensor_record(const Sensor::Ptr sensor);
         void update_sensor_record(const Sensor::Ptr sensor);
-        void add_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors);
+        void add_single_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value, const bool ignore_errors);
+        void add_bulk_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors);
         void update_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors);
 
         std::vector<Sensor::Ptr> get_sensor_records();
@@ -80,9 +91,10 @@ namespace klio {
         RocksDBStore& operator =(const RocksDBStore& rhs);
 
         bfs::path _path;
+        bool _synchronous;
         std::map<const std::string, const std::string> _db_options;
         std::map<const std::string, const std::string> _read_options;
-        std::map<const std::string, const std::string> _write_options;
+        rocksdb::WriteOptions _write_options;
         std::map<const std::string, rocksdb::DB*> _db_buffer;
 
         rocksdb::DB* open_db(const bool create_if_missing, const bool error_if_exists, const std::string& db_path);
@@ -93,6 +105,7 @@ namespace klio {
         void put_value(rocksdb::DB* db, const std::string& key, const std::string& value);
         std::string get_value(rocksdb::DB* db, const std::string& key);
         void delete_value(rocksdb::DB* db, const std::string& key);
+        void write_batch(rocksdb::DB* db, rocksdb::WriteBatch& batch);
         Sensor::Ptr load_sensor(const Sensor::uuid_t& uuid);
 
         const std::string compose_db_path();

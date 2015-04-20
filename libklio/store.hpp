@@ -84,11 +84,14 @@ namespace klio {
         void sync_sensors(const Store::Ptr store);
 
     protected:
-        Store(const bool auto_commit, const bool auto_flush, const timestamp_t flush_timeout) :
+
+        Store(const bool auto_commit, const bool auto_flush, const timestamp_t flush_timeout, const unsigned int min_bulk_size, const unsigned int max_bulk_size) :
         _auto_commit(auto_commit),
         _auto_flush(auto_flush),
         _flush_timeout(flush_timeout),
-        _last_flush(0) {
+        _last_flush(0),
+        _min_bulk_size(min_bulk_size),
+        _max_bulk_size(max_bulk_size) {
         };
 
         static const SensorFactory::Ptr sensor_factory;
@@ -101,7 +104,8 @@ namespace klio {
         virtual void add_sensor_record(const Sensor::Ptr sensor) = 0;
         virtual void remove_sensor_record(const Sensor::Ptr sensor) = 0;
         virtual void update_sensor_record(const Sensor::Ptr sensor) = 0;
-        virtual void add_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) = 0;
+        virtual void add_single_reading_record(const Sensor::Ptr sensor, const timestamp_t timestamp, const double value, const bool ignore_errors) = 0;
+        virtual void add_bulk_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) = 0;
         virtual void update_reading_records(const Sensor::Ptr sensor, const readings_t& readings, const bool ignore_errors) = 0;
 
         virtual std::vector<Sensor::Ptr> get_sensor_records() = 0;
@@ -117,6 +121,7 @@ namespace klio {
         void handle_reading_insertion_error(const bool ignore_errors, const Sensor::Ptr sensor);
 
         bool _auto_commit;
+        bool _auto_flush;
         boost::unordered_map<const Sensor::uuid_t, Sensor::Ptr> _sensors_buffer;
 
     private:
@@ -133,9 +138,10 @@ namespace klio {
         static const cached_operation_type_t UPDATE_OPERATION;
         static const cached_operation_type_t DELETE_OPERATION;
 
-        bool _auto_flush;
         timestamp_t _flush_timeout;
         timestamp_t _last_flush;
+        unsigned int _min_bulk_size;
+        unsigned int _max_bulk_size;
 
         boost::unordered_map<const Sensor::uuid_t, cached_reading_operations_type_t_Ptr> _reading_operations_buffer;
         boost::unordered_map<const std::string, Sensor::uuid_t> _external_ids_buffer;

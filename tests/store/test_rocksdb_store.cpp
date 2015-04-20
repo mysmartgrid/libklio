@@ -28,7 +28,6 @@
 #include <libklio/sensor-factory.hpp>
 #include <testconfig.h>
 
-
 /**
  * see http://www.boost.org/doc/libs/1_43_0/libs/test/doc/html/tutorials/hello-the-testing-world.html
  */
@@ -52,7 +51,7 @@ BOOST_AUTO_TEST_CASE(check_open_corrupt_rocksdb_path) {
 
     } catch (klio::StoreException const& ex) {
         //This exception is expected
-        bfs::remove(db);//TODO: use dispose() here
+        bfs::remove(db); //TODO: use dispose() here
     }
 }
 
@@ -103,7 +102,7 @@ BOOST_AUTO_TEST_CASE(check_add_rocksdb_sensor) {
         store->add_sensor(sensor);
 
         klio::Sensor::Ptr retrieved = store->get_sensor(sensor->uuid());
-        
+
         BOOST_CHECK_EQUAL(sensor->uuid(), retrieved->uuid());
         BOOST_CHECK_EQUAL(sensor->name(), retrieved->name());
         BOOST_CHECK_EQUAL(sensor->external_id(), retrieved->external_id());
@@ -112,7 +111,7 @@ BOOST_AUTO_TEST_CASE(check_add_rocksdb_sensor) {
         BOOST_CHECK_EQUAL(sensor->timezone(), retrieved->timezone());
 
         store->dispose();
-        
+
     } catch (std::exception const& ex) {
         store->dispose();
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
@@ -522,6 +521,196 @@ BOOST_AUTO_TEST_CASE(check_rocksdb_num_readings) {
         std::cout << "Caught invalid exception: " << ex.what() << std::endl;
         BOOST_FAIL("Unexpected store exception occurred during sensor test");
     }
+}
+
+BOOST_AUTO_TEST_CASE(check_rocksdb_store_creation_performance) {
+
+    try {
+        klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+        klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "sensor1", "Watt", "Europe/Berlin"));
+        klio::Sensor::Ptr sensor2(sensor_factory->createSensor("sensor2", "sensor2", "Watt", "Europe/Berlin"));
+        klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
+        klio::Store::Ptr store;
+        bfs::path db(TEST_DB_PATH);
+
+        boost::posix_time::time_duration elapsed_time;
+        double seconds = 0;
+        boost::posix_time::ptime time_before;
+        boost::posix_time::ptime time_after;
+
+        std::cout.precision(7);
+        std::cout << std::fixed;
+
+        try {
+            std::cout << std::endl << "Performance Test" << std::endl;
+            std::cout << "Performance Test - RocksDBStore" << std::endl;
+
+            time_before = boost::posix_time::microsec_clock::local_time();
+
+            store = store_factory->create_rocksdb_store(db, false, false, 0);
+
+            time_after = boost::posix_time::microsec_clock::local_time();
+
+            elapsed_time = time_after - time_before;
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - RocksDBStore - " <<
+                    "Create store :                              "
+                    << seconds << " s" << std::endl;
+
+            store->dispose();
+
+        } catch (klio::StoreException const& ex) {
+            std::cout << "Caught invalid exception: " << ex.what() << std::endl;
+            BOOST_FAIL("Unexpected store exception occurred during sensor test");
+            store->dispose();
+        }
+
+    } catch (std::exception const& ex) {
+        BOOST_FAIL("Unexpected exception occurred during sensor test");
+    }
+}
+
+void run_rocksdb_store_performance_tests(const bool auto_flush, const long flush_timeout, const bool synchronous, const size_t num_readings) {
+
+    try {
+        klio::SensorFactory::Ptr sensor_factory(new klio::SensorFactory());
+        klio::Sensor::Ptr sensor1(sensor_factory->createSensor("sensor1", "sensor1", "Watt", "Europe/Berlin"));
+        klio::Sensor::Ptr sensor2(sensor_factory->createSensor("sensor2", "sensor2", "Watt", "Europe/Berlin"));
+        klio::StoreFactory::Ptr store_factory(new klio::StoreFactory());
+        klio::Store::Ptr store;
+        bfs::path db(TEST_DB_PATH);
+
+        boost::posix_time::time_duration elapsed_time;
+        double seconds = 0;
+        boost::posix_time::ptime time_before;
+        boost::posix_time::ptime time_after;
+
+        std::cout.precision(7);
+        std::cout << std::fixed;
+
+        try {
+            std::cout << std::endl << "Performance Test" << std::endl;
+            std::cout << std::endl << "Performance Test - RocksDBStore - " <<
+                    "auto flushing: " << (auto_flush ? "true" : "false") <<
+                    ", synchronous: " << (synchronous ? "true" : "false") << std::endl;
+
+            store = store_factory->create_rocksdb_store(db, auto_flush, flush_timeout, synchronous);
+
+            time_before = boost::posix_time::microsec_clock::local_time();
+            store->add_sensor(sensor1);
+            time_after = boost::posix_time::microsec_clock::local_time();
+
+            elapsed_time = time_after - time_before;
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - RocksDBStore - " <<
+                    "Add 1st sensor:                             "
+                    << seconds << " s" << std::endl;
+
+            time_before = boost::posix_time::microsec_clock::local_time();
+            store->add_sensor(sensor2);
+            time_after = boost::posix_time::microsec_clock::local_time();
+
+            elapsed_time = time_after - time_before;
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - RocksDBStore - " <<
+                    "Add 2nd sensor:                             "
+                    << seconds << " s" << std::endl;
+
+            klio::TimeConverter::Ptr tc(new klio::TimeConverter());
+            klio::timestamp_t timestamp = tc->get_timestamp() - 1000;
+            double reading = 23;
+
+            time_before = boost::posix_time::microsec_clock::local_time();
+            store->add_reading(sensor1, timestamp, reading);
+            time_after = boost::posix_time::microsec_clock::local_time();
+
+            elapsed_time = time_after - time_before;
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - RocksDBStore - " <<
+                    "Add 1st reading:                            "
+                    << seconds << " s" << std::endl;
+
+            timestamp -= 3000;
+
+            time_before = boost::posix_time::microsec_clock::local_time();
+            store->add_reading(sensor1, timestamp, reading);
+            time_after = boost::posix_time::microsec_clock::local_time();
+
+            elapsed_time = time_after - time_before;
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - RocksDBStore - " <<
+                    "Add 2nd reading:                            "
+                    << seconds << " s" << std::endl;
+
+            klio::readings_t readings;
+            for (size_t i = 0; i < num_readings; i++) {
+                timestamp = tc->get_timestamp() - i;
+                reading = 23;
+                klio::reading_t foo(timestamp, reading);
+                readings.insert(foo);
+            }
+
+            time_before = boost::posix_time::microsec_clock::local_time();
+            store->add_readings(sensor1, readings);
+            time_after = boost::posix_time::microsec_clock::local_time();
+
+            elapsed_time = time_after - time_before;
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - RocksDBStore - " <<
+                    "Add " << num_readings << " readings:                          "
+                    << seconds << " s" << std::endl;
+
+            if (!auto_flush) {
+                time_before = boost::posix_time::microsec_clock::local_time();
+                store->flush();
+                time_after = boost::posix_time::microsec_clock::local_time();
+
+                elapsed_time = time_after - time_before;
+                seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+                std::cout << "Performance Test - RocksDBStore - " <<
+                        "Flushing " << num_readings << " readings:                     "
+                        << seconds << " s" << std::endl;
+            }
+
+            time_before = boost::posix_time::microsec_clock::local_time();
+            store->get_sensors_by_external_id(sensor1->external_id());
+            time_after = boost::posix_time::microsec_clock::local_time();
+
+            elapsed_time = time_after - time_before;
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - RocksDBStore - " <<
+                    "Get sensors by external id:                 "
+                    << seconds << " s" << std::endl;
+
+            time_before = boost::posix_time::microsec_clock::local_time();
+            store->get_all_readings(sensor1);
+            time_after = boost::posix_time::microsec_clock::local_time();
+
+            elapsed_time = time_after - time_before;
+            seconds = ((double) elapsed_time.total_microseconds()) / 1000000;
+            std::cout << "Performance Test - RocksDBStore - " <<
+                    "Get " << num_readings << " readings:                          "
+                    << seconds << " s" << std::endl;
+
+            store->dispose();
+
+        } catch (klio::StoreException const& ex) {
+            std::cout << "Caught invalid exception: " << ex.what() << std::endl;
+            BOOST_FAIL("Unexpected store exception occurred during sensor test");
+            store->dispose();
+        }
+
+    } catch (std::exception const& ex) {
+        BOOST_FAIL("Unexpected exception occurred during sensor test");
+    }
+}
+
+BOOST_AUTO_TEST_CASE(check_rocksdb_store_performance) {
+
+    run_rocksdb_store_performance_tests(true, 0, false, 1000);
+    run_rocksdb_store_performance_tests(true, 0, true, 1000);
+    run_rocksdb_store_performance_tests(false, 0, false, 1000);
+    run_rocksdb_store_performance_tests(false, 0, true, 1000);
 }
 
 #endif /* ENABLE_ROCKSDB */

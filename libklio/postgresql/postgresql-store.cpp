@@ -220,7 +220,7 @@ std::vector<Sensor::Ptr> PostgreSQLStore::get_sensor_records() {
 
     } catch (std::exception const& e) {
         clear(result);
-        throw e;
+        throw;
     }
 }
 
@@ -257,7 +257,7 @@ unsigned long int PostgreSQLStore::get_num_readings_value(const Sensor::Ptr sens
 
     } catch (std::exception const& e) {
         clear(result);
-        throw e;
+        throw;
     }
 }
 
@@ -403,7 +403,7 @@ void PostgreSQLStore::prepare_statement(const char* statement_name, const char* 
 
     } catch (std::exception const& e) {
         clear(result);
-        throw e;
+        throw;
     }
 }
 
@@ -433,7 +433,7 @@ readings_t_Ptr PostgreSQLStore::get_reading_records(const char* statement_name, 
 
     } catch (std::exception const& e) {
         clear(result);
-        throw e;
+        throw;
     }
 }
 
@@ -447,7 +447,7 @@ void PostgreSQLStore::execute(const char* statement) {
 
     } catch (std::exception const& e) {
         clear(result);
-        throw e;
+        throw;
     }
 }
 
@@ -462,7 +462,7 @@ void PostgreSQLStore::execute(const char* statement_name, const char* params[], 
 
         } catch (std::exception const& e) {
             clear(result);
-            throw e;
+            throw;
         }
     } else {
         int code = PQsendQueryPrepared(_connection, statement_name, num_params, params, NULL, NULL, 0);

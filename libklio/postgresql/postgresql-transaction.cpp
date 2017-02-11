@@ -15,6 +15,9 @@ void PostgreSQLTransaction::start() {
         oss << "Database is not open.";
         throw StoreException(oss.str());
 
+    } else if (PQstatus(_connection) != CONNECTION_OK) {
+			// 
+			LOG("Transaction::start Database connection is lost.");
     } else if (_pending) {
         LOG("Transaction is already started.");
 
@@ -40,6 +43,9 @@ void PostgreSQLTransaction::commit() {
         //FIXME: raise an exception
         LOG("Database is not open.");
 
+    } else if (PQstatus(_connection) != CONNECTION_OK) {
+			// 
+			LOG("Transaction::Commit failed. Database connection is lost.");
     } else if (_pending) {
 
         PGresult *result = PQexec(_connection, "COMMIT");
@@ -65,6 +71,9 @@ void PostgreSQLTransaction::rollback() {
         //FIXME: raise an exception
         LOG("Database is not open.");
 
+    } else if (PQstatus(_connection) != CONNECTION_OK) {
+			// 
+			LOG("Transaction::Rollback failed. Database connection is lost.");
     } else if (_pending) {
 
         PGresult *result = PQexec(_connection, "ROLLBACK");

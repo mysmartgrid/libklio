@@ -440,6 +440,16 @@ readings_t_Ptr PostgreSQLStore::get_reading_records(const char* statement_name, 
 void PostgreSQLStore::execute(const char* statement) {
 
     PGresult* result = NULL;
+    if (_connection == NULL) {
+			LOG("Store::execute failed: Connection is closed.");
+			throw CommunicationException("Store::execute failed: Connection is closed.");
+		}
+		if (PQstatus(_connection) != CONNECTION_OK) {
+			// 
+			LOG("Store::execute failed: Database connection is lost.");
+			clear_connection_references();
+			throw CommunicationException("Store::execute failed: Connection lost.");
+    }
     try {
         result = PQexec(_connection, statement);
         check(result, PGRES_COMMAND_OK);
@@ -452,6 +462,11 @@ void PostgreSQLStore::execute(const char* statement) {
 }
 
 void PostgreSQLStore::execute(const char* statement_name, const char* params[], const int num_params) {
+
+    if (_connection == NULL) {
+			LOG("Store::execute failed: Connection is closed.");
+			throw CommunicationException("Connection is closed.");
+		}
 
     if (_synchronous) {
 
@@ -471,6 +486,18 @@ void PostgreSQLStore::execute(const char* statement_name, const char* params[], 
 }
 
 PGresult* PostgreSQLStore::execute(const char* statement_name, const char* params[], const int num_params, const ExecStatusType expected_status) {
+
+    if (_connection == NULL) {
+			LOG("Store::execute failed: Connection is closed.");
+			std::cerr<<"Database connection is closed! 2"<<std::endl;
+			throw CommunicationException("Store::excute failed: Connection is closed.");
+		}
+		if (PQstatus(_connection) != CONNECTION_OK) {
+			// 
+			LOG("Store::execute failed: Database connection is lost.");
+			clear_connection_references();
+			throw CommunicationException("Store::execute failed: Connection lost.");
+    }
 
     PGresult* result = PQexecPrepared(_connection, statement_name, num_params, params, NULL, NULL, 0);
     check(result, expected_status);

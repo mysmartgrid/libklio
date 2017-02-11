@@ -20,7 +20,10 @@ if(REDIS3M_FOUND)
 endif(REDIS3M_FOUND)
 
 if(POSTGRESQL_FOUND)
-  target_link_libraries(algorithmstest ${POSTGRESQL_LIBRARY})
+    include_directories(
+                    ${POSTGRESQL_INCLUDE_DIR}
+    )
+    target_link_libraries(algorithmstest ${POSTGRESQL_LIBRARY})
 endif(POSTGRESQL_FOUND)
 
 ADD_TEST(AlgorithmTest ${CMAKE_CURRENT_BINARY_DIR}/algorithmstest TestAlgorithms)

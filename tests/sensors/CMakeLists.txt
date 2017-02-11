@@ -22,7 +22,10 @@ target_link_libraries(sensorstest ${REDIS3M_LIBRARY})
 endif(REDIS3M_FOUND)
 
 if(POSTGRESQL_FOUND)
-target_link_libraries(sensorstest ${POSTGRESQL_LIBRARY})
+    include_directories(
+                    ${POSTGRESQL_INCLUDE_DIR}
+    )
+    target_link_libraries(sensorstest ${POSTGRESQL_LIBRARY})
 endif(POSTGRESQL_FOUND)
 
 ADD_TEST(SensorTest ${CMAKE_CURRENT_BINARY_DIR}/sensorstest TestSensors)

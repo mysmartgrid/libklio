@@ -15,6 +15,12 @@ if(REDIS3M_FOUND)
 target_link_libraries(storetest ${REDIS3M_LIBRARY})
 link_directories(${REDIS3M_LIBRARY_DIRS})
 endif(REDIS3M_FOUND)
+if(POSTGRESQL_FOUND)
+    include_directories(
+                    ${POSTGRESQL_INCLUDE_DIR}
+    )
+    link_directories(${POSTGRESQL_LIBRARY_DIRS})
+endif(POSTGRESQL_FOUND)
 
 # Link the executable 
 link_directories(${SQLITE3_LIBRARY_DIRS})

@@ -66,13 +66,18 @@ if(POSTGRESQL_FOUND)
     )
 endif(POSTGRESQL_FOUND)
 
+if(LIBMYSMARTGRID_FOUND)
+    include_directories(
+	${LIBMYSMARTGRID_INCLUDE_DIR}
+    )
+endif(LIBMYSMARTGRID_FOUND)
+
 file(GLOB klio_algorithm_hdrs algorithm/*.h algorithm/*.hpp)
 install(FILES ${klio_algorithm_hdrs} DESTINATION include/libklio/algorithm)
 
 include_directories(${CMAKE_SOURCE_DIR}
                     ${SQLITE3_INCLUDE_DIR}
                     ${JSONCPP_INCLUDE}
-                    ${LIBMYSMARTGRID_INCLUDE_DIR}
 )
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
